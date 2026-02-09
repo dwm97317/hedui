@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Input, Typography, Alert } from 'antd';
+import { Input, Typography, Alert, message } from 'antd';
 import { BarcodeOutlined } from '@ant-design/icons';
 
 import { Role } from '../types';
 import { useTranslation } from 'react-i18next';
+import { scannerAdapter } from '../services/scanner';
 
 interface ScannerProps {
     onScan: (barcode: string) => void;
@@ -17,12 +18,12 @@ export default function Scanner({ onScan, activeBarcode, disabled }: ScannerProp
     const [lastScanned, setLastScanned] = useState<string | null>(null);
     const inputRef = useRef<any>(null);
 
+    // Focus Keeper: We still want the input focused for manual "Zero-Click" typing if possible,
+    // though the Adapter handles background HID scans now.
     useEffect(() => {
         if (disabled) return;
         const timer = setInterval(() => {
             if (!inputRef.current) return;
-
-            // IF the current active element is already an input or button, DON'T steal focus
             const active = document.activeElement;
             const isInteracting =
                 active && (
@@ -42,18 +43,27 @@ export default function Scanner({ onScan, activeBarcode, disabled }: ScannerProp
         return () => clearInterval(timer);
     }, []);
 
-    // PDA Broadcast Mode Bridge: Listen for window.onScan (industry standard for professional scanners)
+    // Unified Scanner Adapter Subscription
     useEffect(() => {
-        (window as any).onScan = (barcode: string) => {
-            if (disabled) return;
-            if (barcode) {
-                onScan(barcode.trim());
-                setLastScanned(barcode.trim());
-                setValue(''); // Clear manual input if any
+        if (disabled) return;
+
+        const unsubscribe = scannerAdapter.onScan((result) => {
+            console.log('Scanner Component Received:', result);
+            if (result.raw) {
+                // Play a sound or feedback?
+                // Audio feedback could be here.
+
+                onScan(result.raw.trim());
+                setLastScanned(result.raw.trim());
+                setValue(''); // Clear manual input just in case
+                message.success(t('scanner_success', { barcode: result.raw }));
             }
+        });
+
+        return () => {
+            unsubscribe();
         };
-        return () => { delete (window as any).onScan; };
-    }, [onScan, disabled]);
+    }, [onScan, disabled, t]);
 
     const handlePressEnter = () => {
         if (value.trim()) {

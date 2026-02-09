@@ -21,12 +21,17 @@ export interface Parcel {
     batch_id: string | null;
     status: 'pending' | 'sent' | 'in_transit' | 'received' | 'anomaly' | 'relabeled';
     package_type: 'original' | 'derived';
+    printed?: boolean;
+    printed_at?: string | null;
+    printed_by?: string | null;
+    custom_id?: string | null;
     sender_user_id?: string | null;
     transit_user_id?: string | null;
     receiver_user_id?: string | null;
     sender_updated_at?: string | null;
     transit_updated_at?: string | null;
     receiver_updated_at?: string | null;
+    weight_source?: 'BLE' | 'HID' | 'MANUAL' | null;
     created_at: string;
     updated_at: string;
     batches?: { batch_number: string };

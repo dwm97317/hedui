@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout, Typography, Space, Button, Tag, Modal, message, Alert, Input, Select } from 'antd';
-import { LogoutOutlined, HistoryOutlined } from '@ant-design/icons';
+import { LogoutOutlined, HistoryOutlined, PlusOutlined } from '@ant-design/icons';
 import { supabase } from '../lib/supabase';
 import Scanner from '../components/Scanner';
 import ParcelTable from '../components/ParcelTable';
@@ -206,7 +206,43 @@ export default function MainApp() {
                             />
 
                             {/* Admin Actions (Desktop Only placement choice or just conditional) */}
-                            {activeBatch.status === 'active' && canEdit && (
+                            {role === 'sender' && activeBatch.status === 'active' && canEdit && (
+                                <div className="neon-card" style={{ padding: '12px', marginBottom: '15px', border: '1px dashed var(--primary)' }}>
+                                    <Button
+                                        type="primary"
+                                        block
+                                        icon={<PlusOutlined />}
+                                        onClick={async () => {
+                                            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                                            // Simple count for now, in prod use a DB sequence or count
+                                            const { count } = await supabase.from('parcels').select('*', { count: 'exact', head: true }).eq('batch_id', activeBatch.id);
+                                            const seq = (count || 0) + 1;
+                                            const stNum = `ST${dateStr}-${String(seq).padStart(3, '0')}`;
+
+                                            const { data, error } = await supabase.from('parcels').insert({
+                                                batch_id: activeBatch.id,
+                                                barcode: stNum,
+                                                custom_id: stNum,
+                                                sender_user_id: currentUserId,
+                                                status: 'pending'
+                                            }).select().single();
+
+                                            if (error) message.error(t('common.error') + ': ' + error.message);
+                                            else {
+                                                message.success(t('parcel.create_success', { barcode: stNum }));
+                                                setActiveBarcode(stNum);
+                                            }
+                                        }}
+                                    >
+                                        {t('parcel.create_new')}
+                                    </Button>
+                                    <div style={{ textAlign: 'center', fontSize: '10px', color: 'var(--text-sub)', marginTop: 5 }}>
+                                        {t('parcel.create_tip')}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeBatch.status === 'active' && canEdit && systemRole === 'admin' && (
                                 <div className="desktop-only">
                                     <Button
                                         block
