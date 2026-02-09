@@ -2,12 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { Input, Typography, Alert } from 'antd';
 import { BarcodeOutlined } from '@ant-design/icons';
 
+import { Role } from '../types';
+import { useTranslation } from 'react-i18next';
+
 interface ScannerProps {
     onScan: (barcode: string) => void;
+    activeBarcode?: string | null;
     disabled?: boolean;
 }
 
-export default function Scanner({ onScan, disabled }: ScannerProps) {
+export default function Scanner({ onScan, activeBarcode, disabled }: ScannerProps) {
+    const { t } = useTranslation();
     const [value, setValue] = useState('');
     const [lastScanned, setLastScanned] = useState<string | null>(null);
     const inputRef = useRef<any>(null);
@@ -37,6 +42,19 @@ export default function Scanner({ onScan, disabled }: ScannerProps) {
         return () => clearInterval(timer);
     }, []);
 
+    // PDA Broadcast Mode Bridge: Listen for window.onScan (industry standard for professional scanners)
+    useEffect(() => {
+        (window as any).onScan = (barcode: string) => {
+            if (disabled) return;
+            if (barcode) {
+                onScan(barcode.trim());
+                setLastScanned(barcode.trim());
+                setValue(''); // Clear manual input if any
+            }
+        };
+        return () => { delete (window as any).onScan; };
+    }, [onScan, disabled]);
+
     const handlePressEnter = () => {
         if (value.trim()) {
             onScan(value.trim());
@@ -46,10 +64,13 @@ export default function Scanner({ onScan, disabled }: ScannerProps) {
     };
 
     return (
-        <div>
+        <div className="neon-card" style={{ padding: '2px', background: 'transparent', border: 'none' }}>
+            <Typography.Text strong style={{ color: 'var(--primary)', marginBottom: 5, display: 'block', fontSize: '12px' }}>
+                {t('scanner_label')}
+            </Typography.Text>
             <Input
                 ref={inputRef}
-                placeholder="请扫码或手动输入..."
+                placeholder={t('scanner_placeholder_full')}
                 prefix={<BarcodeOutlined style={{ color: 'var(--primary)' }} />}
                 size="large"
                 value={value}
@@ -57,18 +78,18 @@ export default function Scanner({ onScan, disabled }: ScannerProps) {
                 onPressEnter={handlePressEnter}
                 disabled={disabled}
                 className="neon-border scanner-focus"
-                style={{ background: 'rgba(0,0,0,0.2)', color: 'white' }}
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}
             />
-            {lastScanned && (
+            {(activeBarcode || lastScanned) && (
                 <Alert
-                    message={`完成定位: ${lastScanned}`}
+                    message={t('scanner_success', { barcode: activeBarcode || lastScanned })}
                     type="success"
                     showIcon
                     style={{ marginTop: '10px', background: 'rgba(82, 196, 26, 0.1)', border: 'none', color: '#52c41a' }}
                 />
             )}
-            <Typography.Text type="secondary" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
-                提示: 扫码器通常模拟回车。光标将自动锁定。
+            <Typography.Text type="secondary" style={{ fontSize: '11px', marginTop: '8px', display: 'block', color: 'var(--text-sub)' }}>
+                {t('scanner_tip')}
             </Typography.Text>
         </div>
     );

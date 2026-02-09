@@ -3,12 +3,14 @@ import { Card, Space, Button, Select, Input, Typography, message, Modal, Divider
 import { PlusOutlined, SelectOutlined } from '@ant-design/icons';
 import { supabase } from '../lib/supabase';
 import { Batch } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface BatchSelectorProps {
     onSelect: (batch: Batch) => void;
 }
 
 export default function BatchSelector({ onSelect }: BatchSelectorProps) {
+    const { t } = useTranslation();
     const [batches, setBatches] = useState<Batch[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,7 +35,7 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
     }, []);
 
     const handleCreate = async () => {
-        if (!newBatchNumber) return message.warning('请输入批次号');
+        if (!newBatchNumber) return message.warning(t('batch.input_error'));
 
         const { data, error } = await supabase
             .from('batches')
@@ -46,26 +48,26 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
 
         if (error) {
             if (error.code === '23505') {
-                message.error('该批次号已存在，请在下拉框中直接选择');
+                message.error(t('batch.exists_error'));
             } else {
-                message.error('创建失败: ' + error.message);
+                message.error(t('common.error') + ': ' + error.message);
             }
         } else {
-            message.success('批次创建成功');
+            message.success(t('batch.create_success'));
             setIsModalOpen(false);
             onSelect(data);
         }
     };
 
     return (
-        <Card className="neon-card" title="任务批次选择 (Batch Selection)" style={{ maxWidth: '600px', margin: '40px auto' }}>
+        <Card className="neon-card" title={t('batch.selector_title')} style={{ maxWidth: '600px', margin: '40px auto' }}>
             <Space direction="vertical" style={{ width: '100%' }} size="large">
                 <Typography.Text type="secondary">
-                    所有操作（扫描、称重、转单）必须在指定批次内进行，以确保账务一致性。
+                    {t('batch.selector_desc')}
                 </Typography.Text>
 
                 <Select
-                    placeholder="选择一个进行中的批次..."
+                    placeholder={t('batch.placeholder')}
                     style={{ width: '100%' }}
                     size="large"
                     loading={loading}
@@ -81,7 +83,7 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
                     ))}
                 </Select>
 
-                <Divider style={{ borderColor: 'rgba(255,255,255,0.1)' }}>或者</Divider>
+                <Divider style={{ borderColor: 'rgba(255,255,255,0.1)' }}>{t('batch.or')}</Divider>
 
                 <Button
                     type="dashed"
@@ -91,22 +93,22 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
                     onClick={() => setIsModalOpen(true)}
                     style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}
                 >
-                    创建新的一票货 (New Batch)
+                    {t('batch.create_button')}
                 </Button>
             </Space>
 
             <Modal
-                title="创建新批次"
+                title={t('batch.create_title')}
                 open={isModalOpen}
                 onOk={handleCreate}
                 onCancel={() => setIsModalOpen(false)}
-                okText="创建"
-                cancelText="取消"
+                okText={t('common.confirm')}
+                cancelText={t('common.cancel')}
             >
                 <Space direction="vertical" style={{ width: '100%', marginTop: '10px' }}>
-                    <Typography.Text>设定批次号（通常为日期或船名）：</Typography.Text>
+                    <Typography.Text>{t('batch.create_label')}</Typography.Text>
                     <Input
-                        placeholder="例如: 20260209-HK-01"
+                        placeholder={t('batch.create_placeholder')}
                         value={newBatchNumber}
                         onChange={e => setNewBatchNumber(e.target.value)}
                     />

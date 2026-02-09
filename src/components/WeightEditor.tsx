@@ -3,6 +3,7 @@ import { Input, Button, Form, Typography, message } from 'antd';
 import { SaveOutlined, ForwardOutlined } from '@ant-design/icons';
 import { supabase } from '../lib/supabase';
 import { Role } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface WeightEditorProps {
     role: Role;
@@ -13,17 +14,12 @@ interface WeightEditorProps {
     currentUserId?: string;
 }
 
-const ROLE_LABELS: any = {
-    sender: '发出重量 (Sender Weight)',
-    transit: '中转重量 (Transit Weight)',
-    receiver: '接收重量 (Receiver Weight)'
-};
-
 export default function WeightEditor({ role, barcode, activeBatchId, onSave, readOnly, currentUserId }: WeightEditorProps) {
+    const { t } = useTranslation();
     const [weight, setWeight] = useState('');
-    const label = ROLE_LABELS[role];
     const [fetching, setFetching] = useState(false);
-    const [isLockedByOther, setIsLockedByOther] = useState(false); // New state to track if locked by another user
+    const [isLockedByOther, setIsLockedByOther] = useState(false);
+    const [auditInfo, setAuditInfo] = useState<{ user?: string; time?: string } | null>(null);
     const inputRef = useRef<any>(null);
 
     useEffect(() => {
@@ -51,21 +47,31 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 // Check if current user owns the data for this role
                 let existingWeight = null;
                 let existingUserId = null;
+                let existingTime = null;
 
                 if (role === 'sender') {
                     existingWeight = data.sender_weight;
                     existingUserId = data.sender_user_id;
+                    existingTime = data.sender_updated_at;
                 } else if (role === 'transit') {
                     existingWeight = data.transit_weight;
                     existingUserId = data.transit_user_id;
+                    existingTime = data.transit_updated_at;
                 } else if (role === 'receiver') {
                     existingWeight = data.receiver_weight;
                     existingUserId = data.receiver_user_id;
+                    existingTime = data.receiver_updated_at;
+                }
+
+                if (existingUserId) {
+                    setAuditInfo({ user: existingUserId, time: existingTime });
+                } else {
+                    setAuditInfo(null);
                 }
 
                 // If data exists AND belongs to someone else, enforce Read-Only logic
                 if (existingWeight !== null && existingUserId && existingUserId !== currentUserId) {
-                    message.warning(`该包裹已由其他操作员 (${existingUserId}) 录入，您只能补充未填项。`);
+                    message.warning(t('parcel.ownership_lock_with_time', { userId: existingUserId, time: existingTime ? new Date(existingTime).toLocaleString() : '-' }));
                     setWeight(existingWeight.toString());
                     setIsLockedByOther(true);
                     shouldLock = true;
@@ -79,6 +85,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             } else {
                 setWeight('');
                 setIsLockedByOther(false);
+                setAuditInfo(null);
             }
             setFetching(false);
 
@@ -94,8 +101,8 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
 
     const handleSave = async () => {
         if (readOnly || isLockedByOther) return; // Block save if locked by another user
-        if (!barcode) return message.warning('请先扫码');
-        if (!weight) return message.warning('请输入重量');
+        if (!barcode) return message.warning(t('parcel.scanner_placeholder'));
+        if (!weight) return message.warning(t('parcel.weight_label'));
 
         setFetching(true);
         try {
@@ -132,11 +139,11 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
 
             if (error) throw error;
 
-            message.success('保存成功');
+            message.success(t('parcel.save_success'));
             setWeight('');
             onSave();
         } catch (err: any) {
-            message.error('保存失败: ' + err.message);
+            message.error(t('parcel.save_failed') + ': ' + err.message);
         } finally {
             setFetching(false);
         }
@@ -145,13 +152,21 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
     return (
         <Form layout="vertical" className="neon-card" style={{ padding: '15px' }}>
             <div style={{ marginBottom: '15px' }}>
-                <Typography.Text type="secondary" style={{ fontSize: '12px' }}>录入责任: {label}</Typography.Text>
-                <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '18px' }}>
-                    {barcode || '等待扫码...'}
+                <Typography.Text type="secondary" style={{ fontSize: '12px' }}>{t('common.duty') || '录入责任'}: {t(`parcel.${role}_weight`)}</Typography.Text>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '18px' }}>
+                        {barcode || t('parcel.waiting_scan')}
+                    </div>
+                    {auditInfo && (
+                        <div style={{ fontSize: '10px', color: 'var(--text-sub)', textAlign: 'right' }}>
+                            <div>{t('parcel.audit_who')}: {auditInfo.user}</div>
+                            <div>{auditInfo.time ? new Date(auditInfo.time).toLocaleTimeString() : ''}</div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <Form.Item label={<span style={{ color: 'white' }}>录入重量 (kg)</span>}>
+            <Form.Item label={<span style={{ color: 'white' }}>{t('parcel.weight_label')}</span>}>
                 <Input
                     ref={inputRef}
                     size="large"
@@ -175,7 +190,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 loading={fetching}
                 disabled={!barcode || readOnly}
             >
-                保存并继续 (Enter)
+                {t('parcel.save_continue')}
             </Button>
 
             {!readOnly && (
@@ -185,7 +200,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                     block
                     onClick={() => { setWeight(''); onSave(); }}
                 >
-                    跳过此件
+                    {t('common.skip')}
                 </Button>
             )}
         </Form>

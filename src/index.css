@@ -31,9 +31,17 @@ body {
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(24, 144, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(24, 144, 255, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
+  }
 }
 
 /* Ant Design Table Dark Mode Custom */
@@ -41,17 +49,95 @@ body {
   background: transparent !important;
   color: white !important;
 }
-.ant-table-thead > tr > th {
+
+.ant-table-thead>tr>th {
   background: rgba(255, 255, 255, 0.1) !important;
   color: white !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
-.ant-table-tbody > tr > td {
+
+.ant-table-tbody>tr>td {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
-.ant-table-row:hover > td {
+
+.ant-table-row:hover>td {
   background: rgba(255, 255, 255, 0.05) !important;
 }
+
 .active-row td {
   background: rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Responsive Mixins & Utilities */
+:root {
+  --sidebar-width: 280px;
+}
+
+/* Base Responsive Container */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile First (Phone < 768px) */
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block !important;
+  }
+
+  .grid-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* PAD (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* PC (> 1024px) */
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+
+  .grid-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+}
+
+.neon-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+.neon-card:hover {
+  border-color: rgba(24, 144, 255, 0.3);
+}
+
+.neon-button {
+  background: var(--primary) !important;
+  border: none !important;
+  box-shadow: 0 0 10px rgba(24, 144, 255, 0.3);
+}
+
+.neon-button:hover {
+  box-shadow: 0 0 15px rgba(24, 144, 255, 0.5);
+  transform: translateY(-1px);
 }

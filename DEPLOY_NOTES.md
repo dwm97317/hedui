@@ -1,31 +1,42 @@
-# Hidden Backstage & Unified Auth: Deployment Notes
+# Weight Verification System: Final Deployment Notes
 
-## System Ready: Unified Identity Model
+## System Overview
+This is the **Final Production Version** of the Weight Verification System. It features:
+- **Multi-Language Support**: CN, VN, TH, MM (Auto-detected).
+- **Responsive Design**: Side-by-side for PC/PAD, prioritized vertical stack for Mobile.
+- **PDA Optimization**: Supports both Keyboard Emulation and `window.onScan` Broadcast mode.
+- **Strict Security**: Field-level database triggers enforce that only the responsible role can edit their specific weight.
 
-We have successfully refactored the system to adhere to the "Unified Principle": **One App, One Login, Role-Based Access.**
+## Key Configurations
 
-### 1. Unified Auth (LINE Login)
-*   **System Source**: All users identify via LINE Login.
-*   **Admin Role**: "Admin" is no longer a separate system. It is simply a LINE user with `system_role='admin'` in the `users` table.
+### 1. Database Migrations (Required)
+You must apply the "Triplet Audit" migration to your Supabase instance if you haven't already. This adds the `*_updated_at` columns and the `handle_parcel_field_security` trigger.
+*(Note: I have already applied this to the current linked Supabase instance.)*
 
-### 2. Access Control
-*   **Front Entrance (`/`)**: Visible to everyone. Scanning & Operations.
-*   **Back Entrance (`/admin/dashboard`)**: Hidden URL.
-    *   **Security Check**: Automatically blocks users without `admin` or `auditor` role.
-    *   **Capabilities**: Assign roles, revoke permissions, view audit logs.
+### 2. PDA / Scanner Setup
+- **Keyboard Mode**: Works out of the box. Ensure the cursor is in the input field (the app auto-focuses).
+- **Broadcast Mode (Recommended)**:
+    - Configure your PDA to send a standard Android Broadcast.
+    - Or simply allow the PDA to inject `window.onScan(code)` via WebView.
+    - The app listens globally for this event.
 
-### 3. Data Integrity & Ownership Lock
-*   **Rule**: "He who scans it, owns it."
-*   **Behavior**: If User A enters a weight, User B (even with the same role) **cannot modify it**. The input field is disabled and shows a warning.
-*   **Exception**: User B can fill in *empty* fields (e.g. missing Transit weight), but cannot touch User A's Sender weight.
+### 3. Environment Variables
+Ensure `.env` contains:
+```env
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
 
-### 4. Admin Powers
-*   **Revoke (`[x]`)**: Admins can instantly revoke a user's permission for a specific batch.
-
-## Deployment Instructions
-1.  **Rebuild**: Run `npm run build` to apply the latest security rules.
-2.  **Environment**: Ensure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set.
-3.  **Admin Setup**: You must manually set your first admin in the database:
-    ```sql
-    UPDATE users SET system_role = 'admin' WHERE id = 'YOUR_LINE_USER_ID';
+## Deployment Steps
+1.  **Build**: Run `npm run build`. This generates the `dist/` folder.
+2.  **Deploy**: Upload the `dist/` folder to your static hosting (Vercel, Netlify, or Nginx).
+3.  **SPA Routing**: If using Nginx, ensure all requests fallback to `index.html`:
+    ```nginx
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
     ```
+
+## Admin & Security
+- **Role Assignment**: Use the database `batch_user_roles` table to assign `sender`, `transit`, or `receiver` roles to specific LINE Operator IDs for specific batches.
+- **Audit**: All weight changes are finalized with a timestamp and user ID. Viewable by hovering over the weight in the table.

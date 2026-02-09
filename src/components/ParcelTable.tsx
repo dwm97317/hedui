@@ -3,6 +3,7 @@ import { Table, Tag, Empty, Typography, Button, Space, Modal, Input, message, To
 import { RetweetOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { supabase } from '../lib/supabase';
 import { Parcel, Role } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface ParcelTableProps {
     role: Role;
@@ -12,6 +13,7 @@ interface ParcelTableProps {
 }
 
 export default function ParcelTable({ role, activeBarcode, activeBatchId, readOnly }: ParcelTableProps) {
+    const { t } = useTranslation();
     const [data, setData] = useState<Parcel[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -53,23 +55,23 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
     }, [activeBatchId]);
 
     const handleConsolidate = async () => {
-        if (selectedRowKeys.length === 0) return message.warning('请先选择包裹');
+        if (selectedRowKeys.length === 0) return message.warning(t('parcel.select_parcel_warning'));
 
         let newBarcode = '';
         Modal.confirm({
-            title: '转单并换条码 (Consolidate & Relabel)',
+            title: t('parcel.consolidate_title'),
             content: (
                 <div style={{ marginTop: '10px' }}>
-                    <Typography.Text>为选中的 {selectedRowKeys.length} 个包裹生成新条码：</Typography.Text>
+                    <Typography.Text>{t('parcel.consolidate_content', { count: selectedRowKeys.length })}</Typography.Text>
                     <Input
-                        placeholder="输入新包裹条码..."
+                        placeholder={t('parcel.consolidate_placeholder')}
                         onChange={(e) => newBarcode = e.target.value}
                         style={{ marginTop: '10px' }}
                     />
                 </div>
             ),
             onOk: async () => {
-                if (!newBarcode) return message.error('请输入新条码');
+                if (!newBarcode) return message.error(t('parcel.consolidate_error'));
                 try {
                     const { data: child, error: cError } = await supabase
                         .from('parcels')
@@ -89,10 +91,10 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
 
                     await supabase.from('parcels').update({ status: 'relabeled' }).in('id', selectedRowKeys);
 
-                    message.success('转单完成');
+                    message.success(t('parcel.consolidate_success'));
                     setSelectedRowKeys([]);
                 } catch (err: any) {
-                    message.error('错误: ' + err.message);
+                    message.error(t('common.error') + ': ' + err.message);
                 }
             }
         });
@@ -109,7 +111,7 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
 
     const columns = [
         {
-            title: '条码',
+            title: t('parcel.barcode'),
             dataIndex: 'barcode',
             key: 'barcode',
             render: (text: string, record: Parcel) => (
@@ -117,44 +119,54 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
                     <Typography.Text style={{ color: record.id === activeBarcode ? 'var(--primary)' : 'white', fontWeight: 600 }}>
                         {text}
                     </Typography.Text>
-                    {record.package_type === 'derived' && <Tag color="cyan">转单件</Tag>}
-                    {record.status === 'relabeled' && <Tag color="purple">已转单</Tag>}
+                    {record.package_type === 'derived' && <Tag color="cyan">{t('parcel.derived_tag')}</Tag>}
+                    {record.status === 'relabeled' && <Tag color="purple">{t('parcel.relabeled_tag')}</Tag>}
                 </Space>
             )
         },
         {
-            title: '发出重(kg)',
+            title: `${t('parcel.sender_weight')}(kg)`,
             dataIndex: 'sender_weight',
             key: 'sender_weight',
             render: (v: any, record: Parcel) => (
-                <span style={getWeightStyle(v, record.receiver_weight, role === 'sender')}>
-                    {v || '-'}
-                </span>
+                <Tooltip title={record.sender_user_id ? `${t('parcel.audit_who')}: ${record.sender_user_id} | ${record.sender_updated_at ? new Date(record.sender_updated_at).toLocaleString() : ''}` : null}>
+                    <span style={getWeightStyle(v, record.receiver_weight, role === 'sender')}>
+                        {v || '-'}
+                    </span>
+                </Tooltip>
             )
         },
         {
-            title: '中转重(kg)',
+            title: `${t('parcel.transit_weight')}(kg)`,
             dataIndex: 'transit_weight',
             key: 'transit_weight',
-            render: (v: any) => <span style={{ color: role === 'transit' ? 'var(--primary)' : 'inherit' }}>{v || '-'}</span>
+            responsive: ['md'] as any, // Only show on PAD/PC
+            render: (v: any, record: Parcel) => (
+                <Tooltip title={record.transit_user_id ? `${t('parcel.audit_who')}: ${record.transit_user_id} | ${record.transit_updated_at ? new Date(record.transit_updated_at).toLocaleString() : ''}` : null}>
+                    <span style={{ color: role === 'transit' ? 'var(--primary)' : 'inherit' }}>{v || '-'}</span>
+                </Tooltip>
+            )
         },
         {
-            title: '接收重(kg)',
+            title: `${t('parcel.receiver_weight')}(kg)`,
             dataIndex: 'receiver_weight',
             key: 'receiver_weight',
             render: (v: any, record: Parcel) => (
-                <span style={getWeightStyle(v, record.sender_weight, role === 'receiver')}>
-                    {v || '-'}
-                </span>
+                <Tooltip title={record.receiver_user_id ? `${t('parcel.audit_who')}: ${record.receiver_user_id} | ${record.receiver_updated_at ? new Date(record.receiver_updated_at).toLocaleString() : ''}` : null}>
+                    <span style={getWeightStyle(v, record.sender_weight, role === 'receiver')}>
+                        {v || '-'}
+                    </span>
+                </Tooltip>
             )
         },
         {
-            title: '状态',
+            title: t('parcel.status'),
             dataIndex: 'status',
             key: 'status',
+            responsive: ['sm'] as any, // Hide on very small (XS) screens
             render: (s: string) => {
                 const colors: any = { relabeled: 'purple', received: 'green', anomaly: 'red', in_transit: 'orange' };
-                return <Tag color={colors[s] || 'blue'}>{s.toUpperCase()}</Tag>;
+                return <Tag color={colors[s] || 'blue'} style={{ fontSize: '10px' }}>{s.toUpperCase()}</Tag>;
             }
         }
     ];
@@ -166,9 +178,9 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
         return (
             <Table
                 columns={[
-                    { title: '来源条码', dataIndex: 'barcode', key: 'barcode' },
-                    { title: '原发出重', dataIndex: 'sender_weight', key: 'sender_weight' },
-                    { title: '原中转重', dataIndex: 'transit_weight', key: 'transit_weight' },
+                    { title: t('parcel.source_barcode'), dataIndex: 'barcode', key: 'barcode' },
+                    { title: t('parcel.original_sender_weight'), dataIndex: 'sender_weight', key: 'sender_weight' },
+                    { title: t('parcel.original_transit_weight'), dataIndex: 'transit_weight', key: 'transit_weight' },
                 ]}
                 dataSource={parents}
                 pagination={false}
@@ -191,10 +203,10 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
                             onClick={handleConsolidate}
                             className="neon-button"
                         >
-                            合并并转单 ({selectedRowKeys.length})
+                            {t('parcel.consolidate_button')} ({selectedRowKeys.length})
                         </Button>
                     )}
-                    <Tooltip title="当前视图展示该批次全生命周期数据">
+                    <Tooltip title={t('parcel.view_tooltip')}>
                         <InfoCircleOutlined style={{ color: 'var(--text-sub)' }} />
                     </Tooltip>
                 </Space>
