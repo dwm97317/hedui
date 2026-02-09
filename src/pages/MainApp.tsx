@@ -138,7 +138,7 @@ export default function MainApp() {
                                 // BatchSelector uses ID? No, MainApp uses full Batch object.
                                 // We might need to fetch the batch first.
                                 handleSwitchBatch(actionResult.payload.id);
-                                notification.close('batch_mismatch');
+                                notification.destroy('batch_mismatch');
                             }}>
                                 Switch
                             </Button>
