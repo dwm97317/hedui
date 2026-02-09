@@ -9,6 +9,9 @@ import BatchSelector from '../components/BatchSelector';
 import { Role, Batch } from '../types';
 import { useTranslation } from 'react-i18next';
 import '../index.css';
+import { scannerAdapter } from '../services/scanner';
+import { scanEngine } from '../services/scanEngine';
+import { notification } from 'antd';
 
 const { Header, Content } = Layout;
 
@@ -93,6 +96,83 @@ export default function MainApp() {
 
     const handleSaveWeight = () => {
         setActiveBarcode(null);
+    };
+
+    // Unified Scanner Integration
+    useEffect(() => {
+        const unsubscribe = scannerAdapter.onScan(async (result) => {
+            console.log('MainApp Scanned:', result);
+
+            // 1. Process via Intelligent Scan Engine
+            const actionResult = await scanEngine.processScan(result.raw, {
+                userId: currentUserId,
+                role: role,
+                activeBatchId: activeBatch ? activeBatch.id : null,
+                currentPath: window.location.pathname
+            });
+
+            console.log('Scan Engine Action:', actionResult);
+
+            // 2. Handle Actions
+            switch (actionResult.type) {
+                case 'OPEN_PARCEL':
+                    if (actionResult.payload) {
+                        // If parcel belongs to another batch, engine would return SWITCH_BATCH
+                        // So here we are safe to just view it
+                        setActiveBarcode(actionResult.payload.barcode);
+                        if (actionResult.payload.readOnly) {
+                            message.info(actionResult.message || 'View Only');
+                        } else {
+                            message.success('Parcel Found');
+                        }
+                    }
+                    break;
+                case 'SWITCH_BATCH':
+                    notification.warning({
+                        message: 'Batch Mismatch',
+                        description: actionResult.message,
+                        btn: (
+                            <Button type="primary" size="small" onClick={() => {
+                                // Logic to switch batch (Payload should have batch info)
+                                // We need to fetch the batch details or just set ID if that's enough for Selector?
+                                // BatchSelector uses ID? No, MainApp uses full Batch object.
+                                // We might need to fetch the batch first.
+                                handleSwitchBatch(actionResult.payload.id);
+                                notification.close('batch_mismatch');
+                            }}>
+                                Switch
+                            </Button>
+                        ),
+                        key: 'batch_mismatch'
+                    });
+                    break;
+                case 'NEW_PARCEL_PROMPT':
+                    if (role === 'sender') {
+                        if (window.confirm(actionResult.message)) {
+                            // Pre-fill create? 
+                            // For now just set active barcode to let user Create?
+                            // Actually, ST flow requires ST number generation. 
+                            // If they scanned a random barcode, maybe they want to associate it?
+                            // Current requirement: "Unknown -> Prompt + New Parcel".
+                            // Let's just notify for now or trigger the "New Parcel" logic?
+                            message.info('Please create new parcel manually');
+                        }
+                    } else {
+                        message.error('Unknown Parcel');
+                    }
+                    break;
+                case 'SHOW_ERROR':
+                    message.error(actionResult.message);
+                    break;
+            }
+        });
+
+        return () => { unsubscribe(); };
+    }, [currentUserId, role, activeBatch]);
+
+    const handleSwitchBatch = async (batchId: string) => {
+        const { data } = await supabase.from('batches').select('*').eq('id', batchId).single();
+        if (data) setActiveBatch(data);
     };
 
     return (
