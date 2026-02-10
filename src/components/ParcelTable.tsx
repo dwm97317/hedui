@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Table, Tag, Empty, Typography, Button, Space, Modal, Input, message, Tooltip } from 'antd';
-import { RetweetOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Table, Tag, Empty, Typography, Button, Space, Modal, Input, message, Tooltip, Popover, List } from 'antd';
+import { RetweetOutlined, InfoCircleOutlined, StarOutlined, StarFilled, HistoryOutlined } from '@ant-design/icons';
 import { supabase } from '../lib/supabase';
 import { Parcel, Role } from '../types';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,22 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
     const [searchKeyword, setSearchKeyword] = useState('');
     const [searchResults, setSearchResults] = useState<Parcel[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [favorites, setFavorites] = useState<string[]>([]);
+    const [searchHistory, setSearchHistory] = useState<string[]>([]);
+    const [showHistory, setShowHistory] = useState(false);
+    const [currentUserId] = useState(() => localStorage.getItem('mock_user_id') || 'U001');
+
+    const fetchFavorites = async () => {
+        const { scanEngine } = await import('../services/scanEngine');
+        const favs = await scanEngine.getFavorites(currentUserId);
+        setFavorites(favs);
+    };
+
+    const fetchHistory = async () => {
+        const { scanEngine } = await import('../services/scanEngine');
+        const history = await scanEngine.getRecentSearches(currentUserId);
+        setSearchHistory(history);
+    };
 
     const fetchRelations = async () => {
         // Only fetch relations that involve packages in this batch
@@ -42,6 +58,8 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
             setData(parcels);
         }
         fetchRelations();
+        fetchFavorites();
+        fetchHistory();
         setLoading(false);
     };
 
@@ -112,12 +130,24 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
         }
 
         setIsSearching(true);
-        // Use the ScanEngine's fuzzySearch if we want global search, 
-        // or just filter local data if already fetched.
-        // For industrial scale, global search via Documents table is better.
         const { scanEngine } = await import('../services/scanEngine');
-        const results = await scanEngine.fuzzySearch(val);
+        const results = await scanEngine.fuzzySearch(val, activeBatchId);
         setSearchResults(results);
+
+        if (results.length > 0) {
+            await scanEngine.saveSearch(currentUserId, val);
+            fetchHistory();
+        }
+    };
+
+    const toggleFavorite = async (parcelId: string) => {
+        const { scanEngine } = await import('../services/scanEngine');
+        const isFav = await scanEngine.toggleFavorite(currentUserId, parcelId);
+        if (isFav) {
+            setFavorites([...favorites, parcelId]);
+        } else {
+            setFavorites(favorites.filter(id => id !== parcelId));
+        }
     };
 
     const getWeightStyle = (v: any, otherV: any, active: boolean) => {
@@ -130,6 +160,21 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
     };
 
     const columns = [
+        {
+            title: '',
+            key: 'favorite',
+            width: 40,
+            render: (_: any, record: Parcel) => (
+                <Button
+                    type="text"
+                    icon={favorites.includes(record.id) ? <StarFilled style={{ color: '#ffc53d' }} /> : <StarOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(record.id);
+                    }}
+                />
+            )
+        },
         {
             title: t('parcel.barcode'),
             dataIndex: 'barcode',
@@ -231,16 +276,47 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
     return (
         <Space direction="vertical" style={{ width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                <Input.Search
-                    placeholder={t('parcel.search_placeholder') || '输入 / 扫描单号 (支持模糊搜索)'}
-                    allowClear
-                    size="large"
-                    value={searchKeyword}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    onSearch={handleSearch}
-                    style={{ maxWidth: '400px' }}
-                    className="neon-search"
-                />
+                <Popover
+                    content={
+                        <List
+                            size="small"
+                            header={<div style={{ fontSize: '12px', color: 'var(--text-sub)' }}><HistoryOutlined /> {t('search.recent') || '最近搜索'}</div>}
+                            dataSource={searchHistory}
+                            renderItem={(item) => (
+                                <List.Item
+                                    style={{ cursor: 'pointer', padding: '8px 12px' }}
+                                    onClick={() => {
+                                        setSearchKeyword(item);
+                                        handleSearch(item);
+                                        setShowHistory(false);
+                                    }}
+                                >
+                                    {item}
+                                </List.Item>
+                            )}
+                            style={{ width: '250px' }}
+                        />
+                    }
+                    trigger="click"
+                    open={showHistory && searchHistory.length > 0}
+                    onOpenChange={setShowHistory}
+                    placement="bottomLeft"
+                >
+                    <Input.Search
+                        placeholder={t('parcel.search_placeholder') || '输入 / 扫描单号 (支持模糊搜索)'}
+                        allowClear
+                        size="large"
+                        value={searchKeyword}
+                        onChange={(e) => {
+                            setSearchKeyword(e.target.value);
+                            if (!e.target.value) setShowHistory(true);
+                        }}
+                        onSearch={handleSearch}
+                        onFocus={() => setShowHistory(true)}
+                        style={{ maxWidth: '400px' }}
+                        className="neon-search"
+                    />
+                </Popover>
                 <Space>
                     {role === 'transit' && (
                         <Button

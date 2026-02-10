@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Input, Button, Form, Typography, message, Tag, Space, Alert, Radio } from 'antd';
 import { SaveOutlined, ForwardOutlined, PrinterOutlined, ToolOutlined, UsbOutlined, WifiOutlined } from '@ant-design/icons';
+import { pinyin } from 'pinyin-pro';
 import { supabase } from '../lib/supabase';
 import { Role } from '../types';
 import { useTranslation } from 'react-i18next';
@@ -232,6 +233,10 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             // 1. Prepare Data
             const weightVal = parseFloat(weight);
             if (isNaN(weightVal) || weightVal <= 0) throw new Error(t('parcel.weight_must_positive') || 'Weight > 0');
+
+            // Compute Pinyin for Search (Industrial optimization)
+            const py = senderName ? pinyin(senderName, { toneType: 'none', nonChineseFiles: 'keep' }).replace(/\s/g, '') : null;
+            const initial = senderName ? pinyin(senderName, { pattern: 'initial', toneType: 'none' }).replace(/\s/g, '') : null;
             // Construct payload based on bartender_spec.md
             const payload = {
                 PACKAGE_NO: barcode,
@@ -254,6 +259,8 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 width_cm: width ? parseFloat(width) : null,
                 height_cm: height ? parseFloat(height) : null,
                 sender_name: senderName || null,
+                sender_name_pinyin: py,
+                sender_name_initial: initial,
                 ...(role === 'sender' ? { sender_weight: weightVal, sender_user_id: currentUserId, status: 'sent' } : {}),
                 ...(role === 'transit' ? { transit_weight: weightVal, transit_user_id: currentUserId, status: 'in_transit' } : {}),
                 ...(role === 'receiver' ? { receiver_weight: weightVal, receiver_user_id: currentUserId, status: 'received' } : {})

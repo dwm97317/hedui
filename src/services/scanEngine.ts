@@ -60,29 +60,111 @@ export class ScanEngine {
     }
 
     /**
-     * Fuzzy search via documents index
+     * Advanced Fuzzy Search:
+     * - Searches doc_no (documents), sender_name, pinyin, and initials (parcels).
+     * - Weights results: Active Batch > Recent Work > 0.
      */
-    async fuzzySearch(keyword: string): Promise<any[]> {
-        if (!keyword || keyword.length < 3) return [];
+    async fuzzySearch(keyword: string, activeBatchId?: string | null): Promise<any[]> {
+        if (!keyword || keyword.length < 2) return [];
 
-        const { data, error } = await supabase
+        // 1. Fetch from Documents (Barcodes/IDs)
+        const { data: docData } = await supabase
             .from('documents')
-            .select(`
-                *,
-                parcel:parcels(*)
-            `)
+            .select('parcel_id, doc_no')
             .ilike('doc_no', `%${keyword}%`)
             .limit(10);
 
-        if (error || !data) return [];
+        // 2. Fetch from Parcels (Names/Pinyin)
+        const { data: parcelData } = await supabase
+            .from('parcels')
+            .select('*')
+            .or(`sender_name.ilike.%${keyword}%,sender_name_pinyin.ilike.%${keyword}%,sender_name_initial.ilike.%${keyword}%`)
+            .limit(10);
 
-        // Map to unique parcels
-        const uniqueParcels = data
-            .filter(d => d.parcel)
-            .map(d => d.parcel);
+        // 3. Combine and Deduplicate
+        const parcelIds = new Set([
+            ...(docData?.map(d => d.parcel_id) || []),
+            ...(parcelData?.map(p => p.id) || [])
+        ]);
 
-        // Deduplicate by ID
-        return Array.from(new Map(uniqueParcels.map(p => [p.id, p])).values());
+        if (parcelIds.size === 0) return [];
+
+        // 4. Fetch full details with weighting
+        const { data: results, error } = await supabase
+            .from('parcels')
+            .select(`
+                *,
+                batches(batch_number)
+            `)
+            .in('id', Array.from(parcelIds))
+            .order('updated_at', { ascending: false });
+
+        if (error || !results) return [];
+
+        // 5. Intelligent Sorting (Weighted)
+        return results.sort((a, b) => {
+            // Priority 1: Current Batch
+            if (activeBatchId) {
+                const aInBatch = a.batch_id === activeBatchId ? 1 : 0;
+                const bInBatch = b.batch_id === activeBatchId ? 1 : 0;
+                if (aInBatch !== bInBatch) return bInBatch - aInBatch;
+            }
+            // Priority 2: Exact Barcode match (if user typed full code)
+            const aExact = a.barcode === keyword ? 1 : 0;
+            const bExact = b.barcode === keyword ? 1 : 0;
+            if (aExact !== bExact) return bExact - aExact;
+
+            return 0; // Fallback to recency from SQL order
+        });
+    }
+
+    // --- Search History ---
+
+    async getRecentSearches(userId: string): Promise<string[]> {
+        const { data } = await supabase
+            .from('search_history')
+            .select('keyword')
+            .eq('user_id', userId)
+            .order('searched_at', { ascending: false })
+            .limit(10);
+
+        return Array.from(new Set(data?.map(h => h.keyword) || []));
+    }
+
+    async saveSearch(userId: string, keyword: string) {
+        if (!keyword || keyword.length < 2) return;
+        await supabase.from('search_history').upsert({
+            user_id: userId,
+            keyword,
+            searched_at: new Date().toISOString()
+        }, { onConflict: 'user_id,keyword' }); // Note: unique constraint might be needed or handled by logic
+    }
+
+    // --- Favorites ---
+
+    async toggleFavorite(userId: string, parcelId: string) {
+        const { data: existing } = await supabase
+            .from('favorite_packages')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('package_id', parcelId)
+            .maybeSingle();
+
+        if (existing) {
+            await supabase.from('favorite_packages').delete().eq('id', existing.id);
+            return false;
+        } else {
+            await supabase.from('favorite_packages').insert({ user_id: userId, package_id: parcelId });
+            return true;
+        }
+    }
+
+    async getFavorites(userId: string): Promise<string[]> {
+        const { data } = await supabase
+            .from('favorite_packages')
+            .select('package_id')
+            .eq('user_id', userId);
+        return data?.map(f => f.package_id) || [];
     }
 
     private async identifyCode(code: string): Promise<{ type: 'TRANSFER' | 'PARCEL' | 'BATCH', data: any } | null> {
