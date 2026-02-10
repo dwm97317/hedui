@@ -100,6 +100,15 @@
         "search_placeholder": "ค้นหาเลขพัสดุ..."
     },
     "pda": {
+        "verify_title": "การตรวจสอบ",
+        "scan_verify": "สแกนตรวจสอบ",
+        "manual_verify": "ตรวจสอบด้วยตนเอง",
+        "verify_complete": "ตรวจสอบเสร็จสิ้น",
+        "double_click_hint": "ดับเบิลคลิกเพื่อเปลี่ยนสถานะ",
+        "status_unverified": "ยังไม่ตรวจสอบ",
+        "status_passed": "ตรวจสอบผ่าน",
+        "status_anomaly": "ผิดปกติ",
+        "skip_item": "ข้ามรายการนี้",
         "scan_hint": "ใช้เครื่องสแกนหรือสแกนผ่านหน้าต่างกล้อง",
         "auto_reset_hint": "กำลังเตรียมพัสดุถัดไป...",
         "footer_hint": "ระบุน้ำหนักและยืนยันด้านบน",

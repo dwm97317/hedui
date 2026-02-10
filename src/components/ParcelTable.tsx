@@ -4,6 +4,7 @@ import { RetweetOutlined, InfoCircleOutlined, StarOutlined, StarFilled, HistoryO
 import { supabase } from '../lib/supabase';
 import { Parcel, Role } from '../types';
 import { useTranslation } from 'react-i18next';
+import { scanEngine } from '../services/scanEngine';
 
 interface ParcelTableProps {
     role: Role;
@@ -28,13 +29,11 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
     const [currentUserId] = useState(() => localStorage.getItem('mock_user_id') || 'U001');
 
     const fetchFavorites = async () => {
-        const { scanEngine } = await import('../services/scanEngine');
         const favs = await scanEngine.getFavorites(currentUserId);
         setFavorites(favs);
     };
 
     const fetchHistory = async () => {
-        const { scanEngine } = await import('../services/scanEngine');
         const history = await scanEngine.getRecentSearches(currentUserId);
         setSearchHistory(history);
     };
@@ -64,14 +63,12 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
         setSearchKeyword(val);
         if (!val || val.length < 3) { setSearchResults([]); setIsSearching(false); return; }
         setIsSearching(true);
-        const { scanEngine } = await import('../services/scanEngine');
         const results = await scanEngine.fuzzySearch(val, activeBatchId);
         setSearchResults(results);
         if (results.length > 0) { await scanEngine.saveSearch(currentUserId, val); fetchHistory(); }
     };
 
     const toggleFavorite = async (parcelId: string) => {
-        const { scanEngine } = await import('../services/scanEngine');
         const isFav = await scanEngine.toggleFavorite(currentUserId, parcelId);
         if (isFav) setFavorites([...favorites, parcelId]);
         else setFavorites(favorites.filter(id => id !== parcelId));

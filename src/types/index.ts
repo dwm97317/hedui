@@ -40,3 +40,12 @@ export interface Parcel {
     updated_at: string;
     batches?: { batch_number: string };
 }
+
+export interface User {
+    id: string;
+    nickname: string | null;
+    avatar_url: string | null;
+    system_role: 'admin' | 'operator' | 'auditor';
+    last_login_at: string | null;
+    created_at: string;
+}

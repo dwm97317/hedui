@@ -1,0 +1,8 @@
+# User Rules
+
+## Database Operations
+1. **Always use MCP Supabase**: Any database structure changes, data seeding, or schema modifications MUST be performed using the `mcp_supabase-mcp-server` tools (e.g., `execute_sql`, `apply_migration`). verification.
+
+## Project Structure & File Ownership
+Refer to `PROJECT_STRUCTURE.md` for a comprehensive mapping of files to functional areas and ownership rules. When modifying files, ensure you are aware of their designated workflow phase and responsible area.
+
