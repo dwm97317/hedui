@@ -5,33 +5,41 @@
   --font-main: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
   --font-digital: 'Roboto Mono', monospace;
 
-  /* Deep Navy/Slate Dashboard Palette (Desktop) */
-  --bg-desktop: #020617;
-  /* Deepest Navy */
-  --bg-surface: #0f172a;
-  /* Slate-900 */
-  --bg-surface-light: #1e293b;
-  /* Slate-800 */
+  /* Crystal Professional - High Contrast Dashboard Palette */
+  --bg-app: #f1f5f9;
+  /* Light Slate / Gray-100 */
+  --bg-card: #ffffff;
+  /* pure white for clarity */
+  --bg-sidebar: #0f172a;
+  /* Deep Navy for focus */
 
-  --primary: #3b82f6;
-  --primary-glow: rgba(59, 130, 246, 0.3);
-  --secondary: #a855f7;
-  --accent: #f97316;
+  --primary: #2563eb;
+  /* Strong Blue */
+  --secondary: #64748b;
+  /* Slate-500 */
+  --accent: #d97706;
+  /* Amber-600 for important calls to action */
 
-  --text-main: #f8fafc;
-  --text-sub: #94a3b8;
-  --neon-border: rgba(255, 255, 255, 0.05);
-  --glass-blur: blur(12px);
+  --text-main: #0f172a;
+  /* Deepest Navy for high legibility */
+  --text-sub: #475569;
+  /* Slate-600 */
+  --text-on-dark: #f8fafc;
+
+  --border-light: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --radius-pro: 12px;
+  --shadow-pro: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', 'Montserrat', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-app);
   color: var(--text-main);
-  overflow-x: hidden;
+  font-family: var(--font-main);
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 .font-digital {
@@ -41,12 +49,24 @@ body {
 }
 
 .glass-card {
-  background: var(--bg-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pro);
+  padding: 24px;
+  box-shadow: var(--shadow-pro);
+  transition: all 0.2s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.region-header {
+  border-bottom: 2px solid var(--primary);
+  display: inline-block;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
 }
 
 .neon-border {

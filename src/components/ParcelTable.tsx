@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Table, Tag, Empty, Typography, Button, Space, Modal, Input, message, Tooltip, Popover, List } from 'antd';
-import { RetweetOutlined, InfoCircleOutlined, StarOutlined, StarFilled, HistoryOutlined } from '@ant-design/icons';
+import { Table, Tag, Typography, Button, Space, Modal, Input, message, Tooltip, Popover, List, Divider, Row, Col } from 'antd';
+import { RetweetOutlined, InfoCircleOutlined, StarOutlined, StarFilled, HistoryOutlined, SearchOutlined } from '@ant-design/icons';
 import { supabase } from '../lib/supabase';
 import { Parcel, Role } from '../types';
 import { useTranslation } from 'react-i18next';
@@ -39,139 +39,59 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
     };
 
     const fetchRelations = async () => {
-        // Only fetch relations that involve packages in this batch
-        const { data: rels } = await supabase
-            .from('package_relations')
-            .select('parent_id, child_id, parent:parcels!parent_id(*)');
+        const { data: rels } = await supabase.from('package_relations').select('parent_id, child_id, parent:parcels!parent_id(*)');
         if (rels) setRelations(rels);
     };
 
     const fetchData = async () => {
+        if (!activeBatchId) return;
         setLoading(true);
-        const { data: parcels, error } = await supabase
-            .from('parcels')
-            .select('*, batches(batch_number)')
-            .eq('batch_id', activeBatchId)
-            .order('updated_at', { ascending: false });
-
-        if (!error && parcels) {
-            setData(parcels);
-        }
-        fetchRelations();
-        fetchFavorites();
-        fetchHistory();
+        const { data: parcels, error } = await supabase.from('parcels').select('*, batches(batch_number)').eq('batch_id', activeBatchId).order('updated_at', { ascending: false });
+        if (!error && parcels) setData(parcels);
+        fetchRelations(); fetchFavorites(); fetchHistory();
         setLoading(false);
     };
 
     useEffect(() => {
         if (!activeBatchId) return;
         fetchData();
-        const channel = supabase
-            .channel('table-sync-' + activeBatchId)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'parcels', filter: `batch_id=eq.${activeBatchId}` }, () => fetchData())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'package_relations' }, () => fetchData())
-            .subscribe();
-
+        const channel = supabase.channel('table-sync-' + activeBatchId).on('postgres_changes', { event: '*', schema: 'public', table: 'parcels', filter: `batch_id=eq.${activeBatchId}` }, () => fetchData()).subscribe();
         return () => { supabase.removeChannel(channel); };
     }, [activeBatchId]);
 
-    const handleConsolidate = async () => {
-        if (selectedRowKeys.length === 0) return message.warning(t('parcel.select_parcel_warning'));
-
-        let newBarcode = '';
-        Modal.confirm({
-            title: t('parcel.consolidate_title'),
-            content: (
-                <div style={{ marginTop: '10px' }}>
-                    <Typography.Text>{t('parcel.consolidate_content', { count: selectedRowKeys.length })}</Typography.Text>
-                    <Input
-                        placeholder={t('parcel.consolidate_placeholder')}
-                        onChange={(e) => newBarcode = e.target.value}
-                        style={{ marginTop: '10px' }}
-                    />
-                </div>
-            ),
-            onOk: async () => {
-                if (!newBarcode) return message.error(t('parcel.consolidate_error'));
-                try {
-                    const { data: child, error: cError } = await supabase
-                        .from('parcels')
-                        .insert({
-                            barcode: newBarcode,
-                            package_type: 'derived',
-                            batch_id: activeBatchId
-                        })
-                        .select().single();
-
-                    if (cError) throw cError;
-
-                    const { error: rError } = await supabase.from('package_relations').insert(
-                        selectedRowKeys.map(pid => ({ parent_id: pid, child_id: child.id }))
-                    );
-                    if (rError) throw rError;
-
-                    await supabase.from('parcels').update({ status: 'relabeled' }).in('id', selectedRowKeys);
-
-                    message.success(t('parcel.consolidate_success'));
-                    setSelectedRowKeys([]);
-                } catch (err: any) {
-                    message.error(t('common.error') + ': ' + err.message);
-                }
-            }
-        });
-    };
-
     const handleSearch = async (val: string) => {
         setSearchKeyword(val);
-        if (!val || val.length < 3) {
-            setSearchResults([]);
-            setIsSearching(false);
-            return;
-        }
-
+        if (!val || val.length < 3) { setSearchResults([]); setIsSearching(false); return; }
         setIsSearching(true);
         const { scanEngine } = await import('../services/scanEngine');
         const results = await scanEngine.fuzzySearch(val, activeBatchId);
         setSearchResults(results);
-
-        if (results.length > 0) {
-            await scanEngine.saveSearch(currentUserId, val);
-            fetchHistory();
-        }
+        if (results.length > 0) { await scanEngine.saveSearch(currentUserId, val); fetchHistory(); }
     };
 
     const toggleFavorite = async (parcelId: string) => {
         const { scanEngine } = await import('../services/scanEngine');
         const isFav = await scanEngine.toggleFavorite(currentUserId, parcelId);
-        if (isFav) {
-            setFavorites([...favorites, parcelId]);
-        } else {
-            setFavorites(favorites.filter(id => id !== parcelId));
-        }
+        if (isFav) setFavorites([...favorites, parcelId]);
+        else setFavorites(favorites.filter(id => id !== parcelId));
     };
 
-    const getWeightStyle = (v: any, otherV: any, active: boolean) => {
-        const style: any = { color: active ? 'var(--primary)' : 'inherit', fontWeight: active ? 600 : 400 };
-        if (v && otherV && Math.abs(parseFloat(v) - parseFloat(otherV)) > 0.1) {
-            style.color = '#ff4d4f';
-            style.textShadow = '0 0 5px rgba(255, 77, 79, 0.3)';
-        }
-        return style;
+    const getWeightColor = (v: any, otherV: any, active: boolean) => {
+        if (active) return 'var(--primary)';
+        if (v && otherV && Math.abs(parseFloat(v) - parseFloat(otherV)) > 0.1) return '#ef4444'; // High contrast red
+        return 'var(--text-main)';
     };
 
     const columns = [
         {
             title: '',
             key: 'favorite',
-            width: 40,
+            width: 50,
             render: (_: any, record: Parcel) => (
                 <Button
                     type="text"
-                    icon={favorites.includes(record.id) ? <StarFilled style={{ color: '#ffc53d' }} /> : <StarOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(record.id);
-                    }}
+                    icon={favorites.includes(record.id) ? <StarFilled style={{ color: '#eab308' }} /> : <StarOutlined style={{ color: '#cbd5e1' }} />}
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(record.id); }}
                 />
             )
         },
@@ -181,11 +101,8 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
             key: 'barcode',
             render: (text: string, record: Parcel) => (
                 <Space>
-                    <Typography.Text style={{ color: record.id === activeBarcode ? 'var(--primary)' : 'white', fontWeight: 600 }}>
-                        {text}
-                    </Typography.Text>
-                    {record.package_type === 'derived' && <Tag color="cyan">{t('parcel.derived_tag')}</Tag>}
-                    {record.status === 'relabeled' && <Tag color="purple">{t('parcel.relabeled_tag')}</Tag>}
+                    <Typography.Text style={{ color: record.id === activeBarcode ? 'var(--primary)' : 'var(--text-main)', fontWeight: 800, fontSize: '15px' }}>{text}</Typography.Text>
+                    {record.package_type === 'derived' && <Tag color="blue" bordered={false} style={{ fontWeight: 700 }}>{t('parcel.derived_tag')}</Tag>}
                 </Space>
             )
         },
@@ -194,22 +111,9 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
             dataIndex: 'sender_weight',
             key: 'sender_weight',
             render: (v: any, record: Parcel) => (
-                <Tooltip title={record.sender_user_id ? `${t('parcel.audit_who')}: ${record.sender_user_id} | ${record.sender_updated_at ? new Date(record.sender_updated_at).toLocaleString() : ''}` : null}>
-                    <span style={getWeightStyle(v, record.receiver_weight, role === 'sender')}>
-                        {v || '-'}
-                    </span>
-                </Tooltip>
-            )
-        },
-        {
-            title: `${t('parcel.transit_weight')}(kg)`,
-            dataIndex: 'transit_weight',
-            key: 'transit_weight',
-            responsive: ['md'] as any, // Only show on PAD/PC
-            render: (v: any, record: Parcel) => (
-                <Tooltip title={record.transit_user_id ? `${t('parcel.audit_who')}: ${record.transit_user_id} | ${record.transit_updated_at ? new Date(record.transit_updated_at).toLocaleString() : ''}` : null}>
-                    <span style={{ color: role === 'transit' ? 'var(--primary)' : 'inherit' }}>{v || '-'}</span>
-                </Tooltip>
+                <Typography.Text style={{ fontWeight: 700, fontSize: '15px', color: getWeightColor(v, record.receiver_weight, role === 'sender') }}>
+                    {v || '-'}
+                </Typography.Text>
             )
         },
         {
@@ -217,143 +121,70 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
             dataIndex: 'receiver_weight',
             key: 'receiver_weight',
             render: (v: any, record: Parcel) => (
-                <Tooltip title={record.receiver_user_id ? `${t('parcel.audit_who')}: ${record.receiver_user_id} | ${record.receiver_updated_at ? new Date(record.receiver_updated_at).toLocaleString() : ''}` : null}>
-                    <span style={getWeightStyle(v, record.sender_weight, role === 'receiver')}>
-                        {v || '-'}
-                    </span>
-                </Tooltip>
+                <Typography.Text style={{ fontWeight: 700, fontSize: '15px', color: getWeightColor(v, record.sender_weight, role === 'receiver') }}>
+                    {v || '-'}
+                </Typography.Text>
             )
         },
         {
             title: t('parcel.status'),
             dataIndex: 'status',
             key: 'status',
-            responsive: ['sm'] as any, // Hide on very small (XS) screens
+            responsive: ['sm'] as any,
             render: (s: string) => {
                 const colors: any = { relabeled: 'purple', received: 'green', anomaly: 'red', in_transit: 'orange' };
-                return <Tag color={colors[s] || 'blue'} style={{ fontSize: '10px' }}>{s.toUpperCase()}</Tag>;
+                return <Tag color={colors[s] || 'blue'} style={{ fontWeight: 700, textTransform: 'uppercase', minWidth: '80px', textAlign: 'center' }}>{s}</Tag>;
             }
         },
         {
-            title: t('parcel.dims') || '尺寸(L*W*H)',
+            title: t('parcel.dims'),
             key: 'dims',
-            responsive: ['md'] as any, // Show on PAD and larger
+            responsive: ['md'] as any,
             render: (_: any, record: Parcel) => (
-                <span style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
+                <Typography.Text style={{ fontWeight: 600, color: 'var(--text-sub)' }}>
                     {record.length_cm || '-'}/{record.width_cm || '-'}/{record.height_cm || '-'}
-                </span>
+                </Typography.Text>
             )
-        },
-        {
-            title: t('parcel.sender_name') || '姓名',
-            dataIndex: 'sender_name',
-            key: 'sender_name',
-            responsive: ['lg'] as any, // Show on Laptop and larger
-            render: (text: string) => <span style={{ fontSize: '12px' }}>{text || '-'}</span>
         }
     ];
 
-    const expandedRowRender = (record: Parcel) => {
-        const parents = relations.filter(r => r.child_id === record.id).map(r => r.parent);
-        if (parents.length === 0) return null;
-
-        return (
-            <Table
-                columns={[
-                    { title: t('parcel.source_barcode'), dataIndex: 'barcode', key: 'barcode' },
-                    { title: t('parcel.original_sender_weight'), dataIndex: 'sender_weight', key: 'sender_weight' },
-                    { title: t('parcel.original_transit_weight'), dataIndex: 'transit_weight', key: 'transit_weight' },
-                ]}
-                dataSource={parents}
-                pagination={false}
-                size="small"
-                rowKey="id"
-                className="inner-table"
-            />
-        );
-    };
-
     return (
-        <Space direction="vertical" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                <Popover
-                    content={
-                        <List
-                            size="small"
-                            header={<div style={{ fontSize: '12px', color: 'var(--text-sub)' }}><HistoryOutlined /> {t('search.recent') || '最近搜索'}</div>}
-                            dataSource={searchHistory}
-                            renderItem={(item) => (
-                                <List.Item
-                                    style={{ cursor: 'pointer', padding: '8px 12px' }}
-                                    onClick={() => {
-                                        setSearchKeyword(item);
-                                        handleSearch(item);
-                                        setShowHistory(false);
-                                    }}
-                                >
-                                    {item}
-                                </List.Item>
-                            )}
-                            style={{ width: '250px' }}
-                        />
-                    }
-                    trigger="click"
-                    open={showHistory && searchHistory.length > 0}
-                    onOpenChange={setShowHistory}
-                    placement="bottomLeft"
-                >
-                    <Input.Search
-                        placeholder={t('parcel.search_placeholder') || '输入 / 扫描单号 (支持模糊搜索)'}
-                        allowClear
+        <Space direction="vertical" style={{ width: '100%' }} size="large">
+            <Row justify="space-between" align="middle" gutter={16}>
+                <Col flex="1">
+                    <Input
+                        placeholder={t('parcel.search_placeholder') || '搜索单号...'}
+                        prefix={<SearchOutlined style={{ color: 'var(--text-sub)' }} />}
                         size="large"
                         value={searchKeyword}
-                        onChange={(e) => {
-                            setSearchKeyword(e.target.value);
-                            if (!e.target.value) setShowHistory(true);
-                        }}
-                        onSearch={handleSearch}
-                        onFocus={() => setShowHistory(true)}
-                        style={{ maxWidth: '400px' }}
-                        className="neon-search"
+                        onChange={e => handleSearch(e.target.value)}
+                        style={{ borderRadius: '10px', maxWidth: '500px', border: '2px solid var(--border-light)' }}
                     />
-                </Popover>
-                <Space>
+                </Col>
+                <Col>
                     {role === 'transit' && (
                         <Button
                             type="primary"
+                            size="large"
                             icon={<RetweetOutlined />}
                             disabled={selectedRowKeys.length === 0 || readOnly}
-                            onClick={handleConsolidate}
-                            className="neon-button"
+                            style={{ borderRadius: '10px', fontWeight: 700 }}
                         >
                             {t('parcel.consolidate_button')} ({selectedRowKeys.length})
                         </Button>
                     )}
-                    <Tooltip title={t('parcel.view_tooltip')}>
-                        <InfoCircleOutlined style={{ color: 'var(--text-sub)' }} />
-                    </Tooltip>
-                </Space>
-            </div>
+                </Col>
+            </Row>
 
             <Table
-                loading={loading || (isSearching && searchKeyword.length >= 3)}
-                dataSource={
-                    searchKeyword.length >= 3
-                        ? searchResults
-                        : data.filter(p => p.package_type !== 'original' || p.status !== 'relabeled')
-                }
+                loading={loading || isSearching}
+                dataSource={searchKeyword.length >= 3 ? searchResults : data}
                 columns={columns}
                 rowKey="id"
-                rowClassName={record => record.barcode === activeBarcode ? 'active-row' : ''}
-                expandable={{
-                    expandedRowRender,
-                    rowExpandable: record => record.package_type === 'derived'
-                }}
-                rowSelection={role === 'transit' ? {
-                    selectedRowKeys,
-                    onChange: (keys) => setSelectedRowKeys(keys),
-                    getCheckboxProps: (record) => ({ disabled: record.status === 'relabeled' || readOnly }),
-                } : undefined}
+                className="pro-table"
+                rowSelection={role === 'transit' ? { selectedRowKeys, onChange: (keys) => setSelectedRowKeys(keys) } : undefined}
+                pagination={{ pageSize: 15 }}
+                style={{ background: 'white', borderRadius: '12px', border: '1px solid var(--border-light)' }}
             />
         </Space>
     );
