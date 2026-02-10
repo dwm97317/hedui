@@ -75,7 +75,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 return;
             }
             setFetching(true);
-            const { data } = await supabase.from('parcels').select('*').eq('barcode', barcode).eq('batch_id', activeBatchId).single();
+            const { data } = await supabase.from('parcels').select('*').eq('barcode', barcode).eq('batch_id', activeBatchId).maybeSingle();
             let shouldLock = false;
             if (data) {
                 setIsPrinted(!!data.printed);
@@ -174,15 +174,28 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 <div style={{ display: 'flex', flexDirection: isPDA ? 'column' : 'row', justifyContent: 'space-between', alignItems: isPDA ? 'center' : 'flex-start', gap: '16px' }}>
                     <div>
                         <Typography.Text style={{ fontWeight: 800, fontSize: '12px', color: 'var(--text-sub)', textTransform: 'uppercase' }}>{t(`parcel.${role}_weight`)}</Typography.Text>
-                        <div style={{
-                            fontSize: isPDA ? '84px' : '72px',
-                            fontWeight: 900,
-                            color: isStable ? 'var(--primary)' : 'var(--accent)',
-                            fontFamily: 'var(--font-digital)',
-                            lineHeight: 1,
-                            margin: '8px 0'
-                        }}>
-                            {weight || '0.00'}
+                        <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                            <Input
+                                ref={inputRef}
+                                bordered={false}
+                                value={weight}
+                                onChange={e => setWeight(e.target.value)}
+                                onPressEnter={handleSave}
+                                disabled={!barcode || readOnly || isLockedByOther || isPrinted || weightSource !== 'MANUAL'}
+                                placeholder="0.00"
+                                style={{
+                                    fontSize: isPDA ? '84px' : '72px',
+                                    fontWeight: 900,
+                                    color: isStable ? 'var(--primary)' : 'var(--accent)',
+                                    fontFamily: 'var(--font-digital)',
+                                    lineHeight: 1,
+                                    margin: '8px 0',
+                                    padding: 0,
+                                    background: 'transparent',
+                                    width: '280px',
+                                    caretColor: 'var(--primary)'
+                                }}
+                            />
                             <span style={{ fontSize: isPDA ? '24px' : '24px', marginLeft: '12px', color: 'var(--text-sub)' }}>KG</span>
                         </div>
                         <Space>
@@ -200,7 +213,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 </div>
             </div>
 
-            <Input ref={inputRef} type="number" inputMode="decimal" value={weight} onChange={e => setWeight(e.target.value)} onPressEnter={handleSave} style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }} disabled={!barcode || readOnly || isLockedByOther || isPrinted || weightSource !== 'MANUAL'} />
+
 
             {/* Dimensional & Info Area (Collapsible for PDA) */}
             {(role === 'sender' || length || width || height || senderName) && (

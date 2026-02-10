@@ -81,7 +81,12 @@
         "multiple_results_found": "匹配到多个单号，请选择",
         "print_success": "标签已发送至打印机",
         "sender_name_label": "客户姓名/货主",
-        "sender_name_placeholder": "可选：录入发件人"
+        "sender_name_placeholder": "可选：录入发件人",
+        "weight_must_positive": "重量必须大于0",
+        "dims": "尺寸与信息",
+        "length": "长(cm)",
+        "width": "宽(cm)",
+        "height": "高(cm)"
     },
     "pda": {
         "scan_hint": "使用物理扫描键或扫描窗口对准条码",

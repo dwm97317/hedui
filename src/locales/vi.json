@@ -75,7 +75,19 @@
         "original_sender_weight": "Trọng lượng gửi gốc",
         "original_transit_weight": "Trọng lượng trung chuyển gốc",
         "consolidate_button": "Gộp & Chuyển đơn",
-        "view_tooltip": "Chế độ xem này hiển thị dữ liệu toàn bộ vòng đời của lô hàng"
+        "view_tooltip": "Chế độ xem này hiển thị dữ liệu toàn bộ vòng đời của lô hàng",
+        "weight_must_positive": "Trọng lượng phải lớn hơn 0",
+        "dims": "Kích thước & TT",
+        "length": "Dài(cm)",
+        "width": "Rộng(cm)",
+        "height": "Cao(cm)",
+        "print_and_lock": "In & Khóa",
+        "already_printed": "⚠️ Đã in, không thể sửa",
+        "locked": "Đã khóa",
+        "multiple_results_found": "Tìm thấy nhiều kết quả",
+        "print_success": "Đã gửi lệnh in",
+        "sender_name_label": "Tên người gửi",
+        "sender_name_placeholder": "Nhập tên người gửi"
     },
     "pda": {
         "scan_hint": "Dùng phím quét hoặc cửa sổ quét căn chỉnh mã vạch",

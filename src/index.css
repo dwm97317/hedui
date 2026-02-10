@@ -13,12 +13,12 @@
   --bg-sidebar: #0f172a;
   /* Deep Navy for focus */
 
-  --primary: #2563eb;
-  /* Strong Blue */
-  --secondary: #64748b;
-  /* Slate-500 */
-  --accent: #d97706;
-  /* Amber-600 for important calls to action */
+  --primary: #8b5cf6;
+  /* Vivid Purple */
+  --secondary: #a78bfa;
+  /* Light Purple */
+  --accent: #d8b4fe;
+  /* Pale Purple Accent */
 
   --text-main: #0f172a;
   /* Deepest Navy for high legibility */
@@ -85,15 +85,15 @@ body {
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.7);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
   }
 
   70% {
-    box-shadow: 0 0 0 10px rgba(24, 144, 255, 0);
+    box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
   }
 }
 
@@ -118,7 +118,7 @@ body {
 }
 
 .active-row td {
-  background: rgba(24, 144, 255, 0.15) !important;
+  background: rgba(139, 92, 246, 0.15) !important;
 }
 
 /* Responsive Mixins & Utilities */
@@ -181,16 +181,16 @@ body {
 }
 
 .neon-card:hover {
-  border-color: rgba(24, 144, 255, 0.3);
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 .neon-button {
   background: var(--primary) !important;
   border: none !important;
-  box-shadow: 0 0 10px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 .neon-button:hover {
-  box-shadow: 0 0 15px rgba(24, 144, 255, 0.5);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
   transform: translateY(-1px);
 }

@@ -75,6 +75,18 @@
         "original_sender_weight": "น้ำหนักส่งเดิม",
         "original_transit_weight": "น้ำหนักระหว่างทางเดิม",
         "consolidate_button": "รวมและเปลี่ยนใบนำส่ง",
-        "view_tooltip": "มุมมองนี้แสดงข้อมูลตลอดวงจรชีวิตของชุดสินค้านี้"
+        "view_tooltip": "มุมมองนี้แสดงข้อมูลตลอดวงจรชีวิตของชุดสินค้านี้",
+        "weight_must_positive": "น้ำหนักต้องมากกว่า 0",
+        "dims": "ขนาดและข้อมูล",
+        "length": "ยาว (cm)",
+        "width": "กว้าง (cm)",
+        "height": "สูง (cm)",
+        "print_and_lock": "พิมพ์และล็อก",
+        "already_printed": "⚠️ พิมพ์แล้ว ห้ามแก้ไข",
+        "locked": "ล็อกแล้ว",
+        "multiple_results_found": "พบผลลัพธ์หลายรายการ",
+        "print_success": "ส่งคำสั่งพิมพ์แล้ว",
+        "sender_name_label": "ชื่อผู้ส่ง",
+        "sender_name_placeholder": "กรอกชื่อผู้ส่ง"
     }
 }

@@ -10,7 +10,7 @@ export default function App() {
         <ConfigProvider
             theme={{
                 token: {
-                    colorPrimary: '#2563eb', // Strong Blue
+                    colorPrimary: '#8b5cf6', // Vivid Purple
                     borderRadius: 12,
                     fontFamily: 'var(--font-main)',
                 }

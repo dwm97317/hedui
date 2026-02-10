@@ -41,7 +41,8 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
             .from('batches')
             .insert({
                 batch_number: newBatchNumber,
-                business_date: new Date().toISOString().split('T')[0]
+                business_date: new Date().toISOString().split('T')[0],
+                status: 'active'
             })
             .select()
             .single();
