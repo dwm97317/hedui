@@ -103,9 +103,20 @@ export class ScannerAdapter {
             }
         };
 
-        // 2. Legacy 'onScan' hook (if still used by some shells)
+        // 2. Legacy 'onScan' hook
         (window as any).onScan = (val: string) => {
             this.emit({ raw: val, source: 'PDA' });
+        };
+
+        // 3. Tiandy NT20 / Universal Bridge (scannerLabel)
+        // This is the recommended interface for new native integrations.
+        (window as any).scannerLabel = {
+            onScan: (code: string) => {
+                console.log('ScannerLabel Bridge:', code);
+                if (code) {
+                    this.emit({ raw: code, source: 'PDA' });
+                }
+            }
         };
     }
 
