@@ -16,6 +16,7 @@ export default defineConfig({
     build: {
         target: 'es2015',
         minify: 'esbuild',
-        chunkSizeWarningLimit: 2000
+        chunkSizeWarningLimit: 2000,
+        emptyOutDir: false
     }
 })
