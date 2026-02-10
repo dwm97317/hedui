@@ -20,6 +20,8 @@ export default function MainApp() {
     const [role, setRole] = useState<Role>('sender');
     const [activeBatch, setActiveBatch] = useState<Batch | null>(null);
     const [activeBarcode, setActiveBarcode] = useState<string | null>(null);
+    const [ambiguousResults, setAmbiguousResults] = useState<any[]>([]);
+    const [showResultsModal, setShowResultsModal] = useState(false);
 
     // Mock User Context (In real app, get from LINE/Auth)
     const [currentUserId, setCurrentUserId] = useState(() => localStorage.getItem('mock_user_id') || 'U001');
@@ -163,6 +165,14 @@ export default function MainApp() {
                     break;
                 case 'SHOW_ERROR':
                     message.error(actionResult.message);
+                    break;
+                case 'IGNORE':
+                    if (actionResult.results && actionResult.results.length > 0) {
+                        setAmbiguousResults(actionResult.results);
+                        setShowResultsModal(true);
+                    } else if (actionResult.message) {
+                        message.info(actionResult.message);
+                    }
                     break;
             }
         });
@@ -390,6 +400,35 @@ export default function MainApp() {
                         </div>
                     </div>
                 )}
+
+                {/* Ambiguous Results Modal */}
+                <Modal
+                    title={t('parcel.multiple_results_found') || '发现多个匹配单号'}
+                    open={showResultsModal}
+                    onCancel={() => setShowResultsModal(false)}
+                    footer={null}
+                    className="neon-modal"
+                >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {ambiguousResults.map(p => (
+                            <Button
+                                key={p.id}
+                                block
+                                className="glass-card"
+                                style={{ textAlign: 'left', height: 'auto', padding: '10px' }}
+                                onClick={() => {
+                                    setActiveBarcode(p.barcode);
+                                    setShowResultsModal(false);
+                                }}
+                            >
+                                <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{p.barcode}</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                                    {t('parcel.sender_weight')}: {p.sender_weight || '-'}kg | {t('parcel.status')}: {p.status}
+                                </div>
+                            </Button>
+                        ))}
+                    </div>
+                </Modal>
 
                 {/* Debug User Switcher - Simplified */}
                 <div style={{ position: 'fixed', bottom: 10, right: 10, opacity: 0.1, zIndex: 9999 }} className="mobile-only">

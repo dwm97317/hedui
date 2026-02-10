@@ -18,6 +18,9 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
     const [loading, setLoading] = useState(true);
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [relations, setRelations] = useState<any[]>([]);
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [searchResults, setSearchResults] = useState<Parcel[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     const fetchRelations = async () => {
         // Only fetch relations that involve packages in this batch
@@ -98,6 +101,23 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
                 }
             }
         });
+    };
+
+    const handleSearch = async (val: string) => {
+        setSearchKeyword(val);
+        if (!val || val.length < 3) {
+            setSearchResults([]);
+            setIsSearching(false);
+            return;
+        }
+
+        setIsSearching(true);
+        // Use the ScanEngine's fuzzySearch if we want global search, 
+        // or just filter local data if already fetched.
+        // For industrial scale, global search via Documents table is better.
+        const { scanEngine } = await import('../services/scanEngine');
+        const results = await scanEngine.fuzzySearch(val);
+        setSearchResults(results);
     };
 
     const getWeightStyle = (v: any, otherV: any, active: boolean) => {
@@ -193,7 +213,17 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
 
     return (
         <Space direction="vertical" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                <Input.Search
+                    placeholder={t('parcel.search_placeholder') || '输入 / 扫描单号 (支持模糊搜索)'}
+                    allowClear
+                    size="large"
+                    value={searchKeyword}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    onSearch={handleSearch}
+                    style={{ maxWidth: '400px' }}
+                    className="neon-search"
+                />
                 <Space>
                     {role === 'transit' && (
                         <Button
@@ -213,8 +243,12 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
             </div>
 
             <Table
-                loading={loading}
-                dataSource={data.filter(p => p.package_type !== 'original' || p.status !== 'relabeled')}
+                loading={loading || (isSearching && searchKeyword.length >= 3)}
+                dataSource={
+                    searchKeyword.length >= 3
+                        ? searchResults
+                        : data.filter(p => p.package_type !== 'original' || p.status !== 'relabeled')
+                }
                 columns={columns}
                 rowKey="id"
                 rowClassName={record => record.barcode === activeBarcode ? 'active-row' : ''}

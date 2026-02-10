@@ -14,6 +14,7 @@ export interface ScanActionResult {
     type: ScanActionType;
     payload?: any;
     message?: string;
+    results?: any[]; // For ambiguous/multiple results
 }
 
 export interface ScanContext {
@@ -33,15 +34,55 @@ export class ScanEngine {
             return { type: 'SHOW_ERROR', message: 'User not logged in' };
         }
 
-        // 1. Identify Code (Order: Transfer -> Parcel -> Batch)
+        // 1. Identify Code (Exact Match: Transfer -> Parcel -> Batch)
         const identification = await this.identifyCode(code);
 
         if (!identification) {
+            // 2. Fallback: Fuzzy Search
+            const fuzzyResults = await this.fuzzySearch(code);
+            if (fuzzyResults.length === 1) {
+                // Single match found via fuzzy search
+                return this.validateAndDecide({ type: 'PARCEL', data: fuzzyResults[0] }, context);
+            } else if (fuzzyResults.length > 1) {
+                // Ambiguous results: Return list to UI to let user choose
+                return {
+                    type: 'IGNORE', // Or 'SHOW_MODAL'? Let's use SHOW_RESULTS
+                    results: fuzzyResults,
+                    message: 'Multiple partial matches found.'
+                };
+            }
+
             return { type: 'NEW_PARCEL_PROMPT', payload: { code }, message: 'Unknown barcode. Create new?' };
         }
 
-        // 2. Permission & State Validation
+        // 3. Permission & State Validation
         return this.validateAndDecide(identification, context);
+    }
+
+    /**
+     * Fuzzy search via documents index
+     */
+    async fuzzySearch(keyword: string): Promise<any[]> {
+        if (!keyword || keyword.length < 3) return [];
+
+        const { data, error } = await supabase
+            .from('documents')
+            .select(`
+                *,
+                parcel:parcels(*)
+            `)
+            .ilike('doc_no', `%${keyword}%`)
+            .limit(10);
+
+        if (error || !data) return [];
+
+        // Map to unique parcels
+        const uniqueParcels = data
+            .filter(d => d.parcel)
+            .map(d => d.parcel);
+
+        // Deduplicate by ID
+        return Array.from(new Map(uniqueParcels.map(p => [p.id, p])).values());
     }
 
     private async identifyCode(code: string): Promise<{ type: 'TRANSFER' | 'PARCEL' | 'BATCH', data: any } | null> {
