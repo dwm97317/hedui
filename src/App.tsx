@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import MainApp from './pages/MainApp';
 import AdminDashboard from './pages/AdminDashboard';
+import Debugger from './components/Debugger';
 import './index.css';
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
                 algorithm: theme.darkAlgorithm,
             }}
         >
+            <Debugger />
             <Router>
                 <Routes>
                     <Route path="/" element={<MainApp />} />
