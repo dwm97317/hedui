@@ -221,7 +221,7 @@ export default function MainApp() {
                                             type="primary"
                                             size="large"
                                             icon={<PlusOutlined />}
-                                            onClick={() => createNewParcel(activeBatch, currentUserId, setActiveBarcode, message, t)}
+                                            onClick={() => createNewParcel(activeBatch, currentUserId, setActiveBarcode, setRefreshTrigger, message, t)}
                                             style={{ borderRadius: '8px', fontWeight: 700 }}
                                         >
                                             {t('parcel.create_new') || '新增包裹'}
@@ -276,7 +276,7 @@ function LanguageSelect({ i18n }: any) {
     );
 }
 
-async function createNewParcel(activeBatch: any, currentUserId: string, setActiveBarcode: any, message: any, t: any) {
+async function createNewParcel(activeBatch: any, currentUserId: string, setActiveBarcode: any, setRefreshTrigger: any, message: any, t: any) {
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const { count } = await supabase.from('parcels').select('*', { count: 'exact', head: true }).eq('batch_id', activeBatch.id);
     const seq = (count || 0) + 1;

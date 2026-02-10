@@ -93,7 +93,8 @@
         "width": "宽(cm)",
         "height": "高(cm)",
         "weight_entry": "重量录入",
-        "recent_activity": "近期扫描记录"
+        "recent_activity": "近期扫描记录",
+        "search_placeholder": "搜索单号..."
     },
     "pda": {
         "scan_hint": "使用物理扫描键或扫描窗口对准条码",
