@@ -87,8 +87,15 @@ export default function Scanner({ onScan, activeBarcode, disabled }: ScannerProp
                 onChange={(e) => setValue(e.target.value)}
                 onPressEnter={handlePressEnter}
                 disabled={disabled}
+                inputMode="none"
                 className="neon-border scanner-focus"
-                style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={{
+                    height: '48px',
+                    fontSize: '18px',
+                    background: 'rgba(255,255,255,0.05)',
+                    color: 'white',
+                    border: '1px solid rgba(255,255,255,0.3)'
+                }}
             />
             {(activeBarcode || lastScanned) && (
                 <Alert

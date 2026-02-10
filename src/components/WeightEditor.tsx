@@ -344,6 +344,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                     ref={inputRef}
                     size="large"
                     type="number"
+                    inputMode="decimal"
                     step="any"
                     placeholder="0.00"
                     value={weight}
@@ -354,8 +355,10 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                     style={{
                         background: 'rgba(255,255,255,0.05)',
                         color: isStable ? 'white' : '#faad14',
-                        border: `1px solid ${isStable ? 'rgba(255,255,255,0.2)' : '#faad14'}`,
-                        transition: 'all 0.3s'
+                        border: `1px solid ${isStable ? 'rgba(255,255,255,0.3)' : '#faad14'}`,
+                        transition: 'all 0.3s',
+                        fontSize: '24px',
+                        height: '60px'
                     }}
                 />
             </Form.Item>
@@ -363,10 +366,11 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             {/* Optional Dimensional & Sender Info (Only for Sender/Manual) */}
             {(role === 'sender' || length || width || height || senderName) && (
                 <div style={{ marginBottom: '15px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-                        <Form.Item label={t('parcel.length') || '长 (cm)'} style={{ marginBottom: 0 }}>
+                    <div className="dim-input-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                        <Form.Item label={t('parcel.length')} style={{ marginBottom: 0 }}>
                             <Input
                                 type="number"
+                                inputMode="decimal"
                                 placeholder="L"
                                 value={length}
                                 onChange={e => setLength(e.target.value)}
@@ -374,9 +378,10 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                                 className="glass-card"
                             />
                         </Form.Item>
-                        <Form.Item label={t('parcel.width') || '宽 (cm)'} style={{ marginBottom: 0 }}>
+                        <Form.Item label={t('parcel.width')} style={{ marginBottom: 0 }}>
                             <Input
                                 type="number"
+                                inputMode="decimal"
                                 placeholder="W"
                                 value={width}
                                 onChange={e => setWidth(e.target.value)}
@@ -384,9 +389,10 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                                 className="glass-card"
                             />
                         </Form.Item>
-                        <Form.Item label={t('parcel.height') || '高 (cm)'} style={{ marginBottom: 0 }}>
+                        <Form.Item label={t('parcel.height')} style={{ marginBottom: 0 }}>
                             <Input
                                 type="number"
+                                inputMode="decimal"
                                 placeholder="H"
                                 value={height}
                                 onChange={e => setHeight(e.target.value)}
@@ -395,9 +401,9 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                             />
                         </Form.Item>
                     </div>
-                    <Form.Item label={t('parcel.sender_name_label') || '发件人姓名'} style={{ marginBottom: 0 }}>
+                    <Form.Item label={t('parcel.sender_name_label')} style={{ marginBottom: 0 }}>
                         <Input
-                            placeholder={t('parcel.sender_name_placeholder') || '输入联系人姓名'}
+                            placeholder={t('parcel.sender_name_placeholder')}
                             value={senderName}
                             onChange={e => setSenderName(e.target.value)}
                             disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}

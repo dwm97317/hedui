@@ -60,9 +60,12 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
     };
 
     return (
-        <Card className="neon-card" title={t('batch.selector_title')} style={{ maxWidth: '600px', margin: '40px auto' }}>
+        <Card className="neon-card" style={{ maxWidth: '600px', margin: '40px auto' }}>
             <Space direction="vertical" style={{ width: '100%' }} size="large">
-                <Typography.Text type="secondary">
+                <Typography.Title level={4} style={{ color: 'var(--primary)', textAlign: 'center', marginBottom: 0 }}>
+                    {t('batch.selector_title')}
+                </Typography.Title>
+                <Typography.Text type="secondary" style={{ textAlign: 'center', display: 'block', fontSize: '13px' }}>
                     {t('batch.selector_desc')}
                 </Typography.Text>
 
@@ -95,7 +98,7 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
                 >
                     {t('batch.create_button')}
                 </Button>
-            </Space>
+            </Space >
 
             <Modal
                 title={t('batch.create_title')}
@@ -114,6 +117,6 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
                     />
                 </Space>
             </Modal>
-        </Card>
+        </Card >
     );
 }
