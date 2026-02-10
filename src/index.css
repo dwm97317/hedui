@@ -29,6 +29,9 @@
   --border-strong: #cbd5e1;
   --radius-pro: 12px;
   --shadow-pro: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --glow-purple: 0 0 15px rgba(139, 92, 246, 0.4);
+  --glow-blue: 0 0 15px rgba(139, 92, 246, 0.4);
+  /* Mapping blue glow to purple */
 }
 
 body {
@@ -192,4 +195,26 @@ body {
 .neon-button:hover {
   box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
   transform: translateY(-1px);
+}
+
+/* Force Ant Design Primary Colors */
+.ant-btn-primary {
+  background-color: var(--primary) !important;
+}
+
+.ant-btn-primary:hover {
+  background-color: var(--secondary) !important;
+  opacity: 0.9;
+}
+
+.ant-input:focus,
+.ant-input-focused {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1) !important;
+}
+
+.ant-tag-blue {
+  background: rgba(139, 92, 246, 0.1) !important;
+  color: var(--primary) !important;
+  border-color: rgba(139, 92, 246, 0.2) !important;
 }
