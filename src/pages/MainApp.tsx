@@ -21,6 +21,7 @@ export default function MainApp() {
     const [role, setRole] = useState<Role>('sender');
     const [activeBatch, setActiveBatch] = useState<Batch | null>(null);
     const [activeBarcode, setActiveBarcode] = useState<string | null>(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [ambiguousResults, setAmbiguousResults] = useState<any[]>([]);
     const [showResultsModal, setShowResultsModal] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
@@ -69,7 +70,10 @@ export default function MainApp() {
     };
 
     const handleScan = async (barcode: string) => { setActiveBarcode(barcode); };
-    const handleSaveWeight = () => { setActiveBarcode(null); };
+    const handleSaveWeight = () => {
+        setActiveBarcode(null);
+        setRefreshTrigger(prev => prev + 1);
+    };
 
     useEffect(() => {
         const unsubscribe = scannerAdapter.onScan(async (result) => {
@@ -155,7 +159,7 @@ export default function MainApp() {
                                 <div className="region-header" style={{ marginBottom: 0 }}>{t('parcel.recent_activity')}</div>
                                 <LanguageSelect i18n={i18n} />
                             </div>
-                            <ParcelTable role={role} activeBarcode={activeBarcode} activeBatchId={activeBatch?.id} readOnly={!canEdit} />
+                            <ParcelTable role={role} activeBarcode={activeBarcode} activeBatchId={activeBatch?.id} readOnly={!canEdit} refreshTrigger={refreshTrigger} />
                         </div>
                     </div>
                 ) : (
@@ -225,7 +229,7 @@ export default function MainApp() {
                                     )}
                                 </Space>
                             </div>
-                            <ParcelTable role={role} activeBarcode={activeBarcode} activeBatchId={activeBatch?.id} readOnly={!canEdit} />
+                            <ParcelTable role={role} activeBarcode={activeBarcode} activeBatchId={activeBatch?.id} readOnly={!canEdit} refreshTrigger={refreshTrigger} />
                         </div>
                     </div>
                 )}
@@ -279,5 +283,10 @@ async function createNewParcel(activeBatch: any, currentUserId: string, setActiv
     const stNum = `ST${dateStr}-${String(seq).padStart(3, '0')}`;
     const { error } = await supabase.from('parcels').insert({ batch_id: activeBatch.id, barcode: stNum, custom_id: stNum, sender_user_id: currentUserId, status: 'pending' });
     if (error) message.error(t('common.error') + ': ' + error.message);
-    else { message.success(t('parcel.create_success', { barcode: stNum })); setActiveBarcode(stNum); }
+    else {
+        message.success(t('parcel.create_success', { barcode: stNum }));
+        setActiveBarcode(stNum);
+        // Force refresh for the new item
+        setRefreshTrigger((prev: number) => prev + 1);
+    }
 }

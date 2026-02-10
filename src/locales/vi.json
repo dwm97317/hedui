@@ -96,7 +96,8 @@
         "multiple_results_found": "Tìm thấy nhiều kết quả",
         "print_success": "Đã gửi lệnh in",
         "sender_name_label": "Tên người gửi",
-        "sender_name_placeholder": "Nhập tên người gửi"
+        "sender_name_placeholder": "Nhập tên người gửi",
+        "search_placeholder": "Tìm kiếm đơn hàng..."
     },
     "pda": {
         "scan_hint": "Dùng phím quét hoặc cửa sổ quét căn chỉnh mã vạch",

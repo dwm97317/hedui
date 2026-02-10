@@ -10,9 +10,10 @@ interface ParcelTableProps {
     activeBarcode: string | null;
     activeBatchId: string;
     readOnly?: boolean;
+    refreshTrigger?: number;
 }
 
-export default function ParcelTable({ role, activeBarcode, activeBatchId, readOnly }: ParcelTableProps) {
+export default function ParcelTable({ role, activeBarcode, activeBatchId, readOnly, refreshTrigger }: ParcelTableProps) {
     const { t } = useTranslation();
     const [data, setData] = useState<Parcel[]>([]);
     const [loading, setLoading] = useState(true);
@@ -57,7 +58,7 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
         fetchData();
         const channel = supabase.channel('table-sync-' + activeBatchId).on('postgres_changes', { event: '*', schema: 'public', table: 'parcels', filter: `batch_id=eq.${activeBatchId}` }, () => fetchData()).subscribe();
         return () => { supabase.removeChannel(channel); };
-    }, [activeBatchId]);
+    }, [activeBatchId, refreshTrigger]);
 
     const handleSearch = async (val: string) => {
         setSearchKeyword(val);

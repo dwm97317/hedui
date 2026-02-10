@@ -96,7 +96,8 @@
         "multiple_results_found": "ရလဒ်များစွာတွေ့ရှိပါသည်",
         "print_success": "ပရင်တာသို့ ပေးပို့ပြီးပါပြီ",
         "sender_name_label": "ပေးပို့သူအမည်",
-        "sender_name_placeholder": "ပေးပို့သူအမည် ရိုက်ထည့်ပါ"
+        "sender_name_placeholder": "ပေးပို့သူအမည် ရိုက်ထည့်ပါ",
+        "search_placeholder": "နံပါတ်ဖြင့် ရှာဖွေရန်..."
     },
     "pda": {
         "scan_hint": "စကင်နာကို အသုံးပြုပါ သို့မဟုတ် ကင်မရာဖြင့် ဖတ်ပါ",

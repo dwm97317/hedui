@@ -96,7 +96,8 @@
         "multiple_results_found": "พบผลลัพธ์หลายรายการ",
         "print_success": "ส่งคำสั่งพิมพ์แล้ว",
         "sender_name_label": "ชื่อผู้ส่ง",
-        "sender_name_placeholder": "กรอกชื่อผู้ส่ง"
+        "sender_name_placeholder": "กรอกชื่อผู้ส่ง",
+        "search_placeholder": "ค้นหาเลขพัสดุ..."
     },
     "pda": {
         "scan_hint": "ใช้เครื่องสแกนหรือสแกนผ่านหน้าต่างกล้อง",
