@@ -237,7 +237,7 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
         {
             title: t('parcel.dims') || '尺寸(L*W*H)',
             key: 'dims',
-            responsive: ['lg'] as any, // Only show on large screens (PC)
+            responsive: ['md'] as any, // Show on PAD and larger
             render: (_: any, record: Parcel) => (
                 <span style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
                     {record.length_cm || '-'}/{record.width_cm || '-'}/{record.height_cm || '-'}
@@ -248,7 +248,7 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
             title: t('parcel.sender_name') || '姓名',
             dataIndex: 'sender_name',
             key: 'sender_name',
-            responsive: ['xl'] as any, // Only show on very large screens
+            responsive: ['lg'] as any, // Show on Laptop and larger
             render: (text: string) => <span style={{ fontSize: '12px' }}>{text || '-'}</span>
         }
     ];

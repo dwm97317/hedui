@@ -1,11 +1,12 @@
-import React from 'react';
-import { Layout, Space, Typography } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Typography, Tooltip, Avatar } from 'antd';
 import {
     DashboardOutlined,
     BarcodeOutlined,
     HistoryOutlined,
     SettingOutlined,
-    UserOutlined
+    UserOutlined,
+    LogoutOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -14,15 +15,92 @@ const { Header, Content } = Layout;
 interface AppLayoutProps {
     children: React.ReactNode;
     activeTitle?: string;
-    onMenuClick?: (key: string) => void;
 }
 
 export default function AppLayout({ children, activeTitle }: AppLayoutProps) {
     const { t } = useTranslation();
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Desktop View
+    if (!isMobile) {
+        return (
+            <div className="app-layout-main">
+                {/* Fixed Sidebar */}
+                <aside className="desktop-sidebar">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '0 8px' }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
+                        }}>
+                            <BarcodeOutlined style={{ color: 'white', fontSize: '22px' }} />
+                        </div>
+                        <Typography.Title level={4} style={{ margin: 0, color: 'white', letterSpacing: '-0.5px' }}>
+                            {t('common.app_title')}
+                        </Typography.Title>
+                    </div>
+
+                    <nav style={{ flex: 1 }}>
+                        <SidebarItem icon={<DashboardOutlined />} label={t('nav.home') || '首页'} active />
+                        <SidebarItem icon={<BarcodeOutlined />} label={t('nav.scan') || '智能扫描'} />
+                        <SidebarItem icon={<HistoryOutlined />} label={t('nav.history') || '数据历史'} />
+                        <SidebarItem icon={<SettingOutlined />} label={t('nav.settings') || '系统设置'} />
+                    </nav>
+
+                    <div style={{ padding: '20px 8px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Avatar icon={<UserOutlined />} style={{ backgroundColor: 'var(--primary)' }} />
+                            <div>
+                                <div style={{ color: 'white', fontSize: '13px', fontWeight: 600 }}>Operator</div>
+                                <div style={{ color: 'var(--text-sub)', fontSize: '11px' }}>Standard Role</div>
+                            </div>
+                        </div>
+                        <Tooltip title="Logout">
+                            <LogoutOutlined style={{ color: 'var(--text-sub)', cursor: 'pointer' }} />
+                        </Tooltip>
+                    </div>
+                </aside>
+
+                <main style={{ flex: 1, height: '100vh', overflowY: 'auto', background: 'var(--bg-oled)' }}>
+                    <Header style={{
+                        height: '72px',
+                        background: 'rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(10px)',
+                        padding: '0 32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 10
+                    }}>
+                        <Typography.Title level={3} style={{ margin: 0, color: 'white', fontSize: '20px' }}>
+                            {activeTitle || t('nav.home')}
+                        </Typography.Title>
+                    </Header>
+                    <div style={{ padding: '32px' }}>
+                        {children}
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    // Mobile View (Existing)
     return (
         <Layout className="app-container" style={{ background: 'var(--bg-dark)', minHeight: '100vh' }}>
-            {/* Premium Sticky Header */}
             <Header style={{
                 position: 'sticky',
                 top: 0,
@@ -61,7 +139,6 @@ export default function AppLayout({ children, activeTitle }: AppLayoutProps) {
                 {children}
             </Content>
 
-            {/* Floating Bottom Navigation */}
             <div style={{
                 position: 'fixed',
                 bottom: '20px',
@@ -84,6 +161,15 @@ export default function AppLayout({ children, activeTitle }: AppLayoutProps) {
                 <NavItem icon={<SettingOutlined />} label={t('nav.settings') || '设置'} />
             </div>
         </Layout>
+    );
+}
+
+function SidebarItem({ icon, label, active = false }: { icon: any, label: string, active?: boolean }) {
+    return (
+        <div className={`sidebar-nav-item ${active ? 'active' : ''}`}>
+            <span style={{ fontSize: '18px' }}>{icon}</span>
+            <span>{label}</span>
+        </div>
     );
 }
 

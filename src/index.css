@@ -2,20 +2,26 @@
 
 :root {
   --primary: #3B82F6;
-  /* Electric Blue */
-  --secondary: #A855F7;
-  /* Cyber Purple */
-  --accent: #F97316;
-  /* Safety Orange */
-  --bg-dark: #000000;
-  /* OLED True Black */
-  --bg-card: #0F172A;
-  /* Deep Navy */
-  --bg-glass: rgba(15, 23, 42, 0.7);
-  --text-main: #F8FAFC;
-  --text-sub: #94A3B8;
-  --glow-blue: 0 0 15px rgba(59, 130, 246, 0.5);
-  --glow-purple: 0 0 15px rgba(168, 85, 247, 0.5);
+  --font-main: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  --font-digital: 'Roboto Mono', monospace;
+
+  /* Deep Navy/Slate Dashboard Palette (Desktop) */
+  --bg-desktop: #020617;
+  /* Deepest Navy */
+  --bg-surface: #0f172a;
+  /* Slate-900 */
+  --bg-surface-light: #1e293b;
+  /* Slate-800 */
+
+  --primary: #3b82f6;
+  --primary-glow: rgba(59, 130, 246, 0.3);
+  --secondary: #a855f7;
+  --accent: #f97316;
+
+  --text-main: #f8fafc;
+  --text-sub: #94a3b8;
+  --neon-border: rgba(255, 255, 255, 0.05);
+  --glass-blur: blur(12px);
 }
 
 body {
