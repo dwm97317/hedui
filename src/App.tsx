@@ -10,11 +10,10 @@ export default function App() {
         <ConfigProvider
             theme={{
                 token: {
-                    colorPrimary: '#d8b4fe', // Light Purple
-                    colorBgBase: '#120f16',
-                    colorTextBase: '#f3e8ff',
-                },
-                algorithm: theme.darkAlgorithm,
+                    colorPrimary: '#2563eb', // Strong Blue
+                    borderRadius: 12,
+                    fontFamily: 'var(--font-main)',
+                }
             }}
         >
             <Debugger />

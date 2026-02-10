@@ -1,20 +1,23 @@
 import { useEffect } from 'react';
-import VConsole from 'vconsole';
 
 export default function Debugger() {
     useEffect(() => {
-        // Only initialize if not already active
-        const vConsole = new VConsole();
+        // Only initialize in development and only on client side
+        if (import.meta.env.MODE !== 'development') return;
 
-        // Log initial environment details
-        console.log('vConsole initialized');
-        console.log('User Agent:', navigator.userAgent);
-        console.log('Current URL:', window.location.href);
-        console.log('Base URL:', import.meta.env.BASE_URL);
+        // Use dynamic import to keep it out of the main bundle
+        import('vconsole').then((VConsoleModule) => {
+            const VConsole = VConsoleModule.default;
+            const vConsole = new VConsole();
+            console.log('vConsole initialized');
 
-        return () => {
-            vConsole.destroy();
-        };
+            // Clean up on unmount
+            return () => {
+                vConsole.destroy();
+            };
+        }).catch(err => {
+            console.error('Failed to load vConsole:', err);
+        });
     }, []);
 
     return null;
