@@ -1,9 +1,14 @@
 :root {
-  --primary: #1890ff;
-  --bg-dark: #121212;
-  --bg-card: #1e1e1e;
-  --text-main: #ffffff;
-  --text-sub: #b0b0b0;
+  --primary: #d8b4fe;
+  /* Light Purple / Lavender */
+  --bg-dark: #120f16;
+  /* Deep Purple Black */
+  --bg-card: #282236;
+  /* Purple Grey */
+  --text-main: #f3e8ff;
+  /* Pale Purple White */
+  --text-sub: #a8a2bc;
+  /* Muted Lavender */
 }
 
 body {
