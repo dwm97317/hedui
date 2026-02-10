@@ -8,7 +8,9 @@
         "skip": "跳过此件",
         "loading": "加载中...",
         "error": "错误",
-        "success": "成功"
+        "success": "成功",
+        "current_role": "当前角色",
+        "switch": "切换"
     },
     "roles": {
         "sender": "发出方",
@@ -16,6 +18,9 @@
         "receiver": "接收方",
         "admin": "管理员",
         "auditor": "审计员"
+    },
+    "nav": {
+        "scan": "扫描作业面板"
     },
     "batch": {
         "selector_title": "选择或创建批次",
@@ -86,7 +91,9 @@
         "dims": "尺寸与信息",
         "length": "长(cm)",
         "width": "宽(cm)",
-        "height": "高(cm)"
+        "height": "高(cm)",
+        "weight_entry": "重量录入",
+        "recent_activity": "近期扫描记录"
     },
     "pda": {
         "scan_hint": "使用物理扫描键或扫描窗口对准条码",
