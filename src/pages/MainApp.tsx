@@ -87,7 +87,7 @@ export default function MainApp() {
             .eq('user_id', currentUserId)
             .eq('role', role)
             .eq('is_active', true)
-            .single();
+            .maybeSingle();
 
         setCanEdit(!!data);
     };
