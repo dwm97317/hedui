@@ -61,10 +61,10 @@
         "audit_who": "作业人员",
         "audit_when": "操作时间",
         "ownership_lock_with_time": "锁定：{{userId}} 已于 {{time}} 录入",
-        "scanner_label": "扫码状态",
-        "scanner_placeholder_full": "请扫描包裹条码",
-        "scanner_success": "已锁定单号: {{barcode}}",
-        "scanner_tip": "提示：光标会自动定位到输入框",
+        "scanner_label": "扫码查验状态",
+        "scanner_placeholder_full": "请扫描包裹单号",
+        "scanner_success": "查验成功：{{barcode}}",
+        "scanner_tip": "提示：PDA扫描后将自动录入",
         "select_parcel_warning": "请先扫描包裹",
         "consolidate_title": "合包裹操作",
         "consolidate_content": "选中 {{count}} 个，请输入新总单号：",
@@ -97,9 +97,18 @@
         "search_placeholder": "搜索单号..."
     },
     "pda": {
-        "scan_hint": "使用物理扫描键或扫描窗口对准条码",
+        "verify_title": "查验",
+        "scan_verify": "扫码查验",
+        "manual_verify": "手动查验",
+        "verify_complete": "查验完成",
+        "double_click_hint": "双击单号可切换查验状态",
+        "status_unverified": "未查验",
+        "status_passed": "查验通过",
+        "status_anomaly": "异常",
+        "skip_item": "跳过此件",
+        "scan_hint": "使用物理扫描键或对准单号",
         "auto_reset_hint": "正在准备下一单...",
-        "footer_hint": "请在上方输入重量并确认",
-        "next_item": "扫描下一单"
+        "footer_hint": "请核对查验列表并提交",
+        "next_item": "下一单"
     }
 }

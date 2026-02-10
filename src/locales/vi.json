@@ -100,6 +100,15 @@
         "search_placeholder": "Tìm kiếm đơn hàng..."
     },
     "pda": {
+        "verify_title": "Kiểm tra",
+        "scan_verify": "Quét kiểm tra",
+        "manual_verify": "Kiểm tra thủ công",
+        "verify_complete": "Kiểm tra hoàn tất",
+        "double_click_hint": "Nhấn đúp để chuyển trạng thái",
+        "status_unverified": "Chưa kiểm tra",
+        "status_passed": "Kiểm tra đạt",
+        "status_anomaly": "Bất thường",
+        "skip_item": "Bỏ qua kiện này",
         "scan_hint": "Dùng phím quét hoặc cửa sổ quét căn chỉnh mã vạch",
         "auto_reset_hint": "Đang chuẩn bị kiện hàng tiếp theo...",
         "footer_hint": "Nhập trọng lượng và xác nhận bên trên",
