@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import '../index.css';
 import { scannerAdapter } from '../services/scanner';
 import { scanEngine } from '../services/scanEngine';
+import AppLayout from '../components/AppLayout';
 import { notification } from 'antd';
 
 const { Header, Content } = Layout;
@@ -187,198 +188,134 @@ export default function MainApp() {
     };
 
     return (
-        <Layout className="app-container">
-            <Header style={{
-                background: 'rgba(0,0,0,0.8)',
-                padding: '0 15px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                lineHeight: 'initial',
-                height: 'auto',
-                paddingTop: '10px',
-                paddingBottom: '10px',
-                borderBottom: '1px solid rgba(255,255,255,0.1)'
-            }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography.Text strong style={{ color: 'var(--primary)', fontSize: '16px', lineHeight: 1 }}>
-                        {t('common.app_title')}
-                    </Typography.Text>
-                    <Space size={4} style={{ marginTop: '4px' }}>
-                        <Tag color="blue" style={{ fontSize: '10px', padding: '0 4px', margin: 0 }}>{t(`roles.${role}`)}</Tag>
-                        {activeBatch && <Tag color="gold" style={{ fontSize: '10px', padding: '0 4px', margin: 0 }}>{activeBatch.batch_number}</Tag>}
-                    </Space>
-                </div>
-
-                <Space size="middle">
-                    <Select
-                        size="small"
-                        value={i18n.language.split('-')[0]}
-                        onChange={(lng: string) => i18n.changeLanguage(lng)}
-                        style={{ width: 80 }}
-                        className="glass-card"
-                        options={[
-                            { value: 'zh', label: 'CN' },
-                            { value: 'vi', label: 'VN' },
-                            { value: 'th', label: 'TH' },
-                            { value: 'mm', label: 'MM' }
-                        ]}
-                    />
-                    {activeBatch && (
-                        <Button
-                            icon={<LogoutOutlined />}
-                            size="small"
-                            type="text"
-                            style={{ color: 'white' }}
-                            onClick={() => {
-                                setActiveBatch(null);
-                                setActiveBarcode(null);
-                            }}
-                        />
-                    )}
-                </Space>
-            </Header>
-
-            <Content style={{ padding: '15px' }}>
-                {!activeBatch ? (
-                    <BatchSelector onSelect={setActiveBatch} />
-                ) : (
-                    <div className="grid-layout">
-                        {/* Area 1: Operational Controls */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            {/* Role Switcher (Compact for Mobile) */}
-                            <div className="neon-card" style={{ padding: '12px' }}>
-                                <div style={{ color: 'var(--text-sub)', fontSize: '12px', marginBottom: '8px' }}>{t('common.role')}:</div>
-                                <Button.Group style={{ width: '100%' }}>
-                                    {(['sender', 'transit', 'receiver'] as Role[]).map(r => (
-                                        <Button
-                                            key={r}
-                                            type={role === r ? 'primary' : 'default'}
-                                            onClick={() => setRole(r)}
-                                            size="middle"
-                                            style={{ flex: 1, fontSize: '12px', padding: 0 }}
-                                        >
-                                            {t(`roles.${r}`)}
-                                        </Button>
-                                    ))}
-                                </Button.Group>
+        <AppLayout activeTitle={activeBatch ? `${t('common.app_title')} - ${activeBatch.batch_number}` : t('common.app_title')}>
+            {!activeBatch ? (
+                <BatchSelector onSelect={setActiveBatch} />
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                    {/* Role Header Bento Card */}
+                    <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid var(--primary)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <Typography.Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                    {t('common.current_role')}
+                                </Typography.Text>
+                                <Typography.Title level={3} style={{ margin: 0, color: 'white', fontWeight: 800 }}>
+                                    {t(`roles.${role}`)}
+                                </Typography.Title>
                             </div>
-
-                            {/* Status Notifications */}
-                            {!canEdit && activeBatch.status !== 'completed' && (
-                                <Alert
-                                    message={t('parcel.permission_denied', { nickname: currentUserNickname, role: t(`roles.${role}`) })}
-                                    type="warning"
-                                    showIcon
-                                    style={{ background: 'rgba(250, 173, 20, 0.1)', border: '1px solid rgba(250, 173, 20, 0.2)', color: '#faad14' }}
-                                />
-                            )}
-                            {activeBatch.status === 'completed' && (
-                                <Alert
-                                    message={t('batch.readonly_alert')}
-                                    type="info"
-                                    showIcon
-                                    style={{ background: 'rgba(24, 144, 255, 0.1)', border: '1px solid rgba(24, 144, 255, 0.2)', color: '#1890ff' }}
-                                />
-                            )}
-
-                            {/* Scan & Weight */}
-                            <div className="neon-card" style={{ padding: '15px' }}>
-                                <Scanner onScan={handleScan} disabled={!canEdit} activeBarcode={activeBarcode} />
+                            <div style={{ textAlign: 'right' }}>
+                                <Typography.Text type="secondary" style={{ fontSize: '10px' }}>
+                                    {t('batch.number')}
+                                </Typography.Text>
+                                <div style={{ color: 'var(--primary)', fontWeight: 600 }}>{activeBatch?.batch_number}</div>
                             </div>
-
-                            <WeightEditor
-                                role={role}
-                                barcode={activeBarcode}
-                                activeBatchId={activeBatch.id}
-                                onSave={handleSaveWeight}
-                                readOnly={!canEdit}
-                                currentUserId={currentUserId}
-                            />
-
-                            {/* Admin Actions (Desktop Only placement choice or just conditional) */}
-                            {role === 'sender' && activeBatch.status === 'active' && canEdit && (
-                                <div className="neon-card" style={{ padding: '12px', marginBottom: '15px', border: '1px dashed var(--primary)' }}>
-                                    <Button
-                                        type="primary"
-                                        block
-                                        icon={<PlusOutlined />}
-                                        onClick={async () => {
-                                            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-                                            // Simple count for now, in prod use a DB sequence or count
-                                            const { count } = await supabase.from('parcels').select('*', { count: 'exact', head: true }).eq('batch_id', activeBatch.id);
-                                            const seq = (count || 0) + 1;
-                                            const stNum = `ST${dateStr}-${String(seq).padStart(3, '0')}`;
-
-                                            const { data, error } = await supabase.from('parcels').insert({
-                                                batch_id: activeBatch.id,
-                                                barcode: stNum,
-                                                custom_id: stNum,
-                                                sender_user_id: currentUserId,
-                                                status: 'pending'
-                                            }).select().single();
-
-                                            if (error) message.error(t('common.error') + ': ' + error.message);
-                                            else {
-                                                message.success(t('parcel.create_success', { barcode: stNum }));
-                                                setActiveBarcode(stNum);
-                                            }
-                                        }}
-                                    >
-                                        {t('parcel.create_new')}
-                                    </Button>
-                                    <div style={{ textAlign: 'center', fontSize: '10px', color: 'var(--text-sub)', marginTop: 5 }}>
-                                        {t('parcel.create_tip')}
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeBatch.status === 'active' && canEdit && systemRole === 'admin' && (
-                                <div className="desktop-only">
-                                    <Button
-                                        block
-                                        type="primary"
-                                        danger
-                                        onClick={() => {
-                                            Modal.confirm({
-                                                title: t('batch.confirm_finish_title'),
-                                                content: t('batch.confirm_finish_content'),
-                                                onOk: async () => {
-                                                    const { error } = await supabase
-                                                        .from('batches')
-                                                        .update({ status: 'completed' })
-                                                        .eq('id', activeBatch.id);
-                                                    if (error) return message.error(t('common.error') + ': ' + error.message);
-                                                    message.success(t('batch.finish_success'));
-                                                    setActiveBatch({ ...activeBatch, status: 'completed' });
-                                                }
-                                            });
-                                        }}
-                                    >
-                                        {t('batch.finish')}
-                                    </Button>
-                                </div>
-                            )}
                         </div>
 
-                        {/* Area 2: Data Table */}
-                        <div className="neon-card" style={{ padding: '15px', overflow: 'hidden' }}>
+                        <div style={{ marginTop: '16px' }}>
+                            <Button.Group style={{ width: '100%' }}>
+                                {(['sender', 'transit', 'receiver'] as Role[]).map(r => (
+                                    <Button
+                                        key={r}
+                                        type={role === r ? 'primary' : 'default'}
+                                        onClick={() => setRole(r)}
+                                        style={{
+                                            flex: 1,
+                                            height: '40px',
+                                            background: role === r ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                            borderColor: 'transparent',
+                                            color: 'white',
+                                            fontSize: '13px'
+                                        }}
+                                    >
+                                        {t(`roles.${r}`)}
+                                    </Button>
+                                ))}
+                            </Button.Group>
+                        </div>
+                    </div>
+
+                    {/* Operational Bento Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                        {/* Area 1: Scanner (Always visible/Primary) */}
+                        <div className="glass-card neon-border" style={{ padding: '0px', overflow: 'hidden' }}>
+                            <Scanner onScan={handleScan} disabled={!canEdit} activeBarcode={activeBarcode} />
+                        </div>
+
+                        {/* Area 2: Main Editor */}
+                        <WeightEditor
+                            role={role}
+                            barcode={activeBarcode}
+                            activeBatchId={activeBatch?.id}
+                            onSave={handleSaveWeight}
+                            readOnly={!canEdit}
+                            currentUserId={currentUserId}
+                        />
+
+                        {/* Area 3: Recent Activity / Table */}
+                        <div className="glass-card" style={{ padding: '16px', minHeight: '300px' }}>
+                            <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography.Title level={5} style={{ margin: 0, color: 'white' }}>
+                                    {t('parcel.recent_activity') || '最近活动'}
+                                </Typography.Title>
+                                <Select
+                                    size="small"
+                                    value={i18n.language.split('-')[0]}
+                                    onChange={(lng: string) => i18n.changeLanguage(lng)}
+                                    style={{ width: 60 }}
+                                    bordered={false}
+                                    options={[
+                                        { value: 'zh', label: 'CN' },
+                                        { value: 'vi', label: 'VN' },
+                                        { value: 'th', label: 'TH' },
+                                        { value: 'mm', label: 'MM' }
+                                    ]}
+                                />
+                            </div>
                             <ParcelTable
                                 role={role}
                                 activeBarcode={activeBarcode}
-                                activeBatchId={activeBatch.id}
+                                activeBatchId={activeBatch?.id}
                                 readOnly={!canEdit}
                             />
                         </div>
+                    </div>
 
-                        {/* Mobile Only: Finish Batch Button at bottom */}
-                        <div className="mobile-only" style={{ marginTop: '10px' }}>
+                    {/* Footer Actions Bento */}
+                    {(canEdit || systemRole === 'admin') && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            {role === 'sender' && activeBatch?.status === 'active' && canEdit && (
+                                <Button
+                                    type="primary"
+                                    icon={<PlusOutlined />}
+                                    style={{ height: '54px', borderRadius: '12px', background: 'linear-gradient(to right, #3B82F6, #2563EB)', border: 'none' }}
+                                    onClick={async () => {
+                                        if (!activeBatch) return;
+                                        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                                        const { count } = await supabase.from('parcels').select('*', { count: 'exact', head: true }).eq('batch_id', activeBatch.id);
+                                        const seq = (count || 0) + 1;
+                                        const stNum = `ST${dateStr}-${String(seq).padStart(3, '0')}`;
+                                        const { data, error } = await supabase.from('parcels').insert({
+                                            batch_id: activeBatch.id,
+                                            barcode: stNum,
+                                            custom_id: stNum,
+                                            sender_user_id: currentUserId,
+                                            status: 'pending'
+                                        }).select().single();
+                                        if (error) message.error(t('common.error') + ': ' + error.message);
+                                        else {
+                                            message.success(t('parcel.create_success', { barcode: stNum }));
+                                            setActiveBarcode(stNum);
+                                        }
+                                    }}
+                                >
+                                    {t('parcel.create_new')}
+                                </Button>
+                            )}
                             {activeBatch.status === 'active' && canEdit && (
                                 <Button
-                                    block
-                                    size="large"
-                                    type="primary"
-                                    danger
+                                    icon={<LogoutOutlined />}
+                                    style={{ height: '54px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
                                     onClick={() => {
                                         Modal.confirm({
                                             title: t('batch.confirm_finish_title'),
@@ -387,7 +324,7 @@ export default function MainApp() {
                                                 const { error } = await supabase
                                                     .from('batches')
                                                     .update({ status: 'completed' })
-                                                    .eq('id', activeBatch.id);
+                                                    .eq('id', activeBatch?.id);
                                                 if (error) return message.error(t('common.error') + ': ' + error.message);
                                                 message.success(t('batch.finish_success'));
                                                 setActiveBatch({ ...activeBatch, status: 'completed' });
@@ -399,41 +336,41 @@ export default function MainApp() {
                                 </Button>
                             )}
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
+            )}
 
-                {/* Ambiguous Results Modal */}
-                <Modal
-                    title={t('parcel.multiple_results_found') || '发现多个匹配单号'}
-                    open={showResultsModal}
-                    onCancel={() => setShowResultsModal(false)}
-                    footer={null}
-                    className="neon-modal"
-                >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {ambiguousResults.map(p => (
-                            <Button
-                                key={p.id}
-                                block
-                                className="glass-card"
-                                style={{ textAlign: 'left', height: 'auto', padding: '10px' }}
-                                onClick={() => {
-                                    setActiveBarcode(p.barcode);
-                                    setShowResultsModal(false);
-                                }}
-                            >
-                                <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{p.barcode}</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                                    {t('parcel.sender_weight')}: {p.sender_weight || '-'}kg | {t('parcel.status')}: {p.status}
-                                </div>
-                            </Button>
-                        ))}
-                    </div>
-                </Modal>
+            {/* Ambiguous Results Modal */}
+            <Modal
+                title={t('parcel.multiple_results_found') || '发现多个匹配单号'}
+                open={showResultsModal}
+                onCancel={() => setShowResultsModal(false)}
+                footer={null}
+                className="neon-modal"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {ambiguousResults.map(p => (
+                        <Button
+                            key={p.id}
+                            block
+                            className="glass-card"
+                            style={{ textAlign: 'left', height: 'auto', padding: '10px' }}
+                            onClick={() => {
+                                setActiveBarcode(p.barcode);
+                                setShowResultsModal(false);
+                            }}
+                        >
+                            <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{p.barcode}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                                {t('parcel.sender_weight')}: {p.sender_weight || '-'}kg | {t('parcel.status')}: {p.status}
+                            </div>
+                        </Button>
+                    ))}
+                </div>
+            </Modal>
 
-                {/* Debug User Switcher - Simplified */}
-                <DebugRoleSwitcher currentUserId={currentUserId} activeBatchId={activeBatch ? activeBatch.id : null} />
-            </Content>
-        </Layout>
+            {/* Debug User Switcher - Simplified */}
+            <DebugRoleSwitcher currentUserId={currentUserId} activeBatchId={activeBatch ? activeBatch.id : null} />
+        </AppLayout>
     );
 }

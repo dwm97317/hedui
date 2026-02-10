@@ -60,45 +60,67 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
     };
 
     return (
-        <Card className="neon-card" style={{ maxWidth: '600px', margin: '40px auto' }}>
-            <Space direction="vertical" style={{ width: '100%' }} size="large">
-                <Typography.Title level={4} style={{ color: 'var(--primary)', textAlign: 'center', marginBottom: 0 }}>
+        <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                <Typography.Title level={2} style={{ color: 'white', marginBottom: '8px' }}>
                     {t('batch.selector_title')}
                 </Typography.Title>
-                <Typography.Text type="secondary" style={{ textAlign: 'center', display: 'block', fontSize: '13px' }}>
+                <Typography.Text type="secondary" style={{ fontSize: '14px' }}>
                     {t('batch.selector_desc')}
                 </Typography.Text>
+            </div>
 
-                <Select
-                    placeholder={t('batch.placeholder')}
-                    style={{ width: '100%' }}
-                    size="large"
-                    loading={loading}
-                    onChange={(id) => {
-                        const b = batches.find(x => x.id === id);
-                        if (b) onSelect(b);
-                    }}
-                >
-                    {batches.map(b => (
-                        <Select.Option key={b.id} value={b.id}>
-                            {b.batch_number} ({b.business_date})
-                        </Select.Option>
-                    ))}
-                </Select>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px', marginBottom: '24px' }}>
+                {batches.map(b => (
+                    <div
+                        key={b.id}
+                        className="glass-card neon-border-hover"
+                        style={{
+                            padding: '16px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            transition: 'all 0.3s'
+                        }}
+                        onClick={() => onSelect(b)}
+                    >
+                        <div>
+                            <div style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '18px' }}>
+                                {b.batch_number}
+                            </div>
+                            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginTop: '4px' }}>
+                                {b.business_date}
+                            </div>
+                        </div>
+                        <SelectOutlined style={{ color: 'var(--primary)', fontSize: '20px' }} />
+                    </div>
+                ))}
 
-                <Divider style={{ borderColor: 'rgba(255,255,255,0.1)' }}>{t('batch.or')}</Divider>
+                {batches.length === 0 && !loading && (
+                    <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.2)' }}>
+                        {t('common.no_data')}
+                    </div>
+                )}
+            </div>
 
-                <Button
-                    type="dashed"
-                    block
-                    size="large"
-                    icon={<PlusOutlined />}
-                    onClick={() => setIsModalOpen(true)}
-                    style={{ color: 'var(--primary)', borderColor: 'var(--primary)' }}
-                >
-                    {t('batch.create_button')}
-                </Button>
-            </Space >
+            <Button
+                type="dashed"
+                block
+                size="large"
+                icon={<PlusOutlined />}
+                onClick={() => setIsModalOpen(true)}
+                style={{
+                    height: '60px',
+                    borderRadius: '16px',
+                    color: 'var(--primary)',
+                    borderColor: 'var(--primary)',
+                    background: 'rgba(59, 130, 246, 0.05)',
+                    fontWeight: 600
+                }}
+            >
+                {t('batch.create_button')}
+            </Button>
 
             <Modal
                 title={t('batch.create_title')}
@@ -107,16 +129,27 @@ export default function BatchSelector({ onSelect }: BatchSelectorProps) {
                 onCancel={() => setIsModalOpen(false)}
                 okText={t('common.confirm')}
                 cancelText={t('common.cancel')}
+                className="neon-modal"
+                centered
             >
-                <Space direction="vertical" style={{ width: '100%', marginTop: '10px' }}>
-                    <Typography.Text>{t('batch.create_label')}</Typography.Text>
+                <div style={{ padding: '10px 0' }}>
+                    <Typography.Text style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '8px', display: 'block' }}>
+                        {t('batch.create_label')}
+                    </Typography.Text>
                     <Input
                         placeholder={t('batch.create_placeholder')}
+                        size="large"
                         value={newBatchNumber}
                         onChange={e => setNewBatchNumber(e.target.value)}
+                        style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '12px'
+                        }}
                     />
-                </Space>
+                </div>
             </Modal>
-        </Card >
+        </div>
     );
 }

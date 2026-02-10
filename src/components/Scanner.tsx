@@ -74,40 +74,82 @@ export default function Scanner({ onScan, activeBarcode, disabled }: ScannerProp
     };
 
     return (
-        <div className="neon-card" style={{ padding: '2px', background: 'transparent', border: 'none' }}>
-            <Typography.Text strong style={{ color: 'var(--primary)', marginBottom: 5, display: 'block', fontSize: '12px' }}>
-                {t('scanner_label')}
-            </Typography.Text>
-            <Input
-                ref={inputRef}
-                placeholder={t('scanner_placeholder_full')}
-                prefix={<BarcodeOutlined style={{ color: 'var(--primary)' }} />}
-                size="large"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onPressEnter={handlePressEnter}
-                disabled={disabled}
-                inputMode="none"
-                className="neon-border scanner-focus"
-                style={{
-                    height: '48px',
-                    fontSize: '18px',
-                    background: 'rgba(255,255,255,0.05)',
-                    color: 'white',
-                    border: '1px solid rgba(255,255,255,0.3)'
-                }}
-            />
-            {(activeBarcode || lastScanned) && (
-                <Alert
-                    message={t('scanner_success', { barcode: activeBarcode || lastScanned })}
-                    type="success"
-                    showIcon
-                    style={{ marginTop: '10px', background: 'rgba(82, 196, 26, 0.1)', border: 'none', color: '#52c41a' }}
-                />
-            )}
-            <Typography.Text type="secondary" style={{ fontSize: '11px', marginTop: '8px', display: 'block', color: 'var(--text-sub)' }}>
-                {t('scanner_tip')}
-            </Typography.Text>
+        <div style={{ position: 'relative', overflow: 'hidden' }}>
+            <div style={{ padding: '20px' }}>
+                <Typography.Text strong style={{
+                    color: 'var(--primary)',
+                    marginBottom: 8,
+                    display: 'block',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                }}>
+                    {t('scanner_label')}
+                </Typography.Text>
+
+                <div style={{ position: 'relative' }}>
+                    <Input
+                        ref={inputRef}
+                        placeholder={t('scanner_placeholder_full')}
+                        prefix={<BarcodeOutlined style={{ color: 'var(--primary)' }} />}
+                        size="large"
+                        value={value}
+                        onChange={(e) => setValue(e.target.value)}
+                        onPressEnter={handlePressEnter}
+                        disabled={disabled}
+                        inputMode="none"
+                        style={{
+                            height: '54px',
+                            fontSize: '16px',
+                            background: 'rgba(255,255,255,0.03)',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '12px'
+                        }}
+                    />
+
+                    {/* Scanning Pulse Animation */}
+                    {!disabled && (
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            borderRadius: '12px',
+                            border: '1px solid var(--primary)',
+                            opacity: 0.3,
+                            pointerEvents: 'none',
+                            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        }} />
+                    )}
+                </div>
+
+                {(activeBarcode || lastScanned) && (
+                    <div style={{
+                        marginTop: '12px',
+                        padding: '10px 16px',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        color: '#10B981',
+                        fontSize: '13px',
+                        fontWeight: 600
+                    }}>
+                        <BarcodeOutlined />
+                        <span>{activeBarcode || lastScanned}</span>
+                    </div>
+                )}
+            </div>
+
+            <style>{`
+                @keyframes pulse {
+                    0%, 100% { opacity: 0.1; }
+                    50% { opacity: 0.4; box-shadow: 0 0 15px var(--primary); }
+                }
+            `}</style>
         </div>
     );
 }

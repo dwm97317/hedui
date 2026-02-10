@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Input, Button, Form, Typography, message, Tag, Space, Alert, Radio } from 'antd';
+import { Input, Button, Typography, message, Tag, Radio } from 'antd';
 import { SaveOutlined, ForwardOutlined, PrinterOutlined, ToolOutlined, UsbOutlined, WifiOutlined } from '@ant-design/icons';
 import { pinyin } from 'pinyin-pro';
 import { supabase } from '../lib/supabase';
 import { Role } from '../types';
 import { useTranslation } from 'react-i18next';
-import { WeightProvider, ManualWeightProvider, BleWeightProvider, HidWeightProvider, WeightResult } from '../services/weight';
+import { WeightProvider, ManualWeightProvider, BleWeightProvider, HidWeightProvider } from '../services/weight';
 
 interface WeightEditorProps {
     role: Role;
@@ -53,8 +53,6 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             setIsStable(true);
             return;
         }
-        // For other sources, if we had a stream, we'd check variance here.
-        // Since we don't have real hardware, we assume stable for now to unblock UI.
         setIsStable(true);
     }, [weight, weightSource]);
 
@@ -85,16 +83,13 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             let shouldLock = false;
 
             if (data) {
-                // Check if printed (Global Lock)
                 if (data.printed) {
                     setIsPrinted(true);
                     shouldLock = true;
-                    // message.info(t('parcel.printed_locked')); // Optional: too noisy if auto-scanned
                 } else {
                     setIsPrinted(false);
                 }
 
-                // Check if current user owns the data for this role
                 let existingWeight = null;
                 let existingUserId = null;
                 let existingTime = null;
@@ -125,10 +120,9 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 setHeight(data.height_cm ? data.height_cm.toString() : '');
                 setSenderName(data.sender_name || '');
 
-                // If data exists AND belongs to someone else, enforce Read-Only logic
-                if (existingWeight !== null && existingUserId && existingUserId !== currentUserId) {
+                if (existingUserId && existingUserId !== currentUserId) {
                     message.warning(t('parcel.ownership_lock_with_time', { userId: existingUserId, time: existingTime ? new Date(existingTime).toLocaleString() : '-' }));
-                    setWeight(existingWeight.toString());
+                    setWeight(existingWeight ? existingWeight.toString() : '');
                     setIsLockedByOther(true);
                     shouldLock = true;
                 } else if (existingWeight !== null) {
@@ -146,7 +140,6 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             }
             setFetching(false);
 
-            // Focus the weight input after fetching, if not locked
             if (inputRef.current && !shouldLock) {
                 setTimeout(() => {
                     inputRef.current?.focus();
@@ -154,15 +147,14 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             }
         };
         fetchExisting();
-    }, [barcode, activeBatchId, role, readOnly, currentUserId]);
+    }, [barcode, activeBatchId, role, readOnly, currentUserId, t]);
 
     const handleSave = async () => {
-        if (readOnly || isLockedByOther || isPrinted) return; // Block save if locked
+        if (readOnly || isLockedByOther || isPrinted) return;
         if (!barcode) return message.warning(t('parcel.scanner_placeholder'));
         if (!weight) return message.warning(t('parcel.weight_label'));
         if (!isStable) return message.warning(t('parcel.unstable_weight') || 'Scale Unstable');
 
-        // ... (rest of logic same as before, no changes needed inside try block for save)
         setFetching(true);
         try {
             const weightVal = parseFloat(weight);
@@ -176,7 +168,6 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 height_cm: height ? parseFloat(height) : null,
                 sender_name: senderName || null
             };
-            // ... (rest of updateData logic is fine)
 
             if (role === 'sender') {
                 updateData.sender_weight = weightVal;
@@ -203,21 +194,9 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             if (error) throw error;
 
             message.success(t('parcel.save_success'));
-            // Don't clear weight immediately if we are in Sender role (might want to print)
-            // But usually we move to next. For now, keep as is.
-            // onSave(); // Let the user click Print manually if Sender?
-            // Actually, per SOP: Weigh -> Print -> Lock. So we should probably SAVE first, then enable Print button.
-            // Current flow: Scan -> Input Weight -> Enter(Save) -> Next.
-            // New flow: Scan -> Input Weight -> Save -> Print -> Lock -> Next.
-
-            // For now, let's keep auto-next for non-sender. Sender might need to stay to print.
             if (role !== 'sender') {
                 setWeight('');
                 onSave();
-            } else {
-                // Refresh to show Print button? Or just set local state?
-                // We need to re-fetch to ensure we have the latest state if needed, or just trust UI.
-                // Let's just notify success. The user is still on this barcode.
             }
         } catch (err: any) {
             message.error(t('parcel.save_failed') + ': ' + err.message);
@@ -230,19 +209,17 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
         if (!barcode) return;
         setFetching(true);
         try {
-            // 1. Prepare Data
             const weightVal = parseFloat(weight);
             if (isNaN(weightVal) || weightVal <= 0) throw new Error(t('parcel.weight_must_positive') || 'Weight > 0');
 
-            // Compute Pinyin for Search (Industrial optimization)
             const py = senderName ? pinyin(senderName, { toneType: 'none' }).replace(/\s/g, '') : null;
             const initial = senderName ? pinyin(senderName, { pattern: 'initial', toneType: 'none' }).replace(/\s/g, '') : null;
-            // Construct payload based on bartender_spec.md
+
             const payload = {
                 PACKAGE_NO: barcode,
                 PACKAGE_INDEX: barcode.split('-')[1] || '0',
                 WEIGHT: `${weightVal.toFixed(2)} KG`,
-                ROUTE: 'Chinh-QN', // Mock routing
+                ROUTE: 'Chinh-QN',
                 SHIP_DATE: new Date().toISOString().slice(0, 10),
                 PACKAGE_BARCODE: barcode,
                 LENGTH: length || '-',
@@ -251,7 +228,6 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                 SENDER_NAME: senderName || '-'
             };
 
-            // 2. Upsert Parcel
             const updateData: any = {
                 updated_at: new Date().toISOString(),
                 weight_source: weightSource,
@@ -278,7 +254,6 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
 
             if (upsertError) throw upsertError;
 
-            // 3. Insert Print Job
             const { error: printError } = await supabase.from('print_jobs').insert({
                 parcel_id: parcelData.id,
                 payload: payload,
@@ -287,7 +262,6 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
 
             if (printError) throw printError;
 
-            // 4. Lock Parcel
             const { error: lockError } = await supabase.from('parcels').update({
                 printed: true,
                 printed_at: new Date().toISOString(),
@@ -307,156 +281,190 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
     };
 
     return (
-        <Form layout="vertical" className="neon-card" style={{ padding: '15px' }}>
-            <div style={{ marginBottom: '15px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                    <Typography.Text type="secondary" style={{ fontSize: '12px' }}>{t('common.duty')}: {t(`parcel.${role}_weight`)}</Typography.Text>
-                    {/* Source Switcher */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+            <div className={`glass-card ${isStable ? 'neon-border' : 'neon-border-purple'}`}
+                style={{
+                    padding: '20px',
+                    textAlign: 'center',
+                    background: isStable ? 'rgba(15, 23, 42, 0.4)' : 'rgba(88, 28, 135, 0.1)'
+                }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <Typography.Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        {t(`parcel.${role}_weight`)}
+                    </Typography.Text>
                     {!readOnly && (
                         <Radio.Group
                             value={weightSource}
                             onChange={e => setWeightSource(e.target.value as any)}
                             size="small"
-                            buttonStyle="solid"
                         >
-                            <Radio.Button value="MANUAL"><ToolOutlined /></Radio.Button>
-                            <Radio.Button value="BLE"><WifiOutlined /></Radio.Button>
-                            <Radio.Button value="HID"><UsbOutlined /></Radio.Button>
+                            <Radio.Button value="MANUAL" style={{ background: 'transparent', color: 'var(--text-sub)' }}><ToolOutlined /></Radio.Button>
+                            <Radio.Button value="BLE" style={{ background: 'transparent', color: 'var(--text-sub)' }}><WifiOutlined /></Radio.Button>
+                            <Radio.Button value="HID" style={{ background: 'transparent', color: 'var(--text-sub)' }}><UsbOutlined /></Radio.Button>
                         </Radio.Group>
                     )}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '18px' }}>
-                        {barcode || t('parcel.waiting_scan')}
-                        {isPrinted && <Tag color="red" style={{ marginLeft: 10 }}>{t('parcel.locked') || 'LOCKED'}</Tag>}
+
+                <div style={{ position: 'relative', marginBottom: '10px' }}>
+                    <div style={{
+                        fontSize: '64px',
+                        color: isStable ? '#10B981' : '#F59E0B',
+                        textShadow: isStable ? '0 0 20px rgba(16, 185, 129, 0.4)' : '0 0 20px rgba(245, 158, 11, 0.4)',
+                        marginBottom: '0px',
+                        transition: 'all 0.5s',
+                        height: '80px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }} className="font-digital">
+                        {weight || '0.00'}
+                        <span style={{ fontSize: '18px', marginLeft: '8px', opacity: 0.6 }}>KG</span>
                     </div>
-                    {auditInfo && (
-                        <div style={{ fontSize: '10px', color: 'var(--text-sub)', textAlign: 'right' }}>
-                            <div>{t('parcel.audit_who')}: {auditInfo.user}</div>
-                            <div>{auditInfo.time ? new Date(auditInfo.time).toLocaleTimeString() : ''}</div>
-                        </div>
-                    )}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
+                    <div style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 700 }}>
+                        {barcode || t('parcel.waiting_scan')}
+                    </div>
+                    {isStable && <Tag color="success" bordered={false} style={{ borderRadius: '4px', fontSize: '10px' }}>STABLE</Tag>}
                 </div>
             </div>
 
-            <Form.Item label={<span style={{ color: isStable ? '#52c41a' : '#faad14' }}>{t('parcel.weight_label')} {isStable ? '(Stable)' : '(Unstable)'}</span>}>
-                <Input
-                    ref={inputRef}
-                    size="large"
-                    type="number"
-                    inputMode="decimal"
-                    step="any"
-                    placeholder="0.00"
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    onPressEnter={handleSave}
-                    disabled={!barcode || readOnly || isLockedByOther || isPrinted || weightSource !== 'MANUAL'}
-                    prefix={weightSource === 'MANUAL' ? null : <WifiOutlined spin={!isStable} />}
-                    style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        color: isStable ? 'white' : '#faad14',
-                        border: `1px solid ${isStable ? 'rgba(255,255,255,0.3)' : '#faad14'}`,
-                        transition: 'all 0.3s',
-                        fontSize: '24px',
-                        height: '60px'
-                    }}
-                />
-            </Form.Item>
+            <Input
+                ref={inputRef}
+                type="number"
+                inputMode="decimal"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                onPressEnter={handleSave}
+                style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
+                disabled={!barcode || readOnly || isLockedByOther || isPrinted || weightSource !== 'MANUAL'}
+            />
 
-            {/* Optional Dimensional & Sender Info (Only for Sender/Manual) */}
             {(role === 'sender' || length || width || height || senderName) && (
-                <div style={{ marginBottom: '15px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
-                    <div className="dim-input-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-                        <Form.Item label={t('parcel.length')} style={{ marginBottom: 0 }}>
+                <div className="glass-card" style={{ padding: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '12px' }}>
+                            <Typography.Text type="secondary" style={{ fontSize: '10px' }}>{t('parcel.length')}</Typography.Text>
                             <Input
+                                variant="borderless"
                                 type="number"
                                 inputMode="decimal"
                                 placeholder="L"
                                 value={length}
                                 onChange={e => setLength(e.target.value)}
                                 disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
-                                className="glass-card"
+                                style={{ color: 'white', fontWeight: 600, padding: 0 }}
                             />
-                        </Form.Item>
-                        <Form.Item label={t('parcel.width')} style={{ marginBottom: 0 }}>
+                        </div>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '12px' }}>
+                            <Typography.Text type="secondary" style={{ fontSize: '10px' }}>{t('parcel.width')}</Typography.Text>
                             <Input
+                                variant="borderless"
                                 type="number"
                                 inputMode="decimal"
                                 placeholder="W"
                                 value={width}
                                 onChange={e => setWidth(e.target.value)}
                                 disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
-                                className="glass-card"
+                                style={{ color: 'white', fontWeight: 600, padding: 0 }}
                             />
-                        </Form.Item>
-                        <Form.Item label={t('parcel.height')} style={{ marginBottom: 0 }}>
+                        </div>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '12px' }}>
+                            <Typography.Text type="secondary" style={{ fontSize: '10px' }}>{t('parcel.height')}</Typography.Text>
                             <Input
+                                variant="borderless"
                                 type="number"
                                 inputMode="decimal"
                                 placeholder="H"
                                 value={height}
                                 onChange={e => setHeight(e.target.value)}
                                 disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
-                                className="glass-card"
+                                style={{ color: 'white', fontWeight: 600, padding: 0 }}
                             />
-                        </Form.Item>
+                        </div>
                     </div>
-                    <Form.Item label={t('parcel.sender_name_label')} style={{ marginBottom: 0 }}>
+
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '12px' }}>
+                        <Typography.Text type="secondary" style={{ fontSize: '10px' }}>{t('parcel.sender_name_label')}</Typography.Text>
                         <Input
+                            variant="borderless"
                             placeholder={t('parcel.sender_name_placeholder')}
                             value={senderName}
                             onChange={e => setSenderName(e.target.value)}
                             disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
-                            className="glass-card"
+                            style={{ color: 'white', fontWeight: 600, padding: 0, marginTop: '4px' }}
                         />
-                    </Form.Item>
+                    </div>
                 </div>
             )}
 
-            {!isPrinted ? (
-                <Space direction="vertical" style={{ width: '100%' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                {!isPrinted ? (
+                    <>
+                        {role === 'sender' && weight && !isLockedByOther ? (
+                            <Button
+                                type="primary"
+                                danger
+                                icon={<PrinterOutlined />}
+                                size="large"
+                                style={{ height: '60px', borderRadius: '16px', fontSize: '18px', fontWeight: 700 }}
+                                block
+                                onClick={handlePrintAndLock}
+                                loading={fetching}
+                                disabled={!isStable}
+                            >
+                                {t('parcel.print_and_lock')}
+                            </Button>
+                        ) : (
+                            <Button
+                                type="primary"
+                                icon={<SaveOutlined />}
+                                size="large"
+                                style={{ height: '60px', borderRadius: '16px', fontSize: '18px', fontWeight: 700 }}
+                                block
+                                onClick={handleSave}
+                                loading={fetching}
+                                disabled={!barcode || readOnly || isLockedByOther}
+                            >
+                                {t('parcel.save_continue')}
+                            </Button>
+                        )}
+                    </>
+                ) : (
+                    <div style={{
+                        padding: '16px',
+                        background: 'rgba(245, 158, 11, 0.1)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        color: '#F59E0B'
+                    }}>
+                        <PrinterOutlined style={{ fontSize: '20px' }} />
+                        <span style={{ fontWeight: 600 }}>{t('parcel.already_printed')}</span>
+                    </div>
+                )}
+
+                {!readOnly && (
                     <Button
-                        type="primary"
-                        icon={<SaveOutlined />}
-                        size="large"
+                        type="text"
+                        icon={<ForwardOutlined />}
+                        style={{ color: 'var(--text-sub)' }}
                         block
-                        onClick={handleSave}
-                        loading={fetching}
-                        disabled={!barcode || readOnly || isLockedByOther}
+                        onClick={() => { setWeight(''); setIsPrinted(false); onSave(); }}
                     >
-                        {t('parcel.save_continue')}
+                        {t('common.skip')}
                     </Button>
+                )}
+            </div>
 
-                    {/* Only Sender can Print & Lock */}
-                    {role === 'sender' && weight && !isLockedByOther && (
-                        <Button
-                            type="primary"
-                            danger
-                            icon={<PrinterOutlined />}
-                            size="large"
-                            block
-                            onClick={handlePrintAndLock}
-                            loading={fetching}
-                            disabled={!isStable}
-                        >
-                            {t('parcel.print_and_lock') || '打印并锁定'}
-                        </Button>
-                    )}
-                </Space>
-            ) : (
-                <Alert message={t('parcel.already_printed') || '已打印锁定'} type="warning" showIcon />
+            {auditInfo && (
+                <div style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
+                    {t('parcel.audit_who')}: {auditInfo.user} @ {auditInfo.time ? new Date(auditInfo.time).toLocaleTimeString() : '-'}
+                </div>
             )}
-
-            {!readOnly && (
-                <Button
-                    icon={<ForwardOutlined />}
-                    style={{ marginTop: '10px', background: 'transparent', color: 'var(--text-sub)' }}
-                    block
-                    onClick={() => { setWeight(''); setIsPrinted(false); onSave(); }}
-                >
-                    {t('common.skip')}
-                </Button>
-            )}
-        </Form>
+        </div>
     );
 }
