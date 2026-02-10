@@ -211,21 +211,62 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
         if (!barcode) return;
         setFetching(true);
         try {
-            // 1. Mock Print (BarTender integration would go here)
-            console.log("Printing label for:", barcode, weight);
+            // 1. Prepare Data
+            const weightVal = parseFloat(weight);
+            if (isNaN(weightVal) || weightVal <= 0) throw new Error(t('parcel.weight_must_positive') || 'Weight > 0');
 
-            // 2. Lock in DB
-            const { error } = await supabase.from('parcels').update({
+            const payload = {
+                PACKAGE_NO: barcode,
+                PACKAGE_INDEX: barcode.split('-')[1] || '0',
+                WEIGHT: `${weightVal.toFixed(2)} KG`,
+                ROUTE: 'Chinh-QN', // Mock for now
+                SHIP_DATE: new Date().toISOString().slice(0, 10),
+                PACKAGE_BARCODE: barcode
+            };
+
+            // 2. Upsert Parcel (Ensure it exists and weight is saved)
+            const updateData: any = {
+                updated_at: new Date().toISOString(),
+                weight_source: weightSource,
+                // Also update role-specific fields
+                ...(role === 'sender' ? { sender_weight: weightVal, sender_user_id: currentUserId, status: 'sent' } : {}),
+                ...(role === 'transit' ? { transit_weight: weightVal, transit_user_id: currentUserId, status: 'in_transit' } : {}),
+                ...(role === 'receiver' ? { receiver_weight: weightVal, receiver_user_id: currentUserId, status: 'received' } : {})
+            };
+
+            const { data: parcelData, error: upsertError } = await supabase
+                .from('parcels')
+                .upsert({
+                    barcode,
+                    batch_id: activeBatchId,
+                    ...updateData
+                }, { onConflict: 'barcode' })
+                .select()
+                .single();
+
+            if (upsertError) throw upsertError;
+
+            // 3. Insert Print Job
+            const { error: printError } = await supabase.from('print_jobs').insert({
+                parcel_id: parcelData.id,
+                payload: payload,
+                status: 'pending'
+            });
+
+            if (printError) throw printError;
+
+            // 4. Lock Parcel
+            const { error: lockError } = await supabase.from('parcels').update({
                 printed: true,
                 printed_at: new Date().toISOString(),
                 printed_by: currentUserId
-            }).eq('barcode', barcode).eq('batch_id', activeBatchId);
+            }).eq('id', parcelData.id);
 
-            if (error) throw error;
+            if (lockError) throw lockError;
 
             message.success(t('parcel.print_success'));
             setIsPrinted(true);
-            onSave(); // Move to next
+            onSave();
         } catch (err: any) {
             message.error(t('common.error') + ': ' + err.message);
         } finally {
