@@ -76,5 +76,11 @@
         "original_transit_weight": "Trọng lượng trung chuyển gốc",
         "consolidate_button": "Gộp & Chuyển đơn",
         "view_tooltip": "Chế độ xem này hiển thị dữ liệu toàn bộ vòng đời của lô hàng"
+    },
+    "pda": {
+        "scan_hint": "Dùng phím quét hoặc cửa sổ quét căn chỉnh mã vạch",
+        "auto_reset_hint": "Đang chuẩn bị kiện hàng tiếp theo...",
+        "footer_hint": "Nhập trọng lượng và xác nhận bên trên",
+        "next_item": "Tiếp theo"
     }
 }

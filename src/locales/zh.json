@@ -82,5 +82,11 @@
         "print_success": "标签已发送至打印机",
         "sender_name_label": "客户姓名/货主",
         "sender_name_placeholder": "可选：录入发件人"
+    },
+    "pda": {
+        "scan_hint": "使用物理扫描键或扫描窗口对准条码",
+        "auto_reset_hint": "正在准备下一单...",
+        "footer_hint": "请在上方输入重量并确认",
+        "next_item": "扫描下一单"
     }
 }

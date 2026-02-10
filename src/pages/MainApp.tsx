@@ -14,6 +14,7 @@ import { scannerAdapter } from '../services/scanner';
 import { scanEngine } from '../services/scanEngine';
 import AppLayout from '../components/AppLayout';
 import { notification } from 'antd';
+import PDAWorkflowView from '../components/pda/PDAWorkflowView';
 
 export default function MainApp() {
     const { t, i18n } = useTranslation();
@@ -23,13 +24,17 @@ export default function MainApp() {
     const [ambiguousResults, setAmbiguousResults] = useState<any[]>([]);
     const [showResultsModal, setShowResultsModal] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+    const [isPDA, setIsPDA] = useState(window.innerWidth <= 720);
 
     const [currentUserId] = useState(() => localStorage.getItem('mock_user_id') || 'U001');
     const [systemRole, setSystemRole] = useState('operator');
     const [canEdit, setCanEdit] = useState(false);
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 1024);
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 1024);
+            setIsPDA(window.innerWidth <= 720);
+        };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -123,8 +128,18 @@ export default function MainApp() {
 
     return (
         <AppLayout activeTitle={`${t('common.app_title')} - ${activeBatch.batch_number}`}>
-            <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
-                {isMobile ? (
+            <div style={{ maxWidth: '1600px', margin: '0 auto', height: isPDA ? 'calc(100vh - 120px)' : 'auto' }}>
+                {isPDA ? (
+                    <PDAWorkflowView
+                        role={role}
+                        activeBatch={activeBatch}
+                        onScan={handleScan}
+                        currentUserId={currentUserId}
+                        canEdit={canEdit}
+                        activeBarcode={activeBarcode}
+                        onReset={() => setActiveBarcode(null)}
+                    />
+                ) : isMobile ? (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
                         <MobileRoleSwitcher role={role} setRole={setRole} t={t} batchNumber={activeBatch.batch_number} />
                         <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>

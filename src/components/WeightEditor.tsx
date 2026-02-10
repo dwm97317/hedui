@@ -1,11 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { Input, Button, Typography, message, Tag, Radio, Space, Card, Divider, Tooltip } from 'antd';
-import { SaveOutlined, ForwardOutlined, PrinterOutlined, ToolOutlined, UsbOutlined, WifiOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Input, Button, Typography, message, Tag, Radio, Space, Card, Divider, Tooltip, Collapse } from 'antd';
+import {
+    SaveOutlined,
+    ForwardOutlined,
+    PrinterOutlined,
+    ToolOutlined,
+    UsbOutlined,
+    WifiOutlined,
+    LogoutOutlined,
+    RightOutlined,
+    DownOutlined
+} from '@ant-design/icons';
 import { pinyin } from 'pinyin-pro';
 import { supabase } from '../lib/supabase';
 import { Role } from '../types';
 import { useTranslation } from 'react-i18next';
 import { WeightProvider, ManualWeightProvider, BleWeightProvider, HidWeightProvider } from '../services/weight';
+
+const { Panel } = Collapse;
 
 interface WeightEditorProps {
     role: Role;
@@ -14,9 +26,10 @@ interface WeightEditorProps {
     onSave: () => void;
     readOnly?: boolean;
     currentUserId?: string;
+    isPDA?: boolean;
 }
 
-export default function WeightEditor({ role, barcode, activeBatchId, onSave, readOnly, currentUserId }: WeightEditorProps) {
+export default function WeightEditor({ role, barcode, activeBatchId, onSave, readOnly, currentUserId, isPDA }: WeightEditorProps) {
     const { t } = useTranslation();
     const [weight, setWeight] = useState('');
     const [fetching, setFetching] = useState(false);
@@ -118,8 +131,9 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
 
             const { error } = await supabase.from('parcels').upsert({ barcode, batch_id: activeBatchId, ...updateData }, { onConflict: 'barcode' });
             if (error) throw error;
-            message.success(t('parcel.save_success'));
-            if (role !== 'sender') { setWeight(''); onSave(); }
+            // onSave() is NOT called if role is sender to allow for print option, but in PDA work-flow we usually auto-submit.
+            // But we keep it flexible.
+            onSave();
         } catch (err: any) { message.error(t('parcel.save_failed') + ': ' + err.message); } finally { setFetching(false); }
     };
 
@@ -147,15 +161,29 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isPDA ? '16px' : '24px' }}>
             {/* Weight Action Area */}
-            <div style={{ background: 'var(--bg-app)', border: '2px solid var(--border-light)', borderRadius: '16px', padding: '32px', position: 'relative' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{
+                background: 'var(--bg-app)',
+                border: '2px solid var(--border-light)',
+                borderRadius: '16px',
+                padding: isPDA ? '24px 16px' : '32px',
+                position: 'relative',
+                textAlign: isPDA ? 'center' : 'left'
+            }}>
+                <div style={{ display: 'flex', flexDirection: isPDA ? 'column' : 'row', justifyContent: 'space-between', alignItems: isPDA ? 'center' : 'flex-start', gap: '16px' }}>
                     <div>
                         <Typography.Text style={{ fontWeight: 800, fontSize: '12px', color: 'var(--text-sub)', textTransform: 'uppercase' }}>{t(`parcel.${role}_weight`)}</Typography.Text>
-                        <div style={{ fontSize: '72px', fontWeight: 900, color: isStable ? 'var(--primary)' : 'var(--accent)', fontFamily: 'var(--font-digital)', lineHeight: 1, margin: '8px 0' }}>
+                        <div style={{
+                            fontSize: isPDA ? '84px' : '72px',
+                            fontWeight: 900,
+                            color: isStable ? 'var(--primary)' : 'var(--accent)',
+                            fontFamily: 'var(--font-digital)',
+                            lineHeight: 1,
+                            margin: '8px 0'
+                        }}>
                             {weight || '0.00'}
-                            <span style={{ fontSize: '24px', marginLeft: '12px', color: 'var(--text-sub)' }}>KG</span>
+                            <span style={{ fontSize: isPDA ? '24px' : '24px', marginLeft: '12px', color: 'var(--text-sub)' }}>KG</span>
                         </div>
                         <Space>
                             <Typography.Text style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>{barcode || t('parcel.waiting_scan')}</Typography.Text>
@@ -163,7 +191,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                         </Space>
                     </div>
                     {!readOnly && (
-                        <Radio.Group value={weightSource} onChange={e => setWeightSource(e.target.value as any)} buttonStyle="solid">
+                        <Radio.Group value={weightSource} onChange={e => setWeightSource(e.target.value as any)} buttonStyle="solid" size={isPDA ? 'large' : 'middle'}>
                             <Tooltip title="Manual"><Radio.Button value="MANUAL"><ToolOutlined /></Radio.Button></Tooltip>
                             <Tooltip title="Bluetooth"><Radio.Button value="BLE"><WifiOutlined /></Radio.Button></Tooltip>
                             <Tooltip title="USB"><Radio.Button value="HID"><UsbOutlined /></Radio.Button></Tooltip>
@@ -174,30 +202,55 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
 
             <Input ref={inputRef} type="number" inputMode="decimal" value={weight} onChange={e => setWeight(e.target.value)} onPressEnter={handleSave} style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }} disabled={!barcode || readOnly || isLockedByOther || isPrinted || weightSource !== 'MANUAL'} />
 
-            {/* Dimensional & Info Area */}
+            {/* Dimensional & Info Area (Collapsible for PDA) */}
             {(role === 'sender' || length || width || height || senderName) && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                        <InfoBox label={t('parcel.length')} value={length} onChange={setLength} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
-                        <InfoBox label={t('parcel.width')} value={width} onChange={setWidth} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
-                        <InfoBox label={t('parcel.height')} value={height} onChange={setHeight} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <Typography.Text style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-sub)' }}>{t('parcel.sender_name_label')}</Typography.Text>
-                        <Input
-                            size="large"
-                            placeholder={t('parcel.sender_name_placeholder')}
-                            value={senderName}
-                            onChange={e => setSenderName(e.target.value)}
-                            disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
-                            style={{ borderRadius: '8px', fontWeight: 600, border: '1px solid var(--border-light)' }}
-                        />
-                    </div>
-                </div>
+                <>
+                    {isPDA ? (
+                        <Collapse ghost expandIconPosition="end" style={{ background: 'white', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+                            <Panel header={<Typography.Text style={{ fontWeight: 700 }}>{t('parcel.dims') || '尺寸与信息'}</Typography.Text>} key="1">
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
+                                    <InfoBox label="L" value={length} onChange={setLength} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
+                                    <InfoBox label="W" value={width} onChange={setWidth} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
+                                    <InfoBox label="H" value={height} onChange={setHeight} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <Typography.Text style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-sub)' }}>{t('parcel.sender_name_label')}</Typography.Text>
+                                    <Input
+                                        size="large"
+                                        placeholder={t('parcel.sender_name_placeholder')}
+                                        value={senderName}
+                                        onChange={e => setSenderName(e.target.value)}
+                                        disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
+                                        style={{ borderRadius: '8px', fontWeight: 600 }}
+                                    />
+                                </div>
+                            </Panel>
+                        </Collapse>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                                <InfoBox label={t('parcel.length')} value={length} onChange={setLength} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
+                                <InfoBox label={t('parcel.width')} value={width} onChange={setWidth} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
+                                <InfoBox label={t('parcel.height')} value={height} onChange={setHeight} disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <Typography.Text style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-sub)' }}>{t('parcel.sender_name_label')}</Typography.Text>
+                                <Input
+                                    size="large"
+                                    placeholder={t('parcel.sender_name_placeholder')}
+                                    value={senderName}
+                                    onChange={e => setSenderName(e.target.value)}
+                                    disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
+                                    style={{ borderRadius: '8px', fontWeight: 600, border: '1px solid var(--border-light)' }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             {/* Action Buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isPDA && role !== 'sender' ? '1fr' : '1fr 1fr', gap: '16px' }}>
                 {!isPrinted && !isLockedByOther ? (
                     <>
                         <Button
@@ -208,7 +261,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                             onClick={handleSave}
                             loading={fetching}
                             disabled={!barcode || readOnly}
-                            style={{ height: '64px', borderRadius: '12px', fontSize: '18px', fontWeight: 800 }}
+                            style={{ height: isPDA ? '68px' : '64px', borderRadius: '12px', fontSize: '18px', fontWeight: 800 }}
                         >
                             {t('parcel.save_continue')}
                         </Button>
@@ -222,7 +275,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                                 onClick={handlePrintAndLock}
                                 loading={fetching}
                                 disabled={!barcode || !weight}
-                                style={{ height: '64px', borderRadius: '12px', fontSize: '18px', fontWeight: 800, border: '2px solid var(--primary)' }}
+                                style={{ height: isPDA ? '68px' : '64px', borderRadius: '12px', fontSize: '18px', fontWeight: 800, border: '2px solid var(--primary)' }}
                             >
                                 {t('parcel.print_and_lock')}
                             </Button>
