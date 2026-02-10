@@ -21,6 +21,10 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build React App
+        env:
+          VITE_SUPABASE_URL: https://zpxasdfhrwpxdswywrmr.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_mebvD9gCTYo27WAPYcrNog_qBIGkBZO
+          VITE_SUPABASE_ANON_KEY: sb_publishable_mebvD9gCTYo27WAPYcrNog_qBIGkBZO
         run: npm run build -- --emptyOutDir=false
       
       # Ensure the assets directory exists
