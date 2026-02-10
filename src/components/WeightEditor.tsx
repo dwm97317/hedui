@@ -235,7 +235,7 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             if (isNaN(weightVal) || weightVal <= 0) throw new Error(t('parcel.weight_must_positive') || 'Weight > 0');
 
             // Compute Pinyin for Search (Industrial optimization)
-            const py = senderName ? pinyin(senderName, { toneType: 'none', nonChineseFiles: 'keep' }).replace(/\s/g, '') : null;
+            const py = senderName ? pinyin(senderName, { toneType: 'none' }).replace(/\s/g, '') : null;
             const initial = senderName ? pinyin(senderName, { pattern: 'initial', toneType: 'none' }).replace(/\s/g, '') : null;
             // Construct payload based on bartender_spec.md
             const payload = {

@@ -6,6 +6,7 @@ import Scanner from '../components/Scanner';
 import ParcelTable from '../components/ParcelTable';
 import WeightEditor from '../components/WeightEditor';
 import BatchSelector from '../components/BatchSelector';
+import DebugRoleSwitcher from '../components/DebugRoleSwitcher';
 import { Role, Batch } from '../types';
 import { useTranslation } from 'react-i18next';
 import '../index.css';
@@ -431,14 +432,7 @@ export default function MainApp() {
                 </Modal>
 
                 {/* Debug User Switcher - Simplified */}
-                <div style={{ position: 'fixed', bottom: 10, right: 10, opacity: 0.1, zIndex: 9999 }} className="mobile-only">
-                    <Button size="small" type="text" onClick={() => {
-                        const next = currentUserId === 'U001' ? 'U002' : 'U001';
-                        setCurrentUserId(next);
-                        localStorage.setItem('mock_user_id', next);
-                        window.location.reload();
-                    }}>SW</Button>
-                </div>
+                <DebugRoleSwitcher currentUserId={currentUserId} activeBatchId={activeBatch ? activeBatch.id : null} />
             </Content>
         </Layout>
     );
