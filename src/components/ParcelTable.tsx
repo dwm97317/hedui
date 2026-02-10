@@ -188,6 +188,23 @@ export default function ParcelTable({ role, activeBarcode, activeBatchId, readOn
                 const colors: any = { relabeled: 'purple', received: 'green', anomaly: 'red', in_transit: 'orange' };
                 return <Tag color={colors[s] || 'blue'} style={{ fontSize: '10px' }}>{s.toUpperCase()}</Tag>;
             }
+        },
+        {
+            title: t('parcel.dims') || '尺寸(L*W*H)',
+            key: 'dims',
+            responsive: ['lg'] as any, // Only show on large screens (PC)
+            render: (_: any, record: Parcel) => (
+                <span style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
+                    {record.length_cm || '-'}/{record.width_cm || '-'}/{record.height_cm || '-'}
+                </span>
+            )
+        },
+        {
+            title: t('parcel.sender_name') || '姓名',
+            dataIndex: 'sender_name',
+            key: 'sender_name',
+            responsive: ['xl'] as any, // Only show on very large screens
+            render: (text: string) => <span style={{ fontSize: '12px' }}>{text || '-'}</span>
         }
     ];
 

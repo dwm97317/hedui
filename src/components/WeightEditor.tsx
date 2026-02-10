@@ -22,6 +22,10 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
     const [isPrinted, setIsPrinted] = useState(false);
     const [isLockedByOther, setIsLockedByOther] = useState(false);
     const [auditInfo, setAuditInfo] = useState<{ user?: string; time?: string } | null>(null);
+    const [length, setLength] = useState('');
+    const [width, setWidth] = useState('');
+    const [height, setHeight] = useState('');
+    const [senderName, setSenderName] = useState('');
     const inputRef = useRef<any>(null);
 
     // Hardware Integration State
@@ -59,6 +63,10 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
         const fetchExisting = async () => {
             if (!barcode || !activeBatchId) {
                 setWeight('');
+                setLength('');
+                setWidth('');
+                setHeight('');
+                setSenderName('');
                 setIsLockedByOther(false);
                 setIsPrinted(false);
                 return;
@@ -110,6 +118,12 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                     setAuditInfo(null);
                 }
 
+                // Dimensional and Sender Info
+                setLength(data.length_cm ? data.length_cm.toString() : '');
+                setWidth(data.width_cm ? data.width_cm.toString() : '');
+                setHeight(data.height_cm ? data.height_cm.toString() : '');
+                setSenderName(data.sender_name || '');
+
                 // If data exists AND belongs to someone else, enforce Read-Only logic
                 if (existingWeight !== null && existingUserId && existingUserId !== currentUserId) {
                     message.warning(t('parcel.ownership_lock_with_time', { userId: existingUserId, time: existingTime ? new Date(existingTime).toLocaleString() : '-' }));
@@ -155,7 +169,11 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
 
             let updateData: any = {
                 updated_at: new Date().toISOString(),
-                weight_source: weightSource
+                weight_source: weightSource,
+                length_cm: length ? parseFloat(length) : null,
+                width_cm: width ? parseFloat(width) : null,
+                height_cm: height ? parseFloat(height) : null,
+                sender_name: senderName || null
             };
             // ... (rest of updateData logic is fine)
 
@@ -214,21 +232,28 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
             // 1. Prepare Data
             const weightVal = parseFloat(weight);
             if (isNaN(weightVal) || weightVal <= 0) throw new Error(t('parcel.weight_must_positive') || 'Weight > 0');
-
+            // Construct payload based on bartender_spec.md
             const payload = {
                 PACKAGE_NO: barcode,
                 PACKAGE_INDEX: barcode.split('-')[1] || '0',
                 WEIGHT: `${weightVal.toFixed(2)} KG`,
-                ROUTE: 'Chinh-QN', // Mock for now
+                ROUTE: 'Chinh-QN', // Mock routing
                 SHIP_DATE: new Date().toISOString().slice(0, 10),
-                PACKAGE_BARCODE: barcode
+                PACKAGE_BARCODE: barcode,
+                LENGTH: length || '-',
+                WIDTH: width || '-',
+                HEIGHT: height || '-',
+                SENDER_NAME: senderName || '-'
             };
 
-            // 2. Upsert Parcel (Ensure it exists and weight is saved)
+            // 2. Upsert Parcel
             const updateData: any = {
                 updated_at: new Date().toISOString(),
                 weight_source: weightSource,
-                // Also update role-specific fields
+                length_cm: length ? parseFloat(length) : null,
+                width_cm: width ? parseFloat(width) : null,
+                height_cm: height ? parseFloat(height) : null,
+                sender_name: senderName || null,
                 ...(role === 'sender' ? { sender_weight: weightVal, sender_user_id: currentUserId, status: 'sent' } : {}),
                 ...(role === 'transit' ? { transit_weight: weightVal, transit_user_id: currentUserId, status: 'in_transit' } : {}),
                 ...(role === 'receiver' ? { receiver_weight: weightVal, receiver_user_id: currentUserId, status: 'received' } : {})
@@ -327,6 +352,53 @@ export default function WeightEditor({ role, barcode, activeBatchId, onSave, rea
                     }}
                 />
             </Form.Item>
+
+            {/* Optional Dimensional & Sender Info (Only for Sender/Manual) */}
+            {(role === 'sender' || length || width || height || senderName) && (
+                <div style={{ marginBottom: '15px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                        <Form.Item label={t('parcel.length') || '长 (cm)'} style={{ marginBottom: 0 }}>
+                            <Input
+                                type="number"
+                                placeholder="L"
+                                value={length}
+                                onChange={e => setLength(e.target.value)}
+                                disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
+                                className="glass-card"
+                            />
+                        </Form.Item>
+                        <Form.Item label={t('parcel.width') || '宽 (cm)'} style={{ marginBottom: 0 }}>
+                            <Input
+                                type="number"
+                                placeholder="W"
+                                value={width}
+                                onChange={e => setWidth(e.target.value)}
+                                disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
+                                className="glass-card"
+                            />
+                        </Form.Item>
+                        <Form.Item label={t('parcel.height') || '高 (cm)'} style={{ marginBottom: 0 }}>
+                            <Input
+                                type="number"
+                                placeholder="H"
+                                value={height}
+                                onChange={e => setHeight(e.target.value)}
+                                disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
+                                className="glass-card"
+                            />
+                        </Form.Item>
+                    </div>
+                    <Form.Item label={t('parcel.sender_name_label') || '发件人姓名'} style={{ marginBottom: 0 }}>
+                        <Input
+                            placeholder={t('parcel.sender_name_placeholder') || '输入联系人姓名'}
+                            value={senderName}
+                            onChange={e => setSenderName(e.target.value)}
+                            disabled={readOnly || isLockedByOther || isPrinted || role !== 'sender'}
+                            className="glass-card"
+                        />
+                    </Form.Item>
+                </div>
+            )}
 
             {!isPrinted ? (
                 <Space direction="vertical" style={{ width: '100%' }}>

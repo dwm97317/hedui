@@ -32,6 +32,10 @@ export interface Parcel {
     transit_updated_at?: string | null;
     receiver_updated_at?: string | null;
     weight_source?: 'BLE' | 'HID' | 'MANUAL' | null;
+    length_cm?: number | null;
+    width_cm?: number | null;
+    height_cm?: number | null;
+    sender_name?: string | null;
     created_at: string;
     updated_at: string;
     batches?: { batch_number: string };
