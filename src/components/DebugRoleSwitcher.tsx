@@ -15,16 +15,13 @@ export default function DebugRoleSwitcher({ currentUserId, activeBatchId }: Debu
     ];
 
     const switchUser = async (targetUser: any) => {
-        // 1. Auto-Grant Permission for Active Batch
+        // 1. Auto-Grant Permission for Active Batch via RPC (Bypasses RLS)
         if (activeBatchId) {
-            const { error } = await supabase.from('batch_user_roles').upsert({
-                batch_id: activeBatchId,
-                user_id: targetUser.id,
-                role: targetUser.role,
-                is_active: true,
-                assigned_by: 'system_debug',
-                assigned_at: new Date().toISOString()
-            }, { onConflict: 'batch_id,user_id,role' });
+            const { error } = await supabase.rpc('debug_grant_role', {
+                p_batch_id: activeBatchId,
+                p_user_id: targetUser.id,
+                p_role: targetUser.role
+            });
 
             if (error) {
                 console.warn('Auto-grant permission failed (might be acceptable if role exists):', error);
