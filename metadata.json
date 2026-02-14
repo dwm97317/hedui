@@ -1,0 +1,7 @@
+{
+  "name": "PDA Logistics Pro",
+  "description": "A high-fidelity logistics PDA application for warehouse management, featuring weighing, scanning, and shipment tracking.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

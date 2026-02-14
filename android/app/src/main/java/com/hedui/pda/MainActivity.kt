@@ -5,8 +5,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.webkit.ConsoleMessage
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -16,13 +18,15 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
-    private val SCAN_ACTION = "android.intent.action.RECEIVE_SCANDATA_BROADCAST"
-    private val SCAN_EXTRA = "android.intent.extra.SCAN_BROADCAST_DATA"
+    private lateinit var prefs: SharedPreferences
+    
+    private var scanAction = "android.intent.action.RECEIVE_SCANDATA_BROADCAST"
+    private var scanExtra = "android.intent.extra.SCAN_BROADCAST_DATA"
 
     private val scanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == SCAN_ACTION) {
-                val code = intent.getStringExtra(SCAN_EXTRA)
+            if (intent.action == scanAction) {
+                val code = intent.getStringExtra(scanExtra)
                 if (!code.isNullOrEmpty()) {
                     injectScan(code)
                 }
@@ -34,6 +38,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        prefs = getSharedPreferences("pda_config", Context.MODE_PRIVATE)
+        scanAction = prefs.getString("scan_action", scanAction) ?: scanAction
+        scanExtra = prefs.getString("scan_extra", scanExtra) ?: scanExtra
+
         webView = WebView(this)
         setContentView(webView)
 
@@ -45,6 +53,9 @@ class MainActivity : AppCompatActivity() {
             allowContentAccess = true
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
+
+        // Add Javascript Interface
+        webView.addJavascriptInterface(WebAppInterface(), "Android")
 
         // Enable Console Logs in Logcat
         webView.webChromeClient = object : WebChromeClient() {
@@ -60,22 +71,64 @@ class MainActivity : AppCompatActivity() {
         webView.loadUrl("file:///android_asset/index.html")
 
         // Register Scanner Broadcast
-        val filter = IntentFilter(SCAN_ACTION)
-        registerReceiver(scanReceiver, filter) // Note: flag not needed for simple dynamic receiver in this context, but adhere to newer API if needed. Default is fine for local.
+        registerScanner()
+    }
+
+    private fun registerScanner() {
+        try {
+            val filter = IntentFilter(scanAction)
+            registerReceiver(scanReceiver, filter)
+            android.util.Log.d("PDA", "Scanner registered with Action: $scanAction")
+        } catch (e: Exception) {
+            android.util.Log.e("PDA", "Failed to register scanner: ${e.message}")
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(scanReceiver)
+        try {
+            unregisterReceiver(scanReceiver)
+        } catch (e: Exception) {}
     }
 
     private fun injectScan(code: String) {
-        // Sanitize code to prevent JS injection if necessary, though simpler is better here for internal use
         val safeCode = code.replace("'", "\\'")
-        val js = "if(window.scannerLabel && window.scannerLabel.onScan) { window.scannerLabel.onScan('$safeCode'); }"
+        val js = "if(window.scannerLabel && typeof window.scannerLabel.onScan === 'function') { window.scannerLabel.onScan('$safeCode'); }"
         
         runOnUiThread {
             webView.evaluateJavascript(js, null)
+        }
+    }
+
+    inner class WebAppInterface {
+        @JavascriptInterface
+        fun updateScannerConfig(action: String, extra: String) {
+            runOnUiThread {
+                try {
+                    unregisterReceiver(scanReceiver)
+                } catch (e: Exception) {}
+                
+                scanAction = action
+                scanExtra = extra
+                
+                prefs.edit().apply {
+                    putString("scan_action", action)
+                    putString("scan_extra", extra)
+                    apply()
+                }
+                
+                registerScanner()
+            }
+        }
+
+        @JavascriptInterface
+        fun getScannerConfig(): String {
+            return "{\"action\": \"$scanAction\", \"extra\": \"$scanExtra\"}"
+        }
+        
+        @JavascriptInterface
+        fun toast(message: String) {
+             android.widget.Toast.makeText(this@MainActivity, message, android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 }

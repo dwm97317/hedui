@@ -19,17 +19,17 @@ jobs:
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
-
+      # Build React App
       - name: Build React App
         env:
           VITE_SUPABASE_URL: https://zpxasdfhrwpxdswywrmr.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_mebvD9gCTYo27WAPYcrNog_qBIGkBZO
-          VITE_SUPABASE_ANON_KEY: sb_publishable_mebvD9gCTYo27WAPYcrNog_qBIGkBZO
+          VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpweGFzZGZocndweGRzd3l3cm1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjQyNzIsImV4cCI6MjA4NjE0MDI3Mn0.zMalp1qNzeLKoUXAKwFnkrmn2awrYoQ7kgj-LPh39I4
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpweGFzZGZocndweGRzd3l3cm1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjQyNzIsImV4cCI6MjA4NjE0MDI3Mn0.zMalp1qNzeLKoUXAKwFnkrmn2awrYoQ7kgj-LPh39I4
         run: npm run build -- --emptyOutDir=false
       
       # Ensure the assets directory exists
       - name: Create Assets Directory
-        run: mkdir -p android/app/src/main/assets
+        run: mkdir -p android/app/src/main/assets/
 
       # Copy built files to Android assets
       - name: Copy Dist to Assets

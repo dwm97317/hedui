@@ -1,42 +1,29 @@
 {
-  "name": "hedui",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "pda-logistics-pro",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {
-    "@types/node": "^25.2.2",
-    "@types/react": "^19.2.13",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-legacy": "^7.2.1",
-    "@vitejs/plugin-react-swc": "^4.2.3",
-    "terser": "^5.46.0",
-    "typescript": "^5.9.3",
-    "vconsole": "^3.15.1",
-    "vite": "^7.3.1"
-  },
   "dependencies": {
-    "@ant-design/icons": "^6.1.0",
-    "@supabase/supabase-js": "^2.95.3",
-    "ant-design-draggable-modal": "^1.0.0",
-    "antd": "^6.2.3",
-    "clsx": "^2.1.1",
-    "i18next": "^25.8.4",
-    "i18next-browser-languagedetector": "^8.2.0",
-    "lucide-react": "^0.563.0",
-    "pinyin-pro": "^3.28.0",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/noto-sans-sc": "^5.2.9",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.91.3",
+    "material-icons": "^1.13.14",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-i18next": "^16.5.4",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.13.0",
-    "tailwind-merge": "^3.4.0"
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }
