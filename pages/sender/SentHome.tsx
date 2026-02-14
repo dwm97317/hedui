@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserStore } from '../../store/user.store';
 import { useBatches } from '../../hooks/useBatches';
+import { useUserStore } from '../../store/user.store';
 import { useBatchStore } from '../../store/batch.store';
-import { useShipments, useAddShipment, useRemoveShipment } from '../../hooks/useShipments';
-import { toast } from 'react-hot-toast';
+import { BatchSwitchModal } from '../../components/BatchSwitchModal';
 
 const SentHome: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useUserStore();
-    const { data: batches, isLoading: batchesLoading } = useBatches();
+    const { data: batches, isLoading } = useBatches();
     const { activeBatchId, setActiveBatchId } = useBatchStore();
-
-    // State for the form
-    const [waybillNo, setWaybillNo] = useState('');
-    const [weight, setWeight] = useState('12.85');
-    const [length, setLength] = useState('');
-    const [width, setWidth] = useState('');
-    const [height, setHeight] = useState('');
-    const [shipperName, setShipperName] = useState('');
-    const [isArchivedOpen, setIsArchivedOpen] = useState(true);
-
-    // Fetch shipments for the current batch
-    const { data: shipments, isLoading: shipmentsLoading } = useShipments(activeBatchId || '');
-    const addShipment = useAddShipment();
-    const removeShipment = useRemoveShipment();
+    const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
 
     // Auto-select first active batch if none selected
     useEffect(() => {
@@ -34,278 +20,196 @@ const SentHome: React.FC = () => {
         }
     }, [batches, activeBatchId, setActiveBatchId]);
 
-    // Handle Scan
-    useEffect(() => {
-        const handleScan = (e: any) => {
-            setWaybillNo(e.detail);
-            toast.success(`已扫描: ${e.detail}`);
-        };
-        window.addEventListener('pda-scan', handleScan);
-        return () => window.removeEventListener('pda-scan', handleScan);
-    }, []);
+    // Find the selected batch or fallback to first relevant one
+    const activeBatch = batches?.find(b => b.id === activeBatchId) ||
+        batches?.find(b => b.status === 'draft' || b.status === 'sealed');
 
-    const handleCreate = async () => {
-        if (!activeBatchId) {
-            toast.error('请先选择或创建一个批次');
-            return;
-        }
-        if (!waybillNo) {
-            toast.error('请输入或扫描运单号');
-            return;
-        }
+    // Stats for the dashboard
+    const totalItems = batches?.reduce((sum, b) => sum + (b.item_count || 0), 0) || 0;
+    const totalWeight = batches?.reduce((sum, b) => sum + (Number(b.total_weight) || 0), 0) || 0;
+    const draftCount = batches?.filter(b => b.status === 'draft').length || 0;
+    const sealedCount = batches?.filter(b => b.status === 'sealed').length || 0;
 
-        try {
-            await addShipment.mutateAsync({
-                batch_id: activeBatchId,
-                tracking_no: waybillNo,
-                weight: parseFloat(weight),
-                length: length ? parseFloat(length) : null,
-                width: width ? parseFloat(width) : null,
-                height: height ? parseFloat(height) : null,
-                // shipper name could be a custom field in metadata if needed, 
-                // but for now we'll just focus on core fields
-            });
-
-            // Clear form
-            setWaybillNo('');
-            setLength('');
-            setWidth('');
-            setHeight('');
-            toast.success('建档成功');
-        } catch (err: any) {
-            toast.error('创建失败: ' + err.message);
-        }
-    };
-
-    const handleDelete = async (id: string) => {
-        if (window.confirm('确定要删除该单号吗？')) {
-            await removeShipment.mutateAsync({ id });
-        }
-    };
-
-    const volumetricWeight = (parseFloat(length || '0') * parseFloat(width || '0') * parseFloat(height || '0')) / 6000;
-    const chargeableWeight = Math.max(parseFloat(weight || '0'), volumetricWeight);
+    if (isLoading) return <div className="p-8 text-center text-gray-400 bg-background-light h-screen flex items-center justify-center italic">加载中...</div>;
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 min-h-screen flex flex-col relative overflow-hidden">
+        <div className="bg-background-light text-text-main font-display min-h-screen flex flex-col overflow-y-auto antialiased">
             {/* Header */}
-            <header className="pt-8 pb-4 px-6 bg-white dark:bg-slate-900 shadow-sm z-10 sticky top-0">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => navigate('/')}
-                            className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        >
-                            <span className="material-icons-round text-slate-600 dark:text-slate-300">arrow_back</span>
-                        </button>
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">货物建档与称重</h1>
+            <header className="px-4 py-3 pt-6 flex items-center justify-between border-b border-gray-100 bg-white/95 backdrop-blur-sm z-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 relative overflow-hidden">
+                        <span className="material-icons text-primary">person</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full">
-                        <span className="material-icons-round text-primary text-sm animate-pulse">bluetooth_connected</span>
-                        <span className="text-xs font-semibold text-primary">已连接</span>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-lg font-bold text-text-main leading-tight">{user?.full_name || '发送员'}</h1>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary text-white uppercase tracking-wider">发送方</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5">工号: {user?.id?.slice(0, 8).toUpperCase() || 'N/A'}</div>
                     </div>
                 </div>
+                <button className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors relative">
+                    <span className="material-icons">notifications</span>
+                    <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-red-500 border border-white"></span>
+                </button>
             </header>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto hide-scrollbar p-6 space-y-6 pb-40">
-                {/* Archived Overview */}
-                <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div
-                        className="flex items-center justify-between p-4 cursor-pointer select-none active:bg-slate-50 dark:active:bg-slate-700/50 transition-colors"
-                        onClick={() => setIsArchivedOpen(!isArchivedOpen)}
-                    >
+            <main className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6 no-scrollbar pb-32">
+                {/* Current Batch Section */}
+                <section className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-5 border border-blue-200 shadow-sm relative overflow-hidden">
+                    <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white/20 to-transparent pointer-events-none"></div>
+                    <div className="flex justify-between items-center mb-4 relative z-10">
                         <div className="flex items-center gap-2">
-                            <span className="material-icons-round text-slate-400">history</span>
-                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">已建档单号概览 (Archived)</span>
-                        </div>
-                        <span className={`material-icons-round text-slate-400 transition-transform duration-300 ${isArchivedOpen ? 'rotate-180' : ''}`}>
-                            expand_more
-                        </span>
-                    </div>
-
-                    {isArchivedOpen && (
-                        <div className="border-t border-slate-50 dark:border-slate-700/50">
-                            <div className="p-4 pt-2 space-y-2">
-                                {shipmentsLoading ? (
-                                    <p className="text-center text-xs text-slate-400 py-4">加载中...</p>
-                                ) : shipments && shipments.length > 0 ? (
-                                    shipments.slice(0, 3).map(s => (
-                                        <div key={s.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl transition-all">
-                                            <div className="space-y-0.5">
-                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{s.tracking_no}</p>
-                                                <p className="text-[10px] text-slate-400 font-medium">
-                                                    {new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {s.weight}kg
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 active:scale-95 transition-all">
-                                                    <span className="material-icons-round text-base">edit</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(s.id)}
-                                                    className="p-2 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 active:scale-95 transition-all"
-                                                >
-                                                    <span className="material-icons-round text-base">delete_outline</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-center text-xs text-slate-400 py-4">暂无记录</p>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </section>
-
-                {/* Waybill Input */}
-                <section className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">运单号 (Waybill No.)</label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <span className="material-icons-round text-slate-400 group-focus-within:text-primary transition-colors">qr_code_scanner</span>
-                        </div>
-                        <input
-                            value={waybillNo}
-                            onChange={(e) => setWaybillNo(e.target.value)}
-                            className="block w-full pl-12 pr-14 py-4 bg-white dark:bg-slate-800 border-0 ring-1 ring-slate-200 dark:ring-slate-700 rounded-xl text-lg font-semibold placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:ring-2 focus:ring-primary dark:focus:ring-primary shadow-sm transition-all"
-                            placeholder="扫描或输入单号..."
-                            type="text"
-                        />
-                        <button className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <div className="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-lg transition-colors">
-                                <span className="material-icons-round">center_focus_weak</span>
-                            </div>
-                        </button>
-                    </div>
-                </section>
-
-                {/* Weight Display */}
-                <section className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 relative overflow-hidden">
-                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                            <span className="material-icons-round text-primary">scale</span>
-                            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">当前重量 (Weight)</span>
+                            <span className="material-symbols-outlined text-primary text-xl font-bold">inventory</span>
+                            <span className="text-sm font-bold text-slate-700">当前活跃批次</span>
                         </div>
                         <button
-                            onClick={() => setWeight('0.00')}
-                            className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 active:scale-95 transition-all uppercase tracking-wide"
+                            onClick={() => setIsSwitchModalOpen(true)}
+                            className="flex items-center gap-1 bg-white/80 hover:bg-white border border-blue-300 rounded-full px-4 py-1.5 text-xs text-primary font-bold shadow-sm transition-all active:scale-95"
                         >
-                            归零 (Tare)
+                            <span className="material-icons text-[14px]">swap_horiz</span>
+                            切换批次
                         </button>
                     </div>
-                    <div className="flex items-baseline justify-center py-6 relative">
-                        <span className="text-7xl font-display font-extrabold text-slate-900 dark:text-white tracking-tighter">{weight}</span>
-                        <span className="ml-2 text-2xl font-semibold text-slate-400 dark:text-slate-500">kg</span>
-                    </div>
-                    <div className="h-1 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mt-2">
-                        <div className="h-full bg-primary w-2/3 rounded-full relative">
-                            <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
-                        </div>
-                    </div>
-                    <p className="text-center text-xs text-slate-400 mt-3 font-medium">电子秤信号稳定</p>
-                </section>
-
-                {/* Dimensions */}
-                <section className="space-y-3">
-                    <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">包裹尺寸 (Dimensions)</label>
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="relative">
-                            <label className="absolute -top-2.5 left-3 bg-white dark:bg-slate-800 px-1 text-xs font-bold text-primary z-10">长 (L)</label>
-                            <div className="relative group">
-                                <input
-                                    value={length}
-                                    onChange={(e) => setLength(e.target.value)}
-                                    className="block w-full px-3 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-center text-xl font-bold focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm group-hover:border-slate-300"
-                                    inputmode="decimal"
-                                    placeholder="0"
-                                    type="number"
-                                />
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium pointer-events-none">cm</span>
+                    <div className="relative z-10">
+                        <h2 className="text-2xl font-bold text-slate-800 tracking-tight mb-4 font-mono">
+                            {activeBatch?.batch_no || '暂无活跃批次'}
+                        </h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/80 rounded-xl p-3 border border-white/50 backdrop-blur-sm">
+                                <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">已录入单量</div>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-xl font-black text-primary">{activeBatch?.item_count || 0}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold">件</span>
+                                </div>
                             </div>
-                        </div>
-                        <div className="relative">
-                            <label className="absolute -top-2.5 left-3 bg-white dark:bg-slate-800 px-1 text-xs font-bold text-primary z-10">宽 (W)</label>
-                            <div className="relative group">
-                                <input
-                                    value={width}
-                                    onChange={(e) => setWidth(e.target.value)}
-                                    className="block w-full px-3 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-center text-xl font-bold focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm group-hover:border-slate-300"
-                                    inputmode="decimal"
-                                    placeholder="0"
-                                    type="number"
-                                />
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium pointer-events-none">cm</span>
-                            </div>
-                        </div>
-                        <div className="relative">
-                            <label className="absolute -top-2.5 left-3 bg-white dark:bg-slate-800 px-1 text-xs font-bold text-primary z-10">高 (H)</label>
-                            <div className="relative group">
-                                <input
-                                    value={height}
-                                    onChange={(e) => setHeight(e.target.value)}
-                                    className="block w-full px-3 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-center text-xl font-bold focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm group-hover:border-slate-300"
-                                    inputmode="decimal"
-                                    placeholder="0"
-                                    type="number"
-                                />
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium pointer-events-none">cm</span>
+                            <div className="bg-white/80 rounded-xl p-3 border border-white/50 backdrop-blur-sm">
+                                <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">当前总重量</div>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-xl font-black text-primary">{activeBatch?.total_weight || 0}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold">KG</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* Shipper */}
-                <section className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">发件人 (Shipper Name)</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <span className="material-icons-round text-slate-400">person_outline</span>
+                {/* Global Stats Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                        <div className="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-wider flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
+                            草稿批次
                         </div>
-                        <input
-                            value={shipperName}
-                            onChange={(e) => setShipperName(e.target.value)}
-                            className="block w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base font-medium placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none shadow-sm transition-all"
-                            placeholder="输入发件人姓名或ID..."
-                            type="text"
-                        />
+                        <div className="text-2xl font-black text-slate-800 tracking-tight">{draftCount}</div>
+                    </div>
+                    <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                        <div className="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-wider flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                            已封包批次
+                        </div>
+                        <div className="text-2xl font-black text-slate-800 tracking-tight">{sealedCount}</div>
+                    </div>
+                </div>
+
+                {/* Action Grid */}
+                <section className="grid grid-cols-1 gap-4">
+                    <button
+                        onClick={() => navigate('/sender/create')}
+                        className="relative overflow-hidden bg-primary hover:bg-primary-dark active:scale-[0.98] transition-all duration-200 rounded-2xl p-6 shadow-xl shadow-primary/20 flex items-center justify-between group"
+                    >
+                        <div className="z-10 text-left">
+                            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                                <span className="material-icons text-white text-3xl">add_box</span>
+                            </div>
+                            <h3 className="text-2xl font-black text-white tracking-tight">货物建档与称重</h3>
+                            <p className="text-white/70 text-xs font-bold mt-1 uppercase tracking-widest">Cargo Filing & Weighing</p>
+                        </div>
+                        <span className="material-icons text-white/20 text-8xl absolute -right-4 -bottom-4 rotate-12 group-hover:scale-110 transition-transform">scale</span>
+                    </button>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            onClick={() => navigate('/create-batch')}
+                            className="bg-white border border-slate-100 hover:border-primary/50 active:bg-slate-50 transition-all rounded-2xl p-5 flex flex-col items-start justify-between min-h-[130px] shadow-sm shadow-slate-200/50"
+                        >
+                            <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                                <span className="material-icons">create_new_folder</span>
+                            </div>
+                            <div className="text-left w-full mt-auto">
+                                <h3 className="font-black text-slate-800 text-lg">开启新批次</h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Start New Batch</p>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => navigate('/sender/monitor')}
+                            className="bg-white border border-slate-100 hover:border-cyan-500/50 active:bg-slate-50 transition-all rounded-2xl p-5 flex flex-col items-start justify-between min-h-[130px] shadow-sm shadow-slate-200/50"
+                        >
+                            <div className="w-11 h-11 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                                <span className="material-icons">dashboard</span>
+                            </div>
+                            <div className="text-left w-full mt-auto">
+                                <h3 className="font-black text-slate-800 text-lg">实时监控</h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Live Monitor</p>
+                            </div>
+                        </button>
                     </div>
                 </section>
 
-                {/* Summary */}
-                <section className="pt-2">
-                    <div className="flex items-center justify-between text-sm px-2">
-                        <span className="text-slate-500">体积重量 (Volumetric)</span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">{volumetricWeight.toFixed(2)} kg</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm px-2 mt-1">
-                        <span className="text-slate-500">计费重量 (Chargeable)</span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">{chargeableWeight.toFixed(2)} kg</span>
-                    </div>
+                {/* Settings/Profile Section */}
+                <section className="mt-2">
+                    <button
+                        onClick={() => navigate('/reports')}
+                        className="w-full flex items-center justify-between bg-slate-800 rounded-2xl p-5 active:scale-[0.99] transition-all group shadow-lg"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-xl bg-white/10 text-white flex items-center justify-center">
+                                <span className="material-icons">bar_chart</span>
+                            </div>
+                            <div className="text-left">
+                                <h3 className="font-black text-white text-lg group-hover:text-primary transition-colors">统计报表</h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Analytics & Reports</p>
+                            </div>
+                        </div>
+                        <span className="material-icons text-slate-500 group-hover:translate-x-1 transition-transform">chevron_right</span>
+                    </button>
                 </section>
             </main>
 
-            {/* Footer */}
-            <footer className="fixed bottom-16 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                <div className="flex flex-col gap-3 max-w-lg mx-auto">
-                    <button
-                        onClick={handleCreate}
-                        disabled={addShipment.isPending}
-                        className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all text-lg disabled:opacity-50"
-                    >
-                        <span className="material-icons-round">print</span>
-                        <span>{addShipment.isPending ? '正在创建...' : '打印并建档 (Print & Create)'}</span>
+            {/* Navigation - Same as others for consistency */}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 pb-safe z-50">
+                <div className="flex justify-around items-center h-16 px-2">
+                    <button className="flex flex-col items-center justify-center w-full h-full gap-1 text-primary">
+                        <span className="material-icons text-2xl">home</span>
+                        <span className="text-[10px] font-black uppercase tracking-tighter">首页 (Home)</span>
                     </button>
                     <button
-                        onClick={() => navigate('/history')}
-                        className="w-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 transition-all"
+                        onClick={() => navigate('/sender/create')}
+                        className="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 relative group"
                     >
-                        <span>确认发货 (Confirm Outbound)</span>
+                        <div className="absolute -top-7 bg-primary border-4 border-white rounded-full w-14 h-14 flex items-center justify-center shadow-xl shadow-primary/30 transform transition-transform group-active:scale-95">
+                            <span className="material-icons text-white text-2xl">add</span>
+                        </div>
+                        <span className="text-[10px] font-bold mt-8">建档</span>
+                    </button>
+                    <button onClick={() => navigate('/reports')} className="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-primary">
+                        <span className="material-icons text-2xl">bar_chart</span>
+                        <span className="text-[10px] font-bold">报表</span>
+                    </button>
+                    <button onClick={() => navigate('/settings')} className="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-primary">
+                        <span className="material-icons text-2xl">settings</span>
+                        <span className="text-[10px] font-bold">设置</span>
                     </button>
                 </div>
-            </footer>
+            </nav>
+            <div className="h-20 w-full"></div>
+
+            <BatchSwitchModal
+                isOpen={isSwitchModalOpen}
+                onClose={() => setIsSwitchModalOpen(false)}
+                batches={batches || []}
+            />
         </div>
     );
 };

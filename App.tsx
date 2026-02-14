@@ -14,6 +14,7 @@ import MergeParcel from './pages/transit/MergeParcel';
 import SplitParcel from './pages/transit/SplitParcel';
 import TransitExceptions from './pages/transit/TransitExceptions';
 import SenderMonitor from './pages/sender/SenderMonitor';
+import CargoCreate from './pages/sender/CargoCreate';
 import SentHome from './pages/sender/SentHome';
 import ReceiverHome from './pages/receiver/ReceiverHome';
 import ReceiverCheck from './pages/receiver/ReceiverCheck';
@@ -174,6 +175,7 @@ const AppContent = () => {
             }
           />
           <Route path="/sender" element={<SentHome />} />
+          <Route path="/sender/create" element={<CargoCreate />} />
           <Route
             path="/sender/monitor"
             element={<SenderMonitor />}
