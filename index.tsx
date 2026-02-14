@@ -6,6 +6,13 @@ import '@fontsource/inter';
 import '@fontsource/noto-sans-sc';
 import 'material-icons/iconfont/material-icons.css';
 import App from './App';
+import VConsole from 'vconsole';
+
+// Only init vConsole in production/app environment if needed, 
+// or always keep it for PDA debugging.
+if (window.location.protocol === 'file:') {
+  new VConsole();
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
