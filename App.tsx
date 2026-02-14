@@ -113,7 +113,7 @@ const AppContent = () => {
     location.pathname === '/login' ||
     location.pathname.startsWith('/transit') ||
     location.pathname.startsWith('/receiver') ||
-    location.pathname.startsWith('/sender') ||
+    (location.pathname.startsWith('/sender') && location.pathname !== '/sender') ||
     location.pathname.startsWith('/create') ||
     location.pathname.startsWith('/finance') ||
     location.pathname.startsWith('/supervisor') ||
