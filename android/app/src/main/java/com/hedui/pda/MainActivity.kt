@@ -91,6 +91,11 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {}
     }
 
+    override fun onBackPressed() {
+        val js = "if(window.handleAndroidBack && typeof window.handleAndroidBack === 'function') { window.handleAndroidBack(); } else { window.history.back(); }"
+        webView.evaluateJavascript(js, null)
+    }
+
     private fun injectScan(code: String) {
         val safeCode = code.replace("'", "\\'")
         val js = "if(window.scannerLabel && typeof window.scannerLabel.onScan === 'function') { window.scannerLabel.onScan('$safeCode'); }"

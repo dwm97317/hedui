@@ -69,6 +69,38 @@ const AppContent = () => {
       }
     };
 
+    // Register global back button handler for Android
+    (window as any).handleAndroidBack = () => {
+      // Get clean path without hash and query params
+      const fullPath = window.location.hash.replace('#', '') || '/';
+      const path = fullPath.split('?')[0];
+
+      // Define root pages for each module
+      const rootPages = [
+        '/sender',
+        '/transit',
+        '/receiver',
+        '/finance',
+        '/settings',
+        '/history',
+        '/reports',
+        '/profile',
+        '/supervisor/risk',
+        '/batch-manager'
+      ];
+
+      if (path === '/' || path === '/login') {
+        // At the absolute root
+        console.log('At root, ignoring back');
+      } else if (rootPages.includes(path)) {
+        // At a module root, go back to main dashboard
+        navigate('/');
+      } else {
+        // Deep page, go back to previous
+        navigate(-1);
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         signOut();
@@ -79,6 +111,7 @@ const AppContent = () => {
     return () => {
       subscription.unsubscribe();
       delete (window as any).scannerLabel;
+      delete (window as any).handleAndroidBack;
     };
   }, [navigate, signOut]);
 
