@@ -27,6 +27,20 @@ const TransitCheck: React.FC = () => {
         }
     }, [batch, measuredWeight]);
 
+    // Handle PDA Scan
+    useEffect(() => {
+        const handleScan = (e: any) => {
+            const code = e.detail;
+            if (code === batch?.batch_no) {
+                toast.success('Batch confirmed: ' + code);
+            } else {
+                toast.error('Scanned code does not match batch: ' + code);
+            }
+        };
+        window.addEventListener('pda-scan', handleScan);
+        return () => window.removeEventListener('pda-scan', handleScan);
+    }, [batch]);
+
     if (isLoading) return <div className="text-white p-5">Loading Batch...</div>;
     if (!batchId || !batch) return <div className="text-white p-5">Batch Not Found</div>;
 

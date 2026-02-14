@@ -18,6 +18,18 @@ const SplitParcel: React.FC = () => {
   const splitMutation = useSplitShipment();
 
   // Initialize/Update child data when splitCount or parent changes
+  // Handle PDA Broadcast Scan
+  useEffect(() => {
+    const handleScanEvent = (e: any) => {
+      const code = e.detail;
+      if (code && !parentShipment) {
+        handleParentScan(undefined, code);
+      }
+    };
+    window.addEventListener('pda-scan', handleScanEvent);
+    return () => window.removeEventListener('pda-scan', handleScanEvent);
+  }, [parentShipment]);
+
   useEffect(() => {
     const parentWeight = Number(parentShipment?.weight) || 0;
     const avgWeight = parentWeight / splitCount;
@@ -33,12 +45,13 @@ const SplitParcel: React.FC = () => {
     setChildData(newChildren);
   }, [splitCount, parentShipment]);
 
-  const handleParentScan = async (e?: React.FormEvent) => {
+  const handleParentScan = async (e?: React.FormEvent, code?: string) => {
     if (e) e.preventDefault();
-    if (!parentInput) return;
+    const trackingNo = code || parentInput;
+    if (!trackingNo) return;
 
     try {
-      const response = await ShipmentService.findByTracking(parentInput);
+      const response = await ShipmentService.findByTracking(trackingNo);
       if (response.success) {
         setParentShipment(response.data);
         toast.success('Parent Parcel Scanned');

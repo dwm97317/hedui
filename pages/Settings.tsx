@@ -5,7 +5,7 @@ import { useScannerStore } from '../store/scanner.store';
 
 const Settings: React.FC = () => {
     const navigate = useNavigate();
-    const { model: pdaModel, setModel } = useScannerStore();
+    const { model: pdaModel, setModel, scanAction, scanExtra, setConfig } = useScannerStore();
     const [showPrinterModal, setShowPrinterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showPdaModal, setShowPdaModal] = useState(false);
@@ -246,6 +246,35 @@ const Settings: React.FC = () => {
                                 </div>
                             </div>
                         </label>
+
+                        {/* Custom Configuration Fields */}
+                        {pdaModel === 'Custom' && (
+                            <div className="mt-4 p-4 bg-background-dark/30 rounded-xl border border-white/5 space-y-4 animate-fade-in">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Broadcast Action (广播意图)</label>
+                                    <input
+                                        type="text"
+                                        value={scanAction}
+                                        onChange={(e) => setConfig(e.target.value, scanExtra)}
+                                        className="w-full bg-surface-hover border border-white/10 rounded-lg py-2.5 px-3 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                        placeholder="e.g. android.intent.action.SCAN_RESULT"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Data Extra (数据标签)</label>
+                                    <input
+                                        type="text"
+                                        value={scanExtra}
+                                        onChange={(e) => setConfig(scanAction, e.target.value)}
+                                        className="w-full bg-surface-hover border border-white/10 rounded-lg py-2.5 px-3 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                        placeholder="e.g. android.intent.extra.SCAN_BROADCAST_DATA"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-500 italic">
+                                    * 请根据 PDA 厂商提供的文档设置对应的广播 Action 和 Data Extra。
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="p-5 border-t border-white/10 bg-surface-dark sticky bottom-0 z-10 pb-8 sm:pb-5">

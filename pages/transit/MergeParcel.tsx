@@ -17,23 +17,33 @@ const MergeParcel: React.FC = () => {
 
   const mergeMutation = useMergeShipments();
 
-  // Handle Scan Submit
-  const handleScan = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!scanInput) return;
+  // Handle PDA Broadcast Scan
+  useEffect(() => {
+    const handleScanEvent = (e: any) => {
+      const code = e.detail;
+      if (code && !showGenModal) {
+        handleScan(undefined, code);
+      }
+    };
+    window.addEventListener('pda-scan', handleScanEvent);
+    return () => window.removeEventListener('pda-scan', handleScanEvent);
+  }, [showGenModal, activeBatchId]);
 
-    if (scannedShipments.some(s => s.tracking_no === scanInput)) {
+  // Handle Scan Submit
+  const handleScan = async (e?: React.FormEvent, code?: string) => {
+    if (e) e.preventDefault();
+    const trackingNo = code || scanInput;
+    if (!trackingNo) return;
+
+    if (scannedShipments.some(s => s.tracking_no === trackingNo)) {
       toast.error('Parcel already in list');
       setScanInput('');
       return;
     }
 
-    // This is a bit tricky with react-query as we want a manual fetch or just use a service directly if it's a one-off
-    // But since we have the hook, we can use it or just call the service.
-    // Let's use a simpler approach for the scan validation to keep it responsive.
     try {
       const { ShipmentService } = await import('../../services/shipment.service');
-      const response = await ShipmentService.findByTracking(scanInput);
+      const response = await ShipmentService.findByTracking(trackingNo);
 
       if (!response.success) {
         toast.error('Shipment not found: ' + scanInput);

@@ -25,14 +25,27 @@ const ReceiverCheck: React.FC = () => {
     }
   }, [shipments]);
 
+  // Handle PDA Broadcast Scan
+  useEffect(() => {
+    const handleScanEvent = (e: any) => {
+      const code = e.detail;
+      if (code) {
+        handleScan(undefined, code);
+      }
+    };
+    window.addEventListener('pda-scan', handleScanEvent);
+    return () => window.removeEventListener('pda-scan', handleScanEvent);
+  }, [shipments]);
+
   if (loadingBatch || loadingShipments) return <div className="text-white p-8">Loading for arrival...</div>;
   if (!batch || !batchId) return <div className="text-white p-8">Batch Not Found</div>;
 
-  const handleScan = async (e?: React.FormEvent) => {
+  const handleScan = async (e?: React.FormEvent, code?: string) => {
     if (e) e.preventDefault();
-    if (!scanValue) return;
+    const trackingNo = code || scanValue;
+    if (!trackingNo) return;
 
-    const shipment = shipments?.find(s => s.tracking_no === scanValue);
+    const shipment = shipments?.find(s => s.tracking_no === trackingNo);
     if (!shipment) {
       toast.error('Shipment not found in this batch!');
       setScanValue('');
@@ -46,7 +59,7 @@ const ReceiverCheck: React.FC = () => {
         id: shipment.id,
         updates: { status: 'received' }
       });
-      toast.success(`Received: ${scanValue}`);
+      toast.success(`Received: ${trackingNo}`);
     }
     setScanValue('');
   };
@@ -125,7 +138,11 @@ const ReceiverCheck: React.FC = () => {
               type="text"
             />
             <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-primary text-3xl">qr_code_scanner</span>
-            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md active:scale-95">
+            <button
+              id="scan-submit-btn"
+              type="submit"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md active:scale-95"
+            >
               <span className="material-icons text-lg">search</span>
             </button>
           </form>
