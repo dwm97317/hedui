@@ -93,7 +93,7 @@ const CargoCreate: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/sender')}
                             className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
                             <span className="material-icons-round text-slate-600 dark:text-slate-300">arrow_back</span>
