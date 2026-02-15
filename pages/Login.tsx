@@ -104,23 +104,24 @@ const Login: React.FC = () => {
                 toast.success('登录成功');
 
 
+
                 console.log('[Login] 📤 Step 2: Fetching user profile from database');
                 console.log('[Login] 🔍 Query details:', {
                     userId: data.user.id,
-                    query: 'profiles.select(*, company:companies(*))'
+                    query: 'profiles.select(*) - Split query to avoid join timeout'
                 });
 
                 const queryStartTime = Date.now();
-                // Query profile once and use it for both store update and redirect
+                // Query profile first without company join
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
-                    .select('*, company:companies(*)')
+                    .select('*')
                     .eq('id', data.user.id)
                     .single();
 
                 const queryDuration = Date.now() - queryStartTime;
-                console.log('[Login] ⏱️ Query completed in', queryDuration, 'ms');
-                console.log('[Login] 📦 Query result:', {
+                console.log('[Login] ⏱️ Profile query completed in', queryDuration, 'ms');
+                console.log('[Login] 📦 Profile query result:', {
                     hasProfile: !!profile,
                     hasError: !!profileError,
                     errorDetails: profileError
@@ -137,15 +138,37 @@ const Login: React.FC = () => {
                     throw new Error('无法获取用户信息');
                 }
 
+                // Fetch company separately if company_id exists
+                let company = null;
+                if (profile.company_id) {
+                    console.log('[Login] 📤 Step 2.5: Fetching company data');
+                    const companyStartTime = Date.now();
+                    const { data: companyData, error: companyError } = await supabase
+                        .from('companies')
+                        .select('*')
+                        .eq('id', profile.company_id)
+                        .single();
+
+                    const companyDuration = Date.now() - companyStartTime;
+                    console.log('[Login] ⏱️ Company query completed in', companyDuration, 'ms');
+
+                    if (companyError) {
+                        console.warn('[Login] ⚠️ Company fetch failed:', companyError);
+                    } else {
+                        company = companyData;
+                        console.log('[Login] ✅ Company fetched:', companyData?.name);
+                    }
+                }
+
                 console.log('[Login] ✅ Step 2 Complete: Profile fetched', {
                     role: profile.role,
                     companyId: profile.company_id,
-                    hasCompany: !!profile.company
+                    hasCompany: !!company
                 });
 
                 console.log('[Login] 📤 Step 3: Updating UserStore with profile data');
-                // Update store with profile data
-                const userWithEmail = { ...profile, email: data.user.email };
+                // Update store with profile data (including company if fetched)
+                const userWithEmail = { ...profile, company, email: data.user.email };
                 useUserStore.getState().setUser(userWithEmail);
                 console.log('[Login] ✅ Step 3 Complete: UserStore updated');
 
