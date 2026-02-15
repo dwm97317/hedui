@@ -44,8 +44,9 @@ import { toast, Toaster } from 'react-hot-toast';
 const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, fetchUser } = useUserStore();
-  const { syncWithNative } = useScannerStore();
+  const signOut = useUserStore(state => state.signOut);
+  const fetchUser = useUserStore(state => state.fetchUser);
+  const syncWithNative = useScannerStore(state => state.syncWithNative);
 
   useEffect(() => {
     // Sync native configuration on startup
@@ -121,7 +122,7 @@ const AppContent = () => {
       delete (window as any).scannerLabel;
       delete (window as any).handleAndroidBack;
     };
-  }, [navigate, signOut]);
+  }, []); // Only run once on mount! navigate and actions are stable.
 
   // Define paths where BottomNav should be hidden
   // We want to hide it on login, create pages, sub-pages, etc to valid space
