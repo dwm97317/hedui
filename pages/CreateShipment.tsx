@@ -66,7 +66,8 @@ const CreateShipment: React.FC = () => {
         length: parseFloat(length) || 0,
         width: parseFloat(width) || 0,
         height: parseFloat(height) || 0,
-        status: 'pending'
+        status: 'pending',
+        sender_at: new Date().toISOString()
       });
 
       // Reset Form

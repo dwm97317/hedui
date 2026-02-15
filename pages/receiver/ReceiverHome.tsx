@@ -65,15 +65,21 @@ const ReceiverHome: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-4 no-scrollbar">
         {/* Current Batch Section */}
-        <section className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl p-4 border border-blue-200 shadow-sm relative overflow-hidden">
+        <section
+          onClick={() => activeBatchId && navigate(`/batch-detail/${activeBatchId}`)}
+          className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl p-4 border border-blue-200 shadow-sm relative overflow-hidden cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
+        >
           <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white/20 to-transparent pointer-events-none"></div>
           <div className="flex justify-between items-center mb-3 relative z-10">
             <div className="flex items-center gap-2">
               <span className="material-icons text-primary text-lg">local_shipping</span>
-              <span className="text-sm font-bold text-gray-700">当前批次</span>
+              <span className="text-sm font-bold text-gray-700">当前批次 (点击查看明细)</span>
             </div>
             <button
-              onClick={() => setIsSwitchModalOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSwitchModalOpen(true);
+              }}
               className="flex items-center gap-1 bg-white/60 hover:bg-white border border-blue-300 rounded-full px-3 py-1 text-xs text-primary font-medium transition-colors"
             >
               <span className="material-icons text-[14px]">swap_horiz</span>
@@ -95,7 +101,7 @@ const ReceiverHome: React.FC = () => {
               <div className="bg-white/60 rounded-lg p-2.5 border border-white/50">
                 <div className="text-[10px] text-gray-500 font-medium mb-0.5">到货总重量</div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-bold text-primary">{activeBatch?.total_weight || 0}</span>
+                  <span className="text-lg font-bold text-primary">{(activeBatch?.total_weight || 0).toFixed(2)}</span>
                   <span className="text-xs text-gray-500">KG</span>
                 </div>
               </div>
@@ -179,7 +185,7 @@ const ReceiverHome: React.FC = () => {
               <div>
                 <div className="text-[10px] text-gray-500 font-medium mb-0.5">累计签收总重量</div>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-2xl font-bold text-primary tracking-tight">{totalProcessedWeight}</span>
+                  <span className="text-2xl font-bold text-primary tracking-tight">{totalProcessedWeight.toFixed(2)}</span>
                   <span className="text-sm text-gray-400">KG</span>
                 </div>
               </div>

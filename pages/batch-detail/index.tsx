@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useBatchDetail } from '../../hooks/useBatches';
 import { useShipments } from '../../hooks/useShipments';
 import { useInspections } from '../../hooks/useInspections';
+import { useUserStore } from '../../store/user.store';
 import { SenderStage } from './components/SenderStage';
 import { TransitStage } from './components/TransitStage';
 import { ReceiverStage } from './components/ReceiverStage';
@@ -12,7 +13,19 @@ type Stage = 'sender' | 'transit' | 'receiver';
 const BatchDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { user } = useUserStore();
     const [activeTab, setActiveTab] = useState<Stage>('sender');
+
+    // Auto-select tab based on role
+    React.useEffect(() => {
+        if (user?.role === 'transit') {
+            setActiveTab('transit');
+        } else if (user?.role === 'receiver') {
+            setActiveTab('receiver');
+        } else {
+            setActiveTab('sender');
+        }
+    }, [user?.role]);
 
     const { data: batch, isLoading: isLoadingBatch } = useBatchDetail(id || '');
     const { data: shipments, isLoading: isLoadingShipments } = useShipments(id || '');

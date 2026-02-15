@@ -102,7 +102,7 @@ const SentHome: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-300">
                                 <span className="material-icons text-[16px] text-gray-500">scale</span>
-                                <span>总重量: <span className="text-white font-medium">{activeBatch?.total_weight || 0} kg</span></span>
+                                <span>总重量: <span className="text-white font-medium">{(activeBatch?.total_weight || 0).toFixed(2)} kg</span></span>
                             </div>
                         </div>
                     </div>

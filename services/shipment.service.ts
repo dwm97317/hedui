@@ -12,6 +12,9 @@ export interface Shipment {
     width?: number;
     height?: number;
     shipper_name?: string;
+    sender_at?: string;
+    transit_at?: string;
+    receiver_at?: string;
 }
 
 export const ShipmentService = {

@@ -264,15 +264,15 @@ const BatchList: React.FC = () => {
                                 {/* Metrics Summary */}
                                 <div className="grid grid-cols-3 gap-2 px-1">
                                     <div className="text-center">
-                                        <p className={`text-[9px] mb-0.5 ${progress.s1 === 'complete' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>{batch.item_count}件 / {batch.total_weight}kg</p>
+                                        <p className={`text-[9px] mb-0.5 ${progress.s1 === 'complete' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>{batch.item_count}件 / {(batch.total_weight || 0).toFixed(2)}kg</p>
                                         <p className={`text-[8px] font-bold ${progress.s1 === 'complete' ? 'text-emerald-500' : 'text-slate-400'}`}>发出方已封</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className={`text-[9px] mb-0.5 ${progress.s2 !== 'pending' ? 'text-primary font-bold' : 'text-slate-400'}`}>{progress.s2 !== 'pending' ? `${batch.item_count}件 / ${batch.total_weight}kg` : '0件 / 0kg'}</p>
+                                        <p className={`text-[9px] mb-0.5 ${progress.s2 !== 'pending' ? 'text-primary font-bold' : 'text-slate-400'}`}>{progress.s2 !== 'pending' ? `${batch.item_count}件 / ${(batch.total_weight || 0).toFixed(2)}kg` : '0件 / 0.00kg'}</p>
                                         <p className={`text-[8px] font-bold ${progress.s2 !== 'pending' ? 'text-primary' : 'text-slate-400'}`}>{progress.s2 === 'complete' ? '中转方已封' : '中转方处理'}</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className={`text-[9px] mb-0.5 ${progress.s3 !== 'pending' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>{progress.s3 !== 'pending' ? `${batch.item_count}件 / ${batch.total_weight}kg` : '0件 / 0kg'}</p>
+                                        <p className={`text-[9px] mb-0.5 ${progress.s3 !== 'pending' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>{progress.s3 !== 'pending' ? `${batch.item_count}件 / ${(batch.total_weight || 0).toFixed(2)}kg` : '0件 / 0.00kg'}</p>
                                         <p className={`text-[8px] font-bold ${progress.s3 !== 'pending' ? 'text-emerald-500' : 'text-slate-400'}`}>{progress.s3 === 'complete' ? '已收货核验' : '接收方处理'}</p>
                                     </div>
                                 </div>

@@ -38,7 +38,7 @@ export const BillingService = {
      */
     async getById(id: string): Promise<ServiceResponse<Bill>> {
         return handleServiceCall(
-            supabase.from('bills').select('*, bill_items(*), batch:batches(batch_no, total_weight), payer:companies!payer_company_id(name), payee:companies!payee_company_id(name)').eq('id', id).single()
+            supabase.from('bills').select('*, bill_items(*), batch:batches(batch_no, total_weight), payer:companies!payer_company_id(name), payee:companies!payee_company_id(name)').eq('id', id).maybeSingle()
         );
     },
 
@@ -47,7 +47,7 @@ export const BillingService = {
      */
     async getByBillNo(billNo: string): Promise<ServiceResponse<Bill>> {
         return handleServiceCall(
-            supabase.from('bills').select('*, bill_items(*), batch:batches(batch_no, total_weight), payer:companies!payer_company_id(name), payee:companies!payee_company_id(name)').eq('bill_no', billNo).single()
+            supabase.from('bills').select('*, bill_items(*), batch:batches(batch_no, total_weight), payer:companies!payer_company_id(name), payee:companies!payee_company_id(name)').eq('bill_no', billNo).maybeSingle()
         );
     },
 
@@ -57,7 +57,7 @@ export const BillingService = {
     async getByBatch(batchId: string): Promise<ServiceResponse<Bill>> {
         // Single? Or multiple if cancellations allowed? Usually one bill per batch per our logic.
         return handleServiceCall(
-            supabase.from('bills').select('*, bill_items(*), batch:batches(batch_no, total_weight), payer:companies!payer_company_id(name), payee:companies!payee_company_id(name)').eq('batch_id', batchId).single()
+            supabase.from('bills').select('*, bill_items(*), batch:batches(batch_no, total_weight), payer:companies!payer_company_id(name), payee:companies!payee_company_id(name)').eq('batch_id', batchId).maybeSingle()
         );
     },
 

@@ -158,7 +158,8 @@ const AppContent = () => {
     (location.pathname.startsWith('/sender/') && location.pathname !== '/sender') ||
     (location.pathname.startsWith('/finance/') && location.pathname !== '/finance') ||
     (location.pathname.startsWith('/supervisor/') && location.pathname !== '/supervisor') ||
-    location.pathname.startsWith('/batch/');
+    location.pathname.startsWith('/batch/') ||
+    location.pathname.startsWith('/batch-detail/');
 
   return (
     <div className="flex flex-col h-screen w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100">
@@ -175,6 +176,14 @@ const AppContent = () => {
 
           <Route
             path="/batch/:id"
+            element={
+              <ProtectedRoute allowedRoles={['sender', 'transit', 'receiver']}>
+                <BatchDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/batch-detail/:id"
             element={
               <ProtectedRoute allowedRoles={['sender', 'transit', 'receiver']}>
                 <BatchDetailPage />

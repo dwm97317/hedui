@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBatchDetail, useUpdateBatchStatus } from '../../hooks/useBatches';
-import { useShipments } from '../../hooks/useShipments';
+import { useShipments, useUpdateShipment } from '../../hooks/useShipments';
 import { useInspections, useCreateInspection } from '../../hooks/useInspections';
 import { useBatchStore } from '../../store/batch.store';
 import { toast } from 'react-hot-toast';
@@ -90,10 +90,13 @@ const TransitCheck: React.FC = () => {
         );
     }
 
+    const updateShipment = useUpdateShipment();
+
     const handleConfirm = async () => {
         if (!activeShipment || !measuredWeight) return;
 
         try {
+            // 1. Create inspection log
             await createInspection.mutateAsync({
                 batch_id: batchId!,
                 result: 'passed',
@@ -103,6 +106,12 @@ const TransitCheck: React.FC = () => {
                 transit_height: parseFloat(dimH) || 0,
                 notes: `ShipmentID:${activeShipment.id} Tracking:${activeShipment.tracking_no} WeighCheck:${measuredWeight}kg Dim:${dimL}x${dimW}x${dimH}`,
                 photos: []
+            });
+
+            // 2. Update shipment timestamp
+            await updateShipment.mutateAsync({
+                id: activeShipment.id,
+                updates: { transit_at: new Date().toISOString() } as any
             });
 
             if (batch?.status === 'sender_sealed' || batch?.status === 'sealed') {
@@ -194,7 +203,7 @@ const TransitCheck: React.FC = () => {
                                 <div className="bg-slate-50 dark:bg-black/20 p-3 rounded-xl">
                                     <span className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">发出方录入</span>
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-black text-slate-700 dark:text-slate-200">{activeShipment.weight} kg</span>
+                                        <span className="text-sm font-black text-slate-700 dark:text-slate-200">{(activeShipment.weight || 0).toFixed(2)} kg</span>
                                         <span className="text-[10px] text-gray-500 font-medium">{activeShipment.length}x{activeShipment.width}x{activeShipment.height} cm</span>
                                     </div>
                                 </div>
@@ -327,7 +336,7 @@ const TransitCheck: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-right flex flex-col">
-                                        <span className="text-[10px] font-black text-slate-700 dark:text-slate-200">{s.weight}kg</span>
+                                        <span className="text-[10px] font-black text-slate-700 dark:text-slate-200">{(s.weight || 0).toFixed(2)}kg</span>
                                         {isDone && <span className="text-[8px] bg-green-500/10 text-green-500 px-1 rounded">已检</span>}
                                     </div>
                                 </div>

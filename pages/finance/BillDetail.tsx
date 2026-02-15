@@ -106,7 +106,7 @@ const BillDetail: React.FC = () => {
                 <span className="text-sm font-bold text-slate-900 dark:text-white">{item.description}</span>
                 <span className="text-lg font-mono font-bold text-primary">{item.amount.toLocaleString()}</span>
               </div>
-              <div className="text-[10px] text-gray-400">核算基于: 批次总重量 {batch?.total_weight}kg</div>
+              <div className="text-[10px] text-gray-400">核算基于: 批次总重量 {(batch?.total_weight || 0).toFixed(2)}kg</div>
             </div>
           ))}
 
@@ -125,7 +125,7 @@ const BillDetail: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold">Billing Logic</h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                  This bill was automatically generated upon batch completion based on the final measured weight of <b>{batch?.total_weight}kg</b>.
+                  This bill was automatically generated upon batch completion based on the final measured weight of <b>{(batch?.total_weight || 0).toFixed(2)}kg</b>.
                 </p>
               </div>
             </div>

@@ -77,7 +77,10 @@ const ReceiverCheck: React.FC = () => {
       // 1. Update shipment status to received
       await updateShipment.mutateAsync({
         id: activeShipmentId,
-        updates: { status: 'received' }
+        updates: {
+          status: 'received',
+          receiver_at: new Date().toISOString()
+        } as any
       });
 
       // 2. Record individual check inspection
@@ -197,11 +200,11 @@ const ReceiverCheck: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 mb-5 p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
                 <div>
                   <span className="text-[10px] text-gray-500 block">原始数据 (Origin)</span>
-                  <div className="font-bold text-sm">{activeShipment.weight}kg | {activeShipment.length}x{activeShipment.width}x{activeShipment.height}</div>
+                  <div className="font-bold text-sm">{(activeShipment.weight || 0).toFixed(2)}kg | {activeShipment.length}x{activeShipment.width}x{activeShipment.height}</div>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] text-primary block">当前核对 (Checking)</span>
-                  <div className="font-bold text-sm text-primary">{checkWeight || '0'}kg | {checkL || '0'}x{checkW || '0'}x{checkH || '0'}</div>
+                  <div className="font-bold text-sm text-primary">{(parseFloat(checkWeight) || 0).toFixed(2)}kg | {checkL || '0'}x{checkW || '0'}x{checkH || '0'}</div>
                 </div>
               </div>
 
@@ -286,7 +289,7 @@ const ReceiverCheck: React.FC = () => {
                     <div className={`font-mono font-bold text-xs ${isReceived ? 'text-slate-800 dark:text-white' : 'text-gray-400'}`}>
                       {s.tracking_no}
                     </div>
-                    <div className="text-[10px] text-gray-500">{s.weight}kg | {s.length}x{s.width}x{s.height} cm</div>
+                    <div className="text-[10px] text-gray-500">{(s.weight || 0).toFixed(2)}kg | {s.length}x{s.width}x{s.height} cm</div>
                   </div>
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isReceived ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'

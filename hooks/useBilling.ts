@@ -29,8 +29,8 @@ export const useBillDetail = (batchId: string) => {
         queryFn: async () => {
             if (!batchId) return null;
             const response = await BillingService.getByBatch(batchId);
-            if (!response.success && response.error !== 'PGRST116') { // Ignore "No Rows Found" (PGRST116) as it's normal for pending batches
-                throw new Error(response.error);
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to fetch bill');
             }
             return response.data;
         },
@@ -61,8 +61,7 @@ export const useBillById = (billIdOrNo: string) => {
                     : await BillingService.getById(billIdOrNo);
 
                 if (!fallback.success) {
-                    if (fallback.error === 'PGRST116') return null;
-                    throw new Error(fallback.error);
+                    throw new Error(fallback.error || 'Failed to fetch bill');
                 }
                 return fallback.data;
             }
