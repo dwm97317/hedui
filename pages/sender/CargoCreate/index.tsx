@@ -139,10 +139,10 @@ const CargoCreate: React.FC = () => {
                 id: editingShipment.id,
                 updates: {
                     tracking_no: editWaybill,
-                    weight: parseFloat(editWeight),
-                    length: parseFloat(editLength),
-                    width: parseFloat(editWidth),
-                    height: parseFloat(editHeight),
+                    weight: parseFloat(editWeight) || 0,
+                    length: editLength ? parseFloat(editLength) : null,
+                    width: editWidth ? parseFloat(editWidth) : null,
+                    height: editHeight ? parseFloat(editHeight) : null,
                     shipper_name: editShipperName || null
                 }
             });
