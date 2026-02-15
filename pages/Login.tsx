@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { useUserStore } from '../store/user.store';
@@ -12,6 +12,9 @@ const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+
+    // Track if we've already redirected to prevent duplicate navigation
+    const hasRedirected = useRef(false);
 
     // 1. Check Session on Mount (Session Recovery)
     useEffect(() => {
@@ -40,13 +43,15 @@ const Login: React.FC = () => {
         }
     }, [navigate]);
 
-    // 2. Auto-redirect if already logged in
+    // 2. Auto-redirect if already logged in (but only once)
     useEffect(() => {
-        if (isAuthenticated && user) {
-            console.log('Auto-redirect triggered for user:', user.role);
+        if (isAuthenticated && user && !hasRedirected.current && !isCheckingSession) {
+            console.log('Auto-redirect for already logged-in user:', user.role);
+            hasRedirected.current = true;
             handleRedirect(user.role);
         }
-    }, [isAuthenticated, user, handleRedirect]);
+    }, [isAuthenticated, user, isCheckingSession, handleRedirect]);
+
 
     if (isCheckingSession) {
         return (
@@ -85,6 +90,9 @@ const Login: React.FC = () => {
                 // Update store with profile data
                 const userWithEmail = { ...profile, email: data.user.email };
                 useUserStore.getState().setUser(userWithEmail);
+
+                // Mark as redirected to prevent useEffect from triggering
+                hasRedirected.current = true;
 
                 // Immediate redirect
                 console.log('Direct redirect after login for role:', profile.role);
