@@ -5,12 +5,12 @@ import { ShipmentService, Shipment } from '../services/shipment.service';
 /**
  * Fetch Shipments for a Batch
  */
-export const useShipments = (batchId: string) => {
+export const useShipments = (batchId: string, options?: { includeAll?: boolean }) => {
     return useQuery<Shipment[], Error>({
-        queryKey: ['shipments', batchId],
+        queryKey: ['shipments', batchId, options?.includeAll],
         queryFn: async () => {
             if (!batchId) return [];
-            const response = await ShipmentService.listByBatch(batchId);
+            const response = await ShipmentService.listByBatch(batchId, options?.includeAll);
             if (!response.success) {
                 throw new Error(response.error || 'Failed to fetch shipments');
             }
@@ -35,6 +35,25 @@ export const useAllShipments = () => {
             return response.data || [];
         },
         staleTime: 60000, // Longer cache for reports
+    });
+};
+
+/**
+ * Fetch Shipment Relations (Merges/Splits) for a Batch
+ */
+export const useShipmentRelations = (batchId: string) => {
+    return useQuery<any[], Error>({
+        queryKey: ['shipment_relations', batchId],
+        queryFn: async () => {
+            if (!batchId) return [];
+            const response = await ShipmentService.listRelations(batchId);
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to fetch relations');
+            }
+            return response.data || [];
+        },
+        enabled: !!batchId,
+        staleTime: 10000,
     });
 };
 
@@ -112,14 +131,16 @@ export const useMergeShipments = () => {
             batch_id: string;
             total_weight: number;
             volume?: number;
+            role?: 'transit' | 'receiver';
         }) => {
             const response = await ShipmentService.mergeShipments(data);
             if (!response.success) throw new Error(response.error);
             return response.data;
         },
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             queryClient.invalidateQueries({ queryKey: ['shipments', data.batch_id] });
             queryClient.invalidateQueries({ queryKey: ['batch', data.batch_id] });
+            queryClient.invalidateQueries({ queryKey: ['inspections', data.batch_id] });
             toast.success('Merge Successful');
         },
         onError: (error: any) => {
@@ -139,6 +160,7 @@ export const useSplitShipment = () => {
             parent_id: string;
             children: Array<{ tracking_no: string; weight: number; volume?: number }>;
             batch_id: string;
+            role?: 'transit' | 'receiver';
         }) => {
             const response = await ShipmentService.splitShipment(data);
             if (!response.success) throw new Error(response.error);
@@ -147,8 +169,10 @@ export const useSplitShipment = () => {
         onSuccess: (data: any) => {
             // Invalidate the branch of shipments for this batch
             if (data && data.length > 0) {
-                queryClient.invalidateQueries({ queryKey: ['shipments', data[0].batch_id] });
-                queryClient.invalidateQueries({ queryKey: ['batch', data[0].batch_id] });
+                const batchId = data[0].batch_id;
+                queryClient.invalidateQueries({ queryKey: ['shipments', batchId] });
+                queryClient.invalidateQueries({ queryKey: ['batch', batchId] });
+                queryClient.invalidateQueries({ queryKey: ['inspections', batchId] });
             }
             toast.success('Split Successful');
         },

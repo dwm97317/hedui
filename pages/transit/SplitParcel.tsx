@@ -105,7 +105,8 @@ const SplitParcel: React.FC = () => {
       await splitMutation.mutateAsync({
         parent_id: parentShipment.id,
         children: childData,
-        batch_id: activeBatchId
+        batch_id: activeBatchId,
+        role: 'transit'
       });
       setParentShipment(null);
       setChildData([]);

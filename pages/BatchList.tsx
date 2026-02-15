@@ -261,19 +261,60 @@ const BatchList: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Metrics Summary */}
-                                <div className="grid grid-cols-3 gap-2 px-1">
-                                    <div className="text-center">
-                                        <p className={`text-[9px] mb-0.5 ${progress.s1 === 'complete' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>{batch.item_count}件 / {(batch.total_weight || 0).toFixed(2)}kg</p>
-                                        <p className={`text-[8px] font-bold ${progress.s1 === 'complete' ? 'text-emerald-500' : 'text-slate-400'}`}>发出方已封</p>
+                                {/* Metrics Summary - Independent Three-Column Accounting */}
+                                <div className="grid grid-cols-3 gap-2 px-1 mt-6">
+                                    {/* Column 1: Sender (Original) */}
+                                    <div className="flex flex-col items-center">
+                                        <div className={`text-[10px] font-black uppercase tracking-wider mb-1 ${progress.s1 !== 'pending' ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                                            原始单据
+                                        </div>
+                                        <div className={`text-[11px] font-mono font-bold ${progress.s1 !== 'pending' ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>
+                                            {batch.item_count}件
+                                        </div>
+                                        <div className={`text-[11px] font-mono font-bold ${progress.s1 !== 'pending' ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>
+                                            {(batch.total_weight || 0).toFixed(2)}kg
+                                        </div>
+                                        {progress.s1 === 'complete' && (
+                                            <span className="text-[8px] text-emerald-500 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded mt-1">
+                                                已封箱
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="text-center">
-                                        <p className={`text-[9px] mb-0.5 ${progress.s2 !== 'pending' ? 'text-primary font-bold' : 'text-slate-400'}`}>{progress.s2 !== 'pending' ? `${batch.item_count}件 / ${(batch.total_weight || 0).toFixed(2)}kg` : '0件 / 0.00kg'}</p>
-                                        <p className={`text-[8px] font-bold ${progress.s2 !== 'pending' ? 'text-primary' : 'text-slate-400'}`}>{progress.s2 === 'complete' ? '中转方已封' : '中转方处理'}</p>
+
+                                    {/* Column 2: Transit (Operational) */}
+                                    <div className="flex flex-col items-center border-x border-slate-100 dark:border-slate-800">
+                                        <div className={`text-[10px] font-black uppercase tracking-wider mb-1 ${progress.s2 !== 'pending' ? 'text-primary' : 'text-slate-400'}`}>
+                                            中转实操
+                                        </div>
+                                        <div className={`text-[11px] font-mono font-bold ${progress.s2 !== 'pending' ? 'text-primary' : 'text-slate-400'}`}>
+                                            {progress.s2 !== 'pending' ? `${batch.item_count}件` : '--'}
+                                        </div>
+                                        <div className={`text-[11px] font-mono font-bold ${progress.s2 !== 'pending' ? 'text-primary' : 'text-slate-400'}`}>
+                                            {progress.s2 !== 'pending' ? `${(batch.total_weight || 0).toFixed(2)}kg` : '--'}
+                                        </div>
+                                        {progress.s2 !== 'pending' && (
+                                            <span className="text-[8px] text-primary/60 font-bold mt-1">
+                                                (含合并/拆分)
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="text-center">
-                                        <p className={`text-[9px] mb-0.5 ${progress.s3 !== 'pending' ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>{progress.s3 !== 'pending' ? `${batch.item_count}件 / ${(batch.total_weight || 0).toFixed(2)}kg` : '0件 / 0.00kg'}</p>
-                                        <p className={`text-[8px] font-bold ${progress.s3 !== 'pending' ? 'text-emerald-500' : 'text-slate-400'}`}>{progress.s3 === 'complete' ? '已收货核验' : '接收方处理'}</p>
+
+                                    {/* Column 3: Receiver (Actual) */}
+                                    <div className="flex flex-col items-center">
+                                        <div className={`text-[10px] font-black uppercase tracking-wider mb-1 ${progress.s3 !== 'pending' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                            接收实收
+                                        </div>
+                                        <div className={`text-[11px] font-mono font-bold ${progress.s3 !== 'pending' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            {progress.s3 !== 'pending' ? `${batch.item_count}件` : '--'}
+                                        </div>
+                                        <div className={`text-[11px] font-mono font-bold ${progress.s3 !== 'pending' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            {progress.s3 !== 'pending' ? `${(batch.total_weight || 0).toFixed(2)}kg` : '--'}
+                                        </div>
+                                        {progress.s3 !== 'pending' && (
+                                            <span className={`text-[8px] font-bold mt-1 ${progress.s3 === 'complete' ? 'text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded' : 'text-slate-400'}`}>
+                                                {progress.s3 === 'complete' ? '✔ 账单核对' : '(待核对)'}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>

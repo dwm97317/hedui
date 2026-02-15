@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Shipment } from '../../../services/shipment.service';
 import { Batch } from '../../../services/batch.service';
+import { Inspection } from '../../../services/inspection.service';
 import { ShipmentEditModal } from './ShipmentEditModal';
 import { useUpdateShipment } from '../../../hooks/useShipments';
 import { useUserStore } from '../../../store/user.store';
@@ -8,22 +9,68 @@ import { useUserStore } from '../../../store/user.store';
 interface SenderStageProps {
     batch: Batch;
     shipments: Shipment[];
+    inspections: Inspection[];
 }
 
-export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments }) => {
+export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments: rawShipments, inspections }) => {
+    // Show Full History for Sender
+    const shipments = rawShipments || [];
+
+    // Calculate totals using ONLY ACTIVE shipments (avoid double counting)
+    const activeShipments = useMemo(() =>
+        shipments.filter(s => !['merged_child', 'split_parent'].includes(s.package_tag || '')),
+        [shipments]);
+
     const { user } = useUserStore();
     const isSender = user?.role === 'sender';
     const updateShipment = useUpdateShipment();
     const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+    const [showAudit, setShowAudit] = useState(false);
 
-    const totalWeight = shipments.reduce((sum, s) => sum + (parseFloat(s.weight as any) || 0), 0);
-    const totalVolume = shipments.reduce((sum, s) => {
+    const totalWeight = activeShipments.reduce((sum, s) => sum + (parseFloat(s.weight as any) || 0), 0);
+    const totalVolume = activeShipments.reduce((sum, s) => {
         const length = parseFloat(s.length as any) || 0;
         const width = parseFloat(s.width as any) || 0;
         const height = parseFloat(s.height as any) || 0;
         const v = (length * width * height) / 1000000; // cm3 to m3
         return sum + v;
     }, 0);
+
+    // Map Shipment ID -> Inspection Data
+    const shipmentInspectionMap = useMemo(() => {
+        const map: Record<string, {
+            transit_weight?: number;
+            check_weight?: number;
+        }> = {};
+
+        inspections.forEach((insp) => {
+            if (insp.notes?.includes('ShipmentID:')) {
+                const idPart = insp.notes.split('ShipmentID:')[1];
+                if (idPart) {
+                    const shipmentId = idPart.split(' ')[0];
+                    if (!map[shipmentId]) map[shipmentId] = {};
+                    if (insp.notes.includes('WeighCheck') && insp.transit_weight) {
+                        map[shipmentId].transit_weight = parseFloat(insp.transit_weight as any);
+                    }
+                    if (insp.notes.includes('ReceiverItemCheck') && insp.check_weight) {
+                        map[shipmentId].check_weight = parseFloat(insp.check_weight as any);
+                    }
+                }
+            }
+        });
+        return map;
+    }, [inspections]);
+
+    // Calculate Discrepancies (On Active Shipments Only)
+    const discrepancyCount = useMemo(() => {
+        return activeShipments.filter(s => {
+            const insp = shipmentInspectionMap[s.id];
+            const senderW = parseFloat(s.weight as any) || 0;
+            const transitW = insp?.transit_weight || senderW;
+            const checkW = insp?.check_weight || transitW;
+            return Math.abs(senderW - transitW) > 0.1 || Math.abs(transitW - checkW) > 0.1;
+        }).length;
+    }, [shipments, shipmentInspectionMap]);
 
     const handleSave = async (data: any) => {
         if (!selectedShipment) return;
@@ -43,9 +90,17 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments }) =>
                             <span className="material-icons text-primary text-base">local_shipping</span>
                             发出数据概览
                         </h2>
-                        <span className="text-xs text-blue-500 bg-blue-500/10 px-2 py-1 rounded-full font-medium">
-                            {batch.status === 'draft' || batch.status === 'sender_processing' ? '进行中' : '已封箱'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowAudit(!showAudit)}
+                                className={`text-[10px] px-2 py-1 rounded-full font-bold border ${showAudit ? 'bg-primary text-white border-primary' : 'text-slate-500 border-slate-200 dark:border-slate-600'}`}
+                            >
+                                {showAudit ? '隐藏对账' : '显示对账'}
+                            </button>
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${batch.status === 'draft' || batch.status === 'sender_processing' ? 'text-blue-500 bg-blue-500/10' : 'text-emerald-500 bg-emerald-500/10'}`}>
+                                {batch.status === 'draft' || batch.status === 'sender_processing' ? '进行中' : '已封箱'}
+                            </span>
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
@@ -67,6 +122,13 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments }) =>
                             </div>
                         </div>
                     </div>
+                    {discrepancyCount > 0 && (
+                        <div className="mt-3 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-500/10 p-2 rounded-lg border border-amber-100 dark:border-amber-500/20">
+                            <span className="material-icons text-sm">warning</span>
+                            <span className="font-bold">注意:</span>
+                            <span>发现 {discrepancyCount} 个包裹存在重量差异，请开启对账模式查看。</span>
+                        </div>
+                    )}
                     {isSender && (batch.status === 'draft' || batch.status === 'sender_processing') && (
                         <div className="mt-3 text-[10px] text-primary flex items-center gap-1 bg-primary/5 p-2 rounded-lg">
                             <span className="material-icons text-sm">info</span>
@@ -83,33 +145,82 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments }) =>
 
             {/* Parcel List */}
             <div className="px-4 space-y-3 pb-24">
-                {shipments.map((s) => (
-                    <div
-                        key={s.id}
-                        onClick={() => isSender && (batch.status === 'draft' || batch.status === 'sender_processing') && setSelectedShipment(s)}
-                        className={`bg-white dark:bg-[#1c2433] p-4 rounded-lg border border-slate-100 dark:border-slate-700/50 flex items-center justify-between shadow-sm transition-all ${isSender && (batch.status === 'draft' || batch.status === 'sender_processing') ? 'active:scale-[0.99] cursor-pointer hover:border-primary/50' : ''}`}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-primary">
-                                <span className="material-icons text-xl">scale</span>
-                            </div>
-                            <div>
-                                <p className="text-sm font-bold text-slate-900 dark:text-white font-mono leading-none">{s.tracking_no}</p>
-                                <div className="flex items-center gap-3 mt-2">
-                                    <span className="text-xs text-slate-600 dark:text-slate-300 font-black">{(s.weight || 0).toFixed(2)} kg</span>
-                                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{s.length}x{s.width}x{s.height} cm</span>
+                {shipments.map((s) => {
+                    const insp = shipmentInspectionMap[s.id];
+                    const senderW = parseFloat(s.weight as any) || 0;
+                    const transitW = insp?.transit_weight;
+                    const checkW = insp?.check_weight;
+
+                    const transitDiff = transitW ? transitW - senderW : 0;
+                    const checkDiff = checkW && transitW ? checkW - transitW : (checkW ? checkW - senderW : 0);
+
+                    const hasTransitDiff = Math.abs(transitDiff) > 0.1;
+                    const hasCheckDiff = Math.abs(checkDiff) > 0.1;
+
+                    const isInvalid = ['merged_child', 'split_parent'].includes(s.package_tag || '');
+
+                    return (
+                        <div
+                            key={s.id}
+                            onClick={() => !isInvalid && isSender && (batch.status === 'draft' || batch.status === 'sender_processing') && setSelectedShipment(s)}
+                            className={`p-4 rounded-lg border flex flex-col gap-3 shadow-sm transition-all relative overflow-hidden
+                                ${isInvalid ? 'bg-slate-50 opacity-60 grayscale border-slate-100' : 'bg-white dark:bg-[#1c2433]'}
+                                ${!isInvalid && isSender && (batch.status === 'draft' || batch.status === 'sender_processing') ? 'active:scale-[0.99] cursor-pointer hover:border-primary/50' : ''} 
+                                ${!isInvalid && (hasTransitDiff || hasCheckDiff) ? 'border-amber-200 dark:border-amber-500/30' : 'border-slate-100 dark:border-slate-700/50'}`}
+                        >
+                            {isInvalid && (
+                                <div className="absolute right-0 top-0 bg-slate-200 text-slate-500 text-[9px] px-2 py-0.5 rounded-bl">
+                                    {s.package_tag === 'merged_child' ? '已合包' : '已拆分'}
+                                </div>
+                            )}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${hasTransitDiff || hasCheckDiff ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 dark:bg-blue-900/20 text-primary'}`}>
+                                        <span className="material-icons text-xl">scale</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white font-mono leading-none">{s.tracking_no}</p>
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <span className="text-xs text-slate-600 dark:text-slate-300 font-black">{(s.weight || 0).toFixed(2)} kg</span>
+                                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{s.length}x{s.width}x{s.height} cm</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    {isSender && (batch.status === 'draft' || batch.status === 'sender_processing') && (
+                                        <span className="material-icons text-primary/30 text-base mb-1">edit</span>
+                                    )}
+                                    <span className="text-[10px] text-slate-400">{new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
                             </div>
-                        </div>
-                        <div className="flex flex-col items-end">
-                            {isSender && (batch.status === 'draft' || batch.status === 'sender_processing') && (
-                                <span className="material-icons text-primary/30 text-base mb-1">edit</span>
+
+                            {/* Audit / Reconciliation View */}
+                            {showAudit && (
+                                <div className="mt-2 pt-3 border-t border-slate-100 dark:border-slate-700/50 grid grid-cols-3 gap-2 text-center">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] text-slate-400 uppercase tracking-wider">Sender</span>
+                                        <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">{senderW.toFixed(2)}</span>
+                                    </div>
+                                    <div className={`flex flex-col gap-1 rounded bg-slate-50 dark:bg-slate-800/50 py-1 ${hasTransitDiff ? 'bg-amber-50 dark:bg-amber-500/10' : ''}`}>
+                                        <span className="text-[9px] text-slate-400 uppercase tracking-wider">Transit</span>
+                                        <span className={`text-xs font-mono font-bold ${hasTransitDiff ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                                            {transitW ? transitW.toFixed(2) : '--'}
+                                        </span>
+                                        {hasTransitDiff && <span className="text-[8px] text-amber-500 font-bold">{transitDiff > 0 ? '+' : ''}{transitDiff.toFixed(2)}</span>}
+                                    </div>
+                                    <div className={`flex flex-col gap-1 rounded bg-slate-50 dark:bg-slate-800/50 py-1 ${hasCheckDiff ? 'bg-red-50 dark:bg-red-500/10' : ''}`}>
+                                        <span className="text-[9px] text-slate-400 uppercase tracking-wider">Receiver</span>
+                                        <span className={`text-xs font-mono font-bold ${hasCheckDiff ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                                            {checkW ? checkW.toFixed(2) : '--'}
+                                        </span>
+                                        {hasCheckDiff && <span className="text-[8px] text-red-500 font-bold">{checkDiff > 0 ? '+' : ''}{checkDiff.toFixed(2)}</span>}
+                                    </div>
+                                </div>
                             )}
-                            <span className="text-[10px] text-slate-400">{new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {shipments.length === 0 && (
                     <div className="text-center py-12 text-slate-400 italic">暂无包裹数据</div>

@@ -85,7 +85,8 @@ const ReceiverSplit: React.FC = () => {
       await splitMutation.mutateAsync({
         parent_id: parentShipment.id,
         children: childData,
-        batch_id: activeBatchId
+        batch_id: activeBatchId,
+        role: 'receiver'
       });
       setParentShipment(null);
       setChildData([]);

@@ -12,7 +12,11 @@ interface ReceiverStageProps {
     inspections: Inspection[];
 }
 
-export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments, inspections }) => {
+export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: rawShipments, inspections }) => {
+    // Filter active shipments
+    const shipments = useMemo(() =>
+        (rawShipments || []).filter(s => !['merged_child', 'split_parent'].includes(s.package_tag || '')),
+        [rawShipments]);
     const { user } = useUserStore();
     const isReceiver = user?.role === 'receiver';
     const updateInspection = useUpdateInspection();
@@ -71,111 +75,160 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments, 
 
     return (
         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-            {/* Overview Card */}
+            {/* Overview Card - Financial & Operational Summary */}
             <div className="px-4 py-4 sticky top-0 bg-background-light dark:bg-background-dark z-10">
                 <div className="bg-white dark:bg-[#1c2433] rounded-xl p-4 border border-slate-200 dark:border-slate-700/50 shadow-sm transition-all">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                             <span className="material-icons text-primary text-base">fact_check</span>
-                            全链路数据审计
+                            派送计费看板
                         </h2>
-                        <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full font-medium border border-slate-200 dark:border-slate-700">已锁定</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-700">
-                        <div className="flex flex-col items-center">
-                            <span className="text-[10px] text-slate-400 uppercase tracking-wide">发出总重</span>
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-1">{totalSenderWeight.toFixed(2)} kg</span>
-                        </div>
-                        <div className="flex flex-col items-center pl-1">
-                            <span className="text-[10px] text-slate-400 uppercase tracking-wide">中转总重</span>
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-1">{totalTransitWeight > 0 ? totalTransitWeight.toFixed(2) : '--'} kg</span>
-                        </div>
-                        <div className="flex flex-col items-center pl-1">
-                            <span className="text-[10px] text-primary font-bold uppercase tracking-wide">接收总重</span>
-                            <span className="text-lg font-bold text-primary mt-0.5">{totalCheckWeight.toFixed(2)} kg</span>
-                        </div>
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">总件数: <span className="text-slate-900 dark:text-white font-black">{totalCount}</span></span>
-                        <span className={`font-black px-2 py-0.5 rounded-full ${diff < 0 ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
-                            差异: {diff > 0 ? '+' : ''}{diff.toFixed(2)}kg
+                        <span className={`text-xs ${diff < -0.5 ? 'text-red-500 bg-red-500/10' : 'text-emerald-500 bg-emerald-500/10'} px-2 py-1 rounded-full font-medium border border-current/20`}>
+                            {diff < -0.5 ? `缺失: ${diff.toFixed(2)}kg` : '到货正常'}
                         </span>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">应收派送费 (Billable)</p>
+                            <div className="flex items-end gap-2 text-slate-900 dark:text-white">
+                                <span className="text-2xl font-black font-mono text-emerald-600">{totalCheckWeight.toFixed(2)}</span>
+                                <span className="text-xs font-bold text-slate-400 mb-1.5">kg</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div className="bg-emerald-500 h-full rounded-full" style={{ width: '100%' }}></div>
+                            </div>
+                        </div>
+                        <div className="space-y-1 pl-4 border-l border-slate-100 dark:border-slate-700">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">中转参考 (Ref)</p>
+                            <div className="flex items-end gap-2 text-slate-900 dark:text-white">
+                                <span className="text-xl font-bold font-mono text-slate-500">{totalTransitWeight > 0 ? totalTransitWeight.toFixed(2) : '--'}</span>
+                                <span className="text-xs text-slate-400 mb-1.5">kg</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div className="bg-slate-400 h-full rounded-full" style={{ width: `${Math.min((totalTransitWeight / (totalCheckWeight || 1)) * 100, 100)}%` }}></div>
+                            </div>
+                        </div>
+                    </div>
                     {isReceiver && (
-                        <div className="mt-4 text-[10px] text-primary dark:text-blue-400 flex items-center gap-1 bg-primary/5 p-2 rounded-lg border border-primary/10">
-                            <span className="material-icons text-sm">edit_note</span>
-                            <span>作为接收员，您可以点击下方列表对【接收实测】数据进行修正。</span>
+                        <div className="mt-4 text-[10px] text-emerald-600/80 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/10 p-2.5 rounded-lg border border-emerald-100 dark:border-emerald-900/30">
+                            <span className="material-icons text-sm">warning</span>
+                            <span>如遇【合包破损】，请直接扫描内部小包ID。系统将自动拆分并记录异常。</span>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* List Header */}
-            <div className="px-4 pb-2 flex justify-between items-center">
-                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">接收明细 ({totalCount})</h3>
+            <div className="px-6 pb-2 flex justify-between items-center text-xs text-slate-400 uppercase font-bold tracking-wider">
+                <span>Received Entity</span>
+                <span>Actual Weight</span>
             </div>
 
-            {/* Audit List */}
-            <div className="px-4 space-y-3 pb-24">
-                {shipments.map((s) => {
-                    const transit = parsedData.transitMap[s.id];
-                    const check = parsedData.checkMap[s.id];
-                    const isAnomalous = check && Math.abs((check.check_weight || 0) - (s.weight || 0)) > 0.1;
-                    const isMissing = s.status !== 'received' && batch.status === 'completed';
+            {/* Comparison List - Grouped by Parent logic but prioritizing Scanned Entity */}
+            <div className="px-4 space-y-4 pb-24">
+                {/* 1. Render Parents (Merged Groups) */}
+                {shipments.filter(s => shipments.some(child => child.parent_id === s.id)).map(parent => {
+                    const children = shipments.filter(child => child.parent_id === parent.id);
+                    const check = parsedData.checkMap[parent.id];
+                    const transit = parsedData.transitMap[parent.id];
+
+                    // Logic: Has the PARENT been scanned?
+                    const isParentScanned = !!check;
+                    // Logic: Have any CHILDREN been scanned individually (Split/Break)?
+                    const splitChildren = children.filter(c => parsedData.checkMap[c.id]);
+                    const isPartialBreak = splitChildren.length > 0;
 
                     return (
-                        <div
-                            key={s.id}
-                            onClick={() => isReceiver && check && setSelectedId(s.id)}
-                            className={`bg-white dark:bg-[#1c2433] p-3 rounded-lg border shadow-sm transition-all ${isReceiver && check ? 'cursor-pointer hover:border-primary/50 active:scale-[0.99]' : ''} ${isAnomalous || isMissing ? 'border-l-4 border-l-red-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-700/50 dark:border-r-slate-700/50' : 'border-slate-100 dark:border-slate-700/50'
-                                }`}
-                        >
+                        <div key={parent.id} className={`bg-white dark:bg-[#1c2433] rounded-xl border shadow-md overflow-hidden relative ${isPartialBreak ? 'border-red-500/30' : 'border-emerald-500/20'}`}>
+                            {isPartialBreak && <div className="absolute top-0 right-0 px-2 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-bl-lg z-10">BROKEN / SPLIT</div>}
+
+                            {/* Parent Header */}
+                            <div
+                                onClick={() => isReceiver && setSelectedId(parent.id)}
+                                className={`p-4 cursor-pointer transition-colors border-b ${isParentScanned ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100' : 'bg-slate-50 dark:bg-black/20 border-slate-100'}`}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${isParentScanned ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                            <span className="material-icons text-sm">{isParentScanned ? 'check' : 'inventory_2'}</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-black font-mono text-slate-900 dark:text-white">{parent.tracking_no}</p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${isParentScanned ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                                                    {isParentScanned ? 'Fully Received' : (isPartialBreak ? 'Partial / Error' : 'Pending Scan')}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className={`text-xl font-black font-mono ${check ? 'text-emerald-600' : 'text-slate-300'}`}>
+                                            {check ? check.check_weight?.toFixed(2) : '--'} <span className="text-xs text-slate-400">kg</span>
+                                        </p>
+                                        <p className="text-[10px] text-slate-400">Transit Ref: {transit?.transit_weight?.toFixed(2) || '--'} kg</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Children List - Show status of each child */}
+                            <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-[#1c2433]">
+                                {children.map(child => {
+                                    const childCheck = parsedData.checkMap[child.id];
+                                    return (
+                                        <div key={child.id}
+                                            onClick={() => isReceiver && setSelectedId(child.id)}
+                                            className={`px-4 py-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors ${childCheck ? 'bg-red-50/50 dark:bg-red-900/5' : ''}`}
+                                        >
+                                            <div className="flex items-center gap-3 pl-8 relative">
+                                                <div className="absolute left-2 top-1/2 w-4 h-[1px] bg-slate-300"></div>
+                                                <div className="absolute left-2 top-0 h-1/2 w-[1px] bg-slate-300"></div>
+
+                                                <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${childCheck ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                                    <span className="material-icons text-[10px]">{childCheck ? 'priority_high' : 'arrow_forward'}</span>
+                                                </div>
+
+                                                <div>
+                                                    <p className={`text-xs font-mono font-bold ${childCheck ? 'text-red-600' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                        {child.tracking_no}
+                                                    </p>
+                                                    {childCheck && <span className="text-[9px] text-red-500 font-bold uppercase">Anomalous Split Scan</span>}
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`text-xs font-mono font-bold ${childCheck ? 'text-red-500' : 'text-slate-400'}`}>
+                                                    {childCheck ? `${childCheck.check_weight?.toFixed(2)} kg` : 'In Parent'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {/* 2. Render Independent Shipments */}
+                {shipments.filter(s => !s.parent_id && !shipments.some(child => child.parent_id === s.id)).map(s => {
+                    const check = parsedData.checkMap[s.id];
+                    const transit = parsedData.transitMap[s.id];
+                    return (
+                        <div key={s.id} onClick={() => isReceiver && setSelectedId(s.id)} className={`bg-white dark:bg-[#1c2433] rounded-xl border shadow-sm p-4 relative overflow-hidden active:scale-[0.99] transition-all ${check ? 'border-emerald-500/30' : 'border-slate-100 dark:border-slate-800'}`}>
                             <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2">
-                                    <span className={`material-icons text-lg ${isAnomalous || isMissing ? 'text-red-500' : 'text-slate-400'}`}>
-                                        {isMissing ? 'warning' : 'qr_code_2'}
-                                    </span>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white font-mono leading-none">{s.tracking_no}</span>
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${check ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                        <span className="material-icons text-sm">{check ? 'check' : 'qr_code_Scanner'}</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black font-mono text-slate-800 dark:text-slate-200">{s.tracking_no}</p>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Standard Package</p>
+                                    </div>
                                 </div>
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${isMissing ? 'bg-red-50 text-red-700 border-red-200' :
-                                    (isAnomalous ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800')
-                                    }`}>
-                                    {isMissing ? '缺失包裹' : (isAnomalous ? '入库异常' : '已确认接收')}
-                                </span>
-                            </div>
-
-                            <div className={`grid grid-cols-3 gap-2 rounded p-2 text-xs border transition-colors ${isAnomalous || isMissing ? 'bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-slate-50 dark:bg-slate-800/50 border-transparent'
-                                }`}>
-                                <div className="flex flex-col border-r border-slate-200 dark:border-slate-700 pr-2">
-                                    <span className="text-[10px] text-slate-400 scale-90 origin-left">发出</span>
-                                    <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{s.weight.toFixed(2)} kg</span>
+                                <div className="text-right">
+                                    <p className={`text-lg font-black font-mono ${check ? 'text-primary' : 'text-slate-300'}`}>
+                                        {check ? check.check_weight?.toFixed(2) : '--'} <span className="text-[10px] text-slate-400">kg</span>
+                                    </p>
+                                    <p className="text-[10px] text-slate-400">Transit: {transit?.transit_weight?.toFixed(2) || '--'} kg</p>
                                 </div>
-                                <div className="flex flex-col border-r border-slate-200 dark:border-slate-700 px-2">
-                                    <span className="text-[10px] text-slate-400 scale-90 origin-left">中转</span>
-                                    <span className="font-mono text-slate-600 dark:text-slate-300">{transit ? transit.transit_weight?.toFixed(2) : '--'} kg</span>
-                                </div>
-                                <div className="flex flex-col pl-2">
-                                    <span className={`text-[10px] ${isAnomalous || isMissing ? 'text-red-500' : 'text-primary'} font-bold scale-90 origin-left`}>接收</span>
-                                    <span className={`font-mono font-black ${isAnomalous || isMissing ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
-                                        {check ? `${check.check_weight?.toFixed(2)} kg` : (isMissing ? '未扫描' : '--')}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between mt-2 px-1 text-xs">
-                                <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 font-mono">
-                                    <span className="material-icons text-[14px]">straighten</span>
-                                    {check ? (
-                                        <span>{check.check_length}x{check.check_width}x{check.check_height} cm</span>
-                                    ) : (
-                                        <span>{s.length}x{s.width}x{s.height} cm</span>
-                                    )}
-                                </div>
-                                {isAnomalous && (
-                                    <span className="text-red-500 font-bold bg-red-50 dark:bg-red-900/30 px-1.5 py-0.5 rounded text-[10px]">
-                                        {((check?.check_weight || 0) - s.weight) > 0 ? '+' : ''}{((check?.check_weight || 0) - s.weight).toFixed(2)}kg 差异
-                                    </span>
-                                )}
                             </div>
                         </div>
                     );
@@ -194,29 +247,12 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments, 
             )}
 
             {/* Footer */}
-            <footer className="flex-none bg-slate-50 dark:bg-[#1c2433] border-t border-slate-200 dark:border-slate-800 px-6 py-3 pb-8 z-30 mb-safe">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex flex-col">
-                        <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">批次完成度</span>
-                        <div className="flex items-baseline gap-1 mt-0.5">
-                            <span className="text-xl font-bold text-slate-700 dark:text-slate-300">
-                                {Math.round((receivedCount / (totalCount || 1)) * 100)}%
-                            </span>
-                            <span className="text-xs text-slate-400">({receivedCount}/{totalCount})</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="text-right">
-                            <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 block">异常数</span>
-                            <span className="text-sm font-mono font-bold text-amber-500">{anomalies} 件</span>
-                        </div>
-                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
-                        <div className="text-right">
-                            <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 block">总差异</span>
-                            <span className={`text-sm font-mono font-bold ${diff < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
-                                {diff > 0 ? '+' : ''}{diff.toFixed(2)} kg
-                            </span>
-                        </div>
+            <footer className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-[#1c2433]/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-6 py-3 z-30">
+                <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Ready for Settlement</span>
+                    <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full animate-pulse ${diff < -0.5 ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                        <span className="font-bold text-slate-700 dark:text-slate-200">{diff < -0.5 ? 'Audit Required' : 'Auto-Approve'}</span>
                     </div>
                 </div>
             </footer>

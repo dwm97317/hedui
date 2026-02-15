@@ -12,6 +12,8 @@ export interface Shipment {
     width?: number;
     height?: number;
     shipper_name?: string;
+    parent_id?: string;
+    package_tag?: 'standard' | 'merge_parent' | 'merged_child' | 'split_parent' | 'split_child';
     sender_at?: string;
     transit_at?: string;
     receiver_at?: string;
@@ -38,12 +40,43 @@ export const ShipmentService = {
     },
 
     /**
-     * Get Shipments for a Batch
+     * Get VALID Shipments for a Batch (Excludes Merged Children & Split Parents)
      */
-    async listByBatch(batchId: string): Promise<ServiceResponse<Shipment[]>> {
-        return handleServiceCall(
-            supabase.from('shipments').select('*').eq('batch_id', batchId).order('created_at', { ascending: false })
-        );
+    async listByBatch(batchId: string, includeAll: boolean = false): Promise<ServiceResponse<Shipment[]>> {
+        let query = supabase.from('shipments')
+            .select('*')
+            .eq('batch_id', batchId)
+            .order('created_at', { ascending: false });
+
+        if (!includeAll) {
+            // Filter out invalid packages (merged children and split parents)
+            query = query.not('package_tag', 'in', '("merged_child","split_parent")');
+        }
+
+        return handleServiceCall(query);
+    },
+
+    async listRelations(batchId: string): Promise<ServiceResponse<any[]>> {
+        // Fetch relations where the parent or child belongs to this batch
+        const query = supabase.from('shipment_relations')
+            .select('*, parent:shipments!parent_shipment_id(tracking_no), child:shipments!child_shipment_id(tracking_no)')
+            .or(`parent_shipment_id.in.(select id from shipments where batch_id.eq.${batchId}),child_shipment_id.in.(select id from shipments where batch_id.eq.${batchId})`);
+
+        // Simplified query: just get relations and we'll filter in memory or use a direct join
+        const simpleQuery = supabase.from('shipment_relations')
+            .select(`
+                *,
+                parent:shipments!parent_shipment_id(tracking_no, batch_id),
+                child:shipments!child_shipment_id(tracking_no, batch_id)
+            `)
+            .eq('parent.batch_id', batchId); // Supabase allows filtering on joined tables in some configs
+
+        // Safer way: Get all relations where parent belongs to the batch
+        const finalQuery = supabase.from('shipment_relations')
+            .select('*, parent:shipments!parent_shipment_id!inner(batch_id)')
+            .eq('parent.batch_id', batchId);
+
+        return handleServiceCall(finalQuery);
     },
 
     /**
@@ -57,6 +90,7 @@ export const ShipmentService = {
 
     /**
      * Find a Shipment by Tracking Number
+     * Note: This returns ANY shipment, even invalid ones, so we can detect them.
      */
     async findByTracking(trackingNo: string): Promise<ServiceResponse<Shipment>> {
         return handleServiceCall(
@@ -91,7 +125,11 @@ export const ShipmentService = {
         batch_id: string;
         total_weight: number;
         volume?: number;
+        role?: 'transit' | 'receiver';
     }): Promise<ServiceResponse<Shipment>> {
+        const { data: { user } } = await supabase.auth.getUser();
+        const stage = data.role || 'transit';
+
         // 1. Create parent shipment
         const parentResp = await handleServiceCall<Shipment>(
             supabase.from('shipments').insert({
@@ -99,12 +137,27 @@ export const ShipmentService = {
                 batch_id: data.batch_id,
                 weight: data.total_weight,
                 volume: data.volume,
-                status: 'pending'
+                status: stage === 'receiver' ? 'received' : 'pending',
+                package_tag: 'merge_parent'
             }).select().single()
         );
 
         if (!parentResp.success) return parentResp;
         const parent = parentResp.data!;
+
+        // 1.5 Auto-Inspect for stage
+        // This marks the parent as already checked.
+        await supabase.from('inspections').insert({
+            batch_id: data.batch_id,
+            inspector_id: user?.id,
+            result: 'passed',
+            notes: stage === 'receiver'
+                ? `ReceiverItemCheck ShipmentID:${parent.id} (Auto-Merge Parent)`
+                : `WeighCheck ShipmentID:${parent.id} (Auto-Merge Parent)`,
+            transit_weight: stage === 'transit' ? data.total_weight : null,
+            check_weight: stage === 'receiver' ? data.total_weight : null,
+            photos: []
+        });
 
         // 2. Create relations
         const relations = data.child_ids.map(childId => ({
@@ -119,8 +172,8 @@ export const ShipmentService = {
 
         if (!relResp.success) return { data: null, error: relResp.error, success: false };
 
-        // 3. Update child shipments status to 'shipped'
-        await supabase.from('shipments').update({ status: 'shipped' }).in('id', data.child_ids);
+        // 3. Update child shipments status to 'shipped' and set tag
+        await supabase.from('shipments').update({ status: 'shipped', package_tag: 'merged_child' }).in('id', data.child_ids);
 
         return { data: parent, error: null, success: true };
     },
@@ -132,14 +185,19 @@ export const ShipmentService = {
         parent_id: string;
         children: Array<{ tracking_no: string; weight: number; volume?: number }>;
         batch_id: string;
+        role?: 'transit' | 'receiver';
     }): Promise<ServiceResponse<Shipment[]>> {
+        const { data: { user } } = await supabase.auth.getUser();
+        const stage = data.role || 'transit';
+
         // 1. Create child shipments
         const childrenToInsert = data.children.map(child => ({
             tracking_no: child.tracking_no,
             batch_id: data.batch_id,
             weight: child.weight,
             volume: child.volume,
-            status: 'pending'
+            status: stage === 'receiver' ? 'received' : 'pending',
+            package_tag: 'split_child'
         }));
 
         const childResp = await handleServiceCall<Shipment[]>(
@@ -148,6 +206,22 @@ export const ShipmentService = {
 
         if (!childResp.success) return childResp;
         const children = childResp.data!;
+
+        // 1.5 Auto-Inspect children
+        // This makes them "Verified" immediately without re-scanning.
+        const autoInspections = children.map(child => ({
+            batch_id: data.batch_id,
+            inspector_id: user?.id,
+            result: 'passed',
+            notes: stage === 'receiver'
+                ? `ReceiverItemCheck ShipmentID:${child.id} (Auto-Split Sub)`
+                : `WeighCheck ShipmentID:${child.id} (Auto-Split Sub)`,
+            transit_weight: stage === 'transit' ? child.weight : null,
+            check_weight: stage === 'receiver' ? child.weight : null,
+            photos: []
+        }));
+
+        await supabase.from('inspections').insert(autoInspections);
 
         // 2. Create relations
         const relations = children.map(child => ({
@@ -162,8 +236,8 @@ export const ShipmentService = {
 
         if (!relResp.success) return { data: null, error: relResp.error, success: false };
 
-        // 3. Update parent shipment status to 'split' (or 'shipped')
-        await supabase.from('shipments').update({ status: 'shipped' }).eq('id', data.parent_id);
+        // 3. Update parent shipment status to 'shipped' and tag
+        await supabase.from('shipments').update({ status: 'shipped', package_tag: 'split_parent' }).eq('id', data.parent_id);
 
         return { data: children, error: null, success: true };
     },

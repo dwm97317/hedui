@@ -28,7 +28,7 @@ const BatchDetailPage: React.FC = () => {
     }, [user?.role]);
 
     const { data: batch, isLoading: isLoadingBatch } = useBatchDetail(id || '');
-    const { data: shipments, isLoading: isLoadingShipments } = useShipments(id || '');
+    const { data: shipments, isLoading: isLoadingShipments } = useShipments(id || '', { includeAll: true });
     const { data: inspections, isLoading: isLoadingInspections } = useInspections(id || '');
 
     const isLoading = isLoadingBatch || isLoadingShipments || isLoadingInspections;
@@ -123,7 +123,7 @@ const BatchDetailPage: React.FC = () => {
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-y-auto no-scrollbar pb-safe">
-                {activeTab === 'sender' && <SenderStage batch={batch} shipments={currentShipments} />}
+                {activeTab === 'sender' && <SenderStage batch={batch} shipments={currentShipments} inspections={currentInspections} />}
                 {activeTab === 'transit' && <TransitStage batch={batch} shipments={currentShipments} inspections={currentInspections} />}
                 {activeTab === 'receiver' && <ReceiverStage batch={batch} shipments={currentShipments} inspections={currentInspections} />}
             </main>
