@@ -48,10 +48,9 @@ const AppContent = () => {
   const { syncWithNative } = useScannerStore();
 
   useEffect(() => {
-    fetchUser();
     // Sync native configuration on startup
     syncWithNative();
-  }, [fetchUser, syncWithNative]);
+  }, [syncWithNative]);
 
   useEffect(() => {
     // Register global scanner listener

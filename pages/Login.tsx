@@ -16,11 +16,6 @@ const Login: React.FC = () => {
     // Track if we've already redirected to prevent duplicate navigation
     const hasRedirected = useRef(false);
 
-    // 1. Check Session on Mount (Session Recovery)
-    useEffect(() => {
-        console.log('[Login] 🔍 useEffect[1]: Checking session on mount');
-        fetchUser();
-    }, [fetchUser]);
 
     const handleRedirect = React.useCallback((role: string) => {
         console.log('[Login] 🧭 handleRedirect: Called with role:', role);
