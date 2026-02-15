@@ -105,19 +105,42 @@ const Login: React.FC = () => {
 
 
 
+
                 console.log('[Login] 📤 Step 2: Fetching user profile from database');
                 console.log('[Login] 🔍 Query details:', {
                     userId: data.user.id,
-                    query: 'profiles.select(*) - Split query to avoid join timeout'
+                    query: 'profiles.select(*) with 5s timeout'
                 });
 
                 const queryStartTime = Date.now();
-                // Query profile first without company join
-                const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', data.user.id)
-                    .single();
+
+                // Create timeout promise
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000);
+                });
+
+                // Race between query and timeout
+                let profile, profileError;
+                try {
+                    const result: any = await Promise.race([
+                        supabase
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', data.user.id)
+                            .single(),
+                        timeoutPromise
+                    ]);
+                    profile = result.data;
+                    profileError = result.error;
+                } catch (timeoutError: any) {
+                    console.error('[Login] ⏰ Query timeout!', timeoutError.message);
+                    console.log('[Login] 🔄 Fallback: Redirecting to home page');
+
+                    // Fallback: redirect to home page and let it handle the routing
+                    hasRedirected.current = true;
+                    window.location.href = '/';
+                    return;
+                }
 
                 const queryDuration = Date.now() - queryStartTime;
                 console.log('[Login] ⏱️ Profile query completed in', queryDuration, 'ms');
