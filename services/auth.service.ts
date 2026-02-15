@@ -56,5 +56,12 @@ export const AuthService = {
      */
     async signOut(): Promise<void> {
         await supabase.auth.signOut();
+        // Specific cleanup for Supabase keys to avoid wiping app settings (like scanner configs)
+        Object.keys(localStorage).forEach(key => {
+            if (key.includes('supabase') || key.includes('sb-')) {
+                localStorage.removeItem(key);
+            }
+        });
+        sessionStorage.clear();
     }
 };

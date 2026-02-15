@@ -153,7 +153,7 @@ const MergeParcel: React.FC = () => {
             </div>
             <div className="absolute right-4 top-4 bottom-4 flex flex-col justify-center">
               <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                <span className="material-symbols-outlined text-xl">scale</span>
+                <span className="material-icons-round text-xl">scale</span>
               </div>
             </div>
           </div>
@@ -231,7 +231,7 @@ const MergeParcel: React.FC = () => {
               <label className="flex items-center justify-between w-full cursor-pointer">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-400">
-                    <span className="material-symbols-outlined text-xl">autorenew</span>
+                    <span className="material-icons-round text-xl">autorenew</span>
                   </div>
                   <div>
                     <span className="block text-sm font-bold text-slate-700 dark:text-slate-200">自动生成单号</span>

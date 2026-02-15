@@ -9,7 +9,7 @@ const Reports: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useUserStore();
     const { activeBatchId } = useBatchStore();
-    const { data: batches, isLoading: batchesLoading } = useBatches();
+    const { data: batches, isLoading: batchesLoading } = useBatches(undefined, { includeInspections: true });
     const { data: shipments, isLoading: shipmentsLoading } = useShipments(activeBatchId || '');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -158,7 +158,7 @@ const Reports: React.FC = () => {
                             return (
                                 <div key={s.id} className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-primary relative active:bg-gray-50 transition-colors">
                                     <div className="absolute top-3 right-3">
-                                        <span className="material-icons-outlined text-gray-300 text-lg cursor-pointer hover:text-yellow-400">star_border</span>
+                                        <span className="material-icons-round text-gray-300 text-lg cursor-pointer hover:text-yellow-400">star_border</span>
                                     </div>
                                     <div className="flex items-start justify-between mb-2 pr-6">
                                         <div>
@@ -205,7 +205,7 @@ const Reports: React.FC = () => {
 
                     <div className="py-6 flex flex-col items-center justify-center">
                         <button className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors">
-                            <span className="material-icons-outlined text-2xl animate-pulse">expand_more</span>
+                            <span className="material-icons-round text-2xl animate-pulse">expand_more</span>
                             <span className="text-xs">加载更多记录</span>
                         </button>
                     </div>

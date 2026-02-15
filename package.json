@@ -24,11 +24,16 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-legacy": "^5.3.0",
     "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
     "terser": "^5.27.0",
     "typescript": "~5.8.2",
     "vite": "^5.1.0"

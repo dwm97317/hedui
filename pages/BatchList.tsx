@@ -121,7 +121,7 @@ const BatchList: React.FC = () => {
                 <div className="flex items-center justify-between px-4 h-16">
                     <div className="flex items-center gap-3">
                         <button onClick={() => navigate(-1)} className="p-1 -ml-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                            <span className="material-symbols-outlined text-primary">arrow_back</span>
+                            <span className="material-icons-round text-primary">arrow_back</span>
                         </button>
                         <h1 className="text-lg font-bold tracking-tight">批次列表</h1>
                     </div>
@@ -129,7 +129,7 @@ const BatchList: React.FC = () => {
                 {/* Search Bar */}
                 <div className="px-4 pb-2">
                     <div className="relative">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                         <input
                             type="text"
                             value={searchQuery}
@@ -169,7 +169,7 @@ const BatchList: React.FC = () => {
                                     </span>
                                     <span className="text-sm font-bold tracking-wider font-mono">{batch.batch_no}</span>
                                     <button onClick={() => copyToClipboard(batch.batch_no)} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                        <span className="material-symbols-outlined text-sm text-slate-400">content_copy</span>
+                                        <span className="material-icons-round text-sm text-slate-400">content_copy</span>
                                     </button>
                                 </div>
                                 <span className="text-[10px] text-slate-400">{formattedDate}</span>
@@ -191,7 +191,7 @@ const BatchList: React.FC = () => {
                                     {/* Node 1: Sender */}
                                     <div className="relative z-10 flex flex-col items-center gap-1 w-20">
                                         <div className={`size-8 rounded-full flex items-center justify-center transition-all ${progress.s1 === 'complete' ? 'bg-primary text-white' : progress.s1 === 'active' ? 'bg-primary border-4 border-white dark:border-[#1c222d] text-white ring-2 ring-primary' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
-                                            <span className="material-symbols-outlined text-sm">
+                                            <span className="material-icons-round text-sm">
                                                 {progress.s1 === 'complete' ? 'check' : 'box_edit'}
                                             </span>
                                         </div>
@@ -201,7 +201,7 @@ const BatchList: React.FC = () => {
                                     {/* Node 2: Transit */}
                                     <div className="relative z-10 flex flex-col items-center gap-1 w-20">
                                         <div className={`size-8 rounded-full flex items-center justify-center transition-all ${progress.s2 === 'complete' ? 'bg-primary text-white' : progress.s2 === 'active' ? 'bg-primary border-4 border-white dark:border-[#1c222d] text-white ring-2 ring-primary' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
-                                            <span className="material-symbols-outlined text-sm">
+                                            <span className="material-icons-round text-sm">
                                                 {progress.s2 === 'complete' ? 'check' : 'local_shipping'}
                                             </span>
                                         </div>
@@ -211,7 +211,7 @@ const BatchList: React.FC = () => {
                                     {/* Node 3: Receiver */}
                                     <div className="relative z-10 flex flex-col items-center gap-1 w-20">
                                         <div className={`size-8 rounded-full flex items-center justify-center transition-all ${progress.s3 === 'complete' ? 'bg-primary text-white' : progress.s3 === 'active' ? 'bg-primary border-4 border-white dark:border-[#1c222d] text-white ring-2 ring-primary' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
-                                            <span className="material-symbols-outlined text-sm">
+                                            <span className="material-icons-round text-sm">
                                                 {progress.s3 === 'complete' ? 'check' : 'inventory_2'}
                                             </span>
                                         </div>
@@ -251,7 +251,7 @@ const BatchList: React.FC = () => {
 
                 {filteredBatches.length === 0 && (
                     <div className="py-20 text-center space-y-3 opacity-60">
-                        <span className="material-symbols-outlined text-6xl text-slate-300">inventory_2</span>
+                        <span className="material-icons-round text-6xl text-slate-300">inventory_2</span>
                         <p className="text-sm font-medium">暂无匹配的批次记录</p>
                     </div>
                 )}

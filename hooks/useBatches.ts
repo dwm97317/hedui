@@ -7,13 +7,14 @@ import { toast } from 'react-hot-toast';
 /**
  * Fetch and manage Batch List
  */
-export const useBatches = (status?: string) => {
+export const useBatches = (status?: string, options: { includeInspections?: boolean } = {}) => {
+    const { includeInspections = false } = options;
     return useQuery<Batch[], Error>({
-        queryKey: ['batches', status],
+        queryKey: ['batches', status, { includeInspections }],
         queryFn: async () => {
             let query = supabase
                 .from('batches')
-                .select('*, inspections(*)')
+                .select(includeInspections ? '*, inspections(*)' : '*')
                 .order('created_at', { ascending: false });
 
             if (status) query = query.eq('status', status);
@@ -25,7 +26,7 @@ export const useBatches = (status?: string) => {
                 throw new Error(error.message || 'Failed to fetch batches');
             }
 
-            return (data || []) as Batch[];
+            return (data || []) as unknown as Batch[];
         },
     });
 };

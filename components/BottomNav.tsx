@@ -10,7 +10,7 @@ const BottomNav: React.FC = () => {
   const navItems = [
     { path: '/', icon: 'home', label: '首页' },
     { path: '/create', icon: 'qr_code_scanner', label: '扫码' },
-    { path: '/batch-list', icon: 'analytics', label: '记录' },
+    { path: '/reports', icon: 'analytics', label: '报表' },
     { path: '/settings', icon: 'settings', label: '设置' },
   ];
 
@@ -25,8 +25,7 @@ const BottomNav: React.FC = () => {
               }`}
           >
             <span
-              className="material-symbols-outlined transition-all"
-              style={{ fontVariationSettings: isActive(item.path) ? "'FILL' 1" : "'FILL' 0" }}
+              className={`material-icons-round transition-all ${isActive(item.path) ? '' : 'opacity-70'}`}
             >
               {item.icon}
             </span>

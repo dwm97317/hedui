@@ -67,7 +67,7 @@ const Profile: React.FC = () => {
             <div className="group flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-700/50">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                  <span className="material-symbols-outlined text-lg">currency_exchange</span>
+                  <span className="material-icons-round text-lg">currency_exchange</span>
                 </div>
                 <span className="text-sm font-medium text-slate-800 dark:text-white">结算币种设置</span>
               </div>
@@ -79,7 +79,7 @@ const Profile: React.FC = () => {
             <div className="group flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-700/50">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                  <span className="material-symbols-outlined text-lg">scale</span>
+                  <span className="material-icons-round text-lg">scale</span>
                 </div>
                 <span className="text-sm font-medium text-slate-800 dark:text-white">计费方式偏好</span>
               </div>
@@ -91,7 +91,7 @@ const Profile: React.FC = () => {
             <div className="group flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
-                  <span className="material-symbols-outlined text-lg">print</span>
+                  <span className="material-icons-round text-lg">print</span>
                 </div>
                 <span className="text-sm font-medium text-slate-800 dark:text-white">打印模板预览</span>
               </div>
@@ -108,7 +108,7 @@ const Profile: React.FC = () => {
             <div className="group flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-700/50">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <span className="material-symbols-outlined text-lg">history</span>
+                  <span className="material-icons-round text-lg">history</span>
                 </div>
                 <span className="text-sm font-medium text-slate-800 dark:text-white">操作日志</span>
               </div>
@@ -119,7 +119,7 @@ const Profile: React.FC = () => {
             <div className="group flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                  <span className="material-symbols-outlined text-lg">security</span>
+                  <span className="material-icons-round text-lg">security</span>
                 </div>
                 <span className="text-sm font-medium text-slate-800 dark:text-white">账号安全</span>
               </div>
@@ -142,7 +142,6 @@ const Profile: React.FC = () => {
         </div>
       </main>
 
-      <FinanceBottomNav />
     </div>
   );
 };

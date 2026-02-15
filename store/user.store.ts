@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { queryClient } from '../services/queryClient';
 import { supabase } from '../services/supabase';
 import { AuthService, Profile, Company } from '../services/auth.service';
 
@@ -10,6 +11,7 @@ interface UserState {
     // Actions
     fetchUser: () => Promise<void>;
     signOut: () => Promise<void>;
+    setUser: (user: Profile | null) => void;
     checkRole: (allowedRoles: ('admin' | 'sender' | 'transit' | 'receiver')[]) => boolean;
 }
 
@@ -35,9 +37,23 @@ export const useUserStore = create<UserState>((set, get) => ({
         }
     },
 
+    setUser: (user) => {
+        set({ user, isAuthenticated: !!user, isLoading: false });
+    },
+
     signOut: async () => {
-        await AuthService.signOut();
-        set({ user: null, isAuthenticated: false });
+        // Clear local state immediately to avoid race conditions
+        set({ user: null, isAuthenticated: false, isLoading: false });
+
+        // Clear Query Cache to prevent cross-user data leakage and ensure freshness
+        queryClient.removeQueries();
+        queryClient.cancelQueries();
+
+        try {
+            await AuthService.signOut();
+        } catch (e) {
+            console.error('Error during signOut:', e);
+        }
     },
 
     checkRole: (allowedRoles) => {

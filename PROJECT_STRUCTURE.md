@@ -17,6 +17,8 @@ This document maps the codebase files to their functional areas and workflows, p
 | `PDA-APP-UI/store/user.store.ts` | Global User State (Zustand) | Core | State Management |
 | `PDA-APP-UI/services/supabase.ts` | Supabase Client & Helper Functions | Core | Database |
 | `PDA-APP-UI/services/auth.service.ts` | Auth API Methods | Core | Auth |
+| `PDA-APP-UI/pages/Reports.tsx` | Batch Reporting & Analytics | Shared | Reporting |
+| `PDA-APP-UI/pages/BatchList.tsx` | Batch History List | Shared | History |
 
 ### Sender Workflow (发货方)
 | File Path | Functionality | Responsible Area | Workflow Phase |

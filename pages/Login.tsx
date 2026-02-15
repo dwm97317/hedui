@@ -16,24 +16,10 @@ const Login: React.FC = () => {
     // 1. Check Session on Mount (Session Recovery)
     useEffect(() => {
         fetchUser();
-    }, []);
+    }, [fetchUser]);
 
-    // 2. Auto-redirect if already logged in
-    useEffect(() => {
-        if (isAuthenticated && user) {
-            handleRedirect(user.role);
-        }
-    }, [isAuthenticated, user]);
-
-    if (isCheckingSession) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
-                <span className="material-icons animate-spin text-primary text-4xl">refresh</span>
-            </div>
-        );
-    }
-
-    const handleRedirect = (role: string) => {
+    const handleRedirect = React.useCallback((role: string) => {
+        console.log('Redirecting to role:', role);
         switch (role) {
             case 'sender':
                 navigate('/sender');
@@ -45,40 +31,61 @@ const Login: React.FC = () => {
                 navigate('/receiver');
                 break;
             case 'admin':
-                navigate('/admin/dashboard'); // Ensure this route exists or redirect to a valid admin page
+                navigate('/admin/dashboard');
                 break;
             default:
                 navigate('/');
         }
-    };
+    }, [navigate]);
+
+    // 2. Auto-redirect if already logged in
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            console.log('Auto-redirect triggered for user:', user.role);
+            handleRedirect(user.role);
+        }
+    }, [isAuthenticated, user, handleRedirect]);
+
+    if (isCheckingSession) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+                <span className="material-icons animate-spin text-primary text-4xl">refresh</span>
+            </div>
+        );
+    }
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !password) {
-            toast.error('Please enter both email and password');
-            return;
-        }
-
         setLoading(true);
+
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             if (data.user) {
-                toast.success('Login Successful');
-                // Fetch full profile and update functionality store
+                toast.success('登录成功');
+
+                // Fetch user profile to update store
                 await fetchUser();
-                // Redirect handled by useEffect when user state updates
+
+                // Also directly query profile to ensure immediate redirect
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+
+                if (profile) {
+                    console.log('Direct redirect after login for role:', profile.role);
+                    handleRedirect(profile.role);
+                }
             }
-        } catch (err: any) {
-            console.error('Login Failed', err);
-            toast.error(err.message || 'Login Failed. Please check your credentials.');
+        } catch (error: any) {
+            toast.error(error.message || '登录失败');
         } finally {
             setLoading(false);
         }
