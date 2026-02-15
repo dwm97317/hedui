@@ -109,14 +109,14 @@ const Login: React.FC = () => {
                 console.log('[Login] 📤 Step 2: Fetching user profile from database');
                 console.log('[Login] 🔍 Query details:', {
                     userId: data.user.id,
-                    query: 'profiles.select(*) with 5s timeout'
+                    query: 'profiles.select(*) with 2s timeout'
                 });
 
                 const queryStartTime = Date.now();
 
-                // Create timeout promise
+                // Create timeout promise (2 seconds)
                 const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000);
+                    setTimeout(() => reject(new Error('Query timeout after 2 seconds')), 2000);
                 });
 
                 // Race between query and timeout
