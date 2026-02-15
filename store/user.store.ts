@@ -53,6 +53,10 @@ export const useUserStore = create<UserState>((set, get) => ({
             await AuthService.signOut();
         } catch (e) {
             console.error('Error during signOut:', e);
+        } finally {
+            // Force page reload to ensure complete state cleanup
+            // This prevents issues with stale data and ensures fresh login
+            window.location.reload();
         }
     },
 
