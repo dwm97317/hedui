@@ -18,26 +18,31 @@ const Login: React.FC = () => {
 
     // 1. Check Session on Mount (Session Recovery)
     useEffect(() => {
+        console.log('[Login] 🔍 useEffect[1]: Checking session on mount');
         fetchUser();
     }, [fetchUser]);
 
     const handleRedirect = React.useCallback((role: string) => {
-        console.log('Redirecting to role:', role);
+        console.log('[Login] 🧭 handleRedirect: Called with role:', role);
         switch (role) {
             case 'sender':
+                console.log('[Login] ➡️ Navigating to /sender');
                 navigate('/sender', { replace: true });
                 break;
             case 'transit':
+                console.log('[Login] ➡️ Navigating to /transit');
                 navigate('/transit', { replace: true });
                 break;
             case 'receiver':
+                console.log('[Login] ➡️ Navigating to /receiver');
                 navigate('/receiver', { replace: true });
                 break;
             case 'admin':
+                console.log('[Login] ➡️ Navigating to /admin/dashboard');
                 navigate('/admin/dashboard', { replace: true });
                 break;
             default:
-                console.warn('Unknown role:', role);
+                console.warn('[Login] ⚠️ Unknown role:', role);
                 toast.error('未知的用户角色');
                 navigate('/login', { replace: true });
         }
@@ -45,10 +50,21 @@ const Login: React.FC = () => {
 
     // 2. Auto-redirect if already logged in (but only once)
     useEffect(() => {
+        console.log('[Login] 🔍 useEffect[2]: Auto-redirect check', {
+            isAuthenticated,
+            hasUser: !!user,
+            userRole: user?.role,
+            hasRedirected: hasRedirected.current,
+            isCheckingSession
+        });
+
         if (isAuthenticated && user && !hasRedirected.current && !isCheckingSession) {
-            console.log('Auto-redirect for already logged-in user:', user.role);
+            console.log('[Login] ✅ useEffect[2]: Conditions met, triggering auto-redirect');
+            console.log('[Login] 👤 Auto-redirect for already logged-in user:', user.role);
             hasRedirected.current = true;
             handleRedirect(user.role);
+        } else {
+            console.log('[Login] ⏸️ useEffect[2]: Conditions not met, skipping redirect');
         }
     }, [isAuthenticated, user, isCheckingSession, handleRedirect]);
 
@@ -63,19 +79,31 @@ const Login: React.FC = () => {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('[Login] 🔐 handleLogin: Starting login process');
+        console.log('[Login] 📧 Email:', email);
         setLoading(true);
 
         try {
+            console.log('[Login] 📤 Step 1: Calling supabase.auth.signInWithPassword()');
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
-            if (error) throw error;
+            if (error) {
+                console.error('[Login] ❌ Step 1 Failed: Auth error:', error);
+                throw error;
+            }
+
+            console.log('[Login] ✅ Step 1 Complete: Auth successful', {
+                userId: data.user?.id,
+                email: data.user?.email
+            });
 
             if (data.user) {
                 toast.success('登录成功');
 
+                console.log('[Login] 📤 Step 2: Fetching user profile from database');
                 // Query profile once and use it for both store update and redirect
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
@@ -84,23 +112,36 @@ const Login: React.FC = () => {
                     .single();
 
                 if (profileError || !profile) {
+                    console.error('[Login] ❌ Step 2 Failed: Profile error:', profileError);
                     throw new Error('无法获取用户信息');
                 }
 
+                console.log('[Login] ✅ Step 2 Complete: Profile fetched', {
+                    role: profile.role,
+                    companyId: profile.company_id,
+                    hasCompany: !!profile.company
+                });
+
+                console.log('[Login] 📤 Step 3: Updating UserStore with profile data');
                 // Update store with profile data
                 const userWithEmail = { ...profile, email: data.user.email };
                 useUserStore.getState().setUser(userWithEmail);
+                console.log('[Login] ✅ Step 3 Complete: UserStore updated');
 
+                console.log('[Login] 🚩 Step 4: Setting hasRedirected flag');
                 // Mark as redirected to prevent useEffect from triggering
                 hasRedirected.current = true;
 
+                console.log('[Login] 🧭 Step 5: Redirecting to role-specific page');
                 // Immediate redirect
-                console.log('Direct redirect after login for role:', profile.role);
+                console.log('[Login] 🎯 Direct redirect after login for role:', profile.role);
                 handleRedirect(profile.role);
             }
         } catch (error: any) {
+            console.error('[Login] 💥 Login failed:', error);
             toast.error(error.message || '登录失败');
         } finally {
+            console.log('[Login] 🏁 handleLogin: Complete, setLoading(false)');
             setLoading(false);
         }
     };
