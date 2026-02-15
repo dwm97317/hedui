@@ -111,6 +111,13 @@ const BatchList: React.FC = () => {
         return { s1, s2, s3, lineWidth, statusText, statusColor };
     };
 
+    const formatTime = (dateStr?: string) => {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' +
+            d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    };
+
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         toast.success('单号已复制');
@@ -222,6 +229,9 @@ const BatchList: React.FC = () => {
                                             </span>
                                         </div>
                                         <span className={`text-[10px] font-bold ${progress.s1 !== 'pending' ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>发出方</span>
+                                        {batch.sealed_at && (
+                                            <span className="text-[8px] text-slate-400 font-mono scale-[0.9] -mt-0.5">{formatTime(batch.sealed_at)}</span>
+                                        )}
                                     </div>
 
                                     {/* Node 2: Transit */}
@@ -232,6 +242,9 @@ const BatchList: React.FC = () => {
                                             </span>
                                         </div>
                                         <span className={`text-[10px] font-bold ${progress.s2 !== 'pending' ? 'text-primary' : 'text-slate-400'}`}>中转方</span>
+                                        {batch.transit_at && (
+                                            <span className="text-[8px] text-slate-400 font-mono scale-[0.9] -mt-0.5">{formatTime(batch.transit_at)}</span>
+                                        )}
                                     </div>
 
                                     {/* Node 3: Receiver */}
@@ -242,6 +255,9 @@ const BatchList: React.FC = () => {
                                             </span>
                                         </div>
                                         <span className={`text-[10px] font-bold ${progress.s3 !== 'pending' ? 'text-emerald-500' : 'text-slate-400'}`}>接收方</span>
+                                        {batch.received_at && (
+                                            <span className="text-[8px] text-slate-400 font-mono scale-[0.9] -mt-0.5">{formatTime(batch.received_at)}</span>
+                                        )}
                                     </div>
                                 </div>
 

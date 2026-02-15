@@ -12,6 +12,9 @@ export interface Batch {
     currency: 'VND' | 'CNY';
     inspections?: any[]; // For multi-party weight reporting
     created_at: string;
+    sealed_at?: string;
+    transit_at?: string;
+    received_at?: string;
 }
 
 export const BatchService = {
@@ -52,8 +55,20 @@ export const BatchService = {
      * Update Status (State Machine enforced by DB)
      */
     async updateStatus(id: string, status: Batch['status']): Promise<ServiceResponse<Batch>> {
+        const updateData: any = { status };
+
+        // Auto-set timestamps based on status
+        const now = new Date().toISOString();
+        if (status === 'sender_sealed' || status === 'sealed') {
+            updateData.sealed_at = now;
+        } else if (['transit_processing', 'transit_sealed', 'inspected', 'in_transit'].includes(status)) {
+            updateData.transit_at = now;
+        } else if (status === 'completed') {
+            updateData.received_at = now;
+        }
+
         return handleServiceCall(
-            supabase.from('batches').update({ status }).eq('id', id).select().single()
+            supabase.from('batches').update(updateData).eq('id', id).select().single()
         );
     },
 
@@ -75,8 +90,21 @@ export const BatchService = {
      * Update Batch metadata
      */
     async update(id: string, data: Partial<Batch>): Promise<ServiceResponse<Batch>> {
+        const updateData = { ...data };
+
+        if (data.status) {
+            const now = new Date().toISOString();
+            if (data.status === 'sender_sealed' || data.status === 'sealed') {
+                updateData.sealed_at = now;
+            } else if (['transit_processing', 'transit_sealed', 'inspected', 'in_transit'].includes(data.status)) {
+                updateData.transit_at = now;
+            } else if (data.status === 'completed') {
+                updateData.received_at = now;
+            }
+        }
+
         return handleServiceCall(
-            supabase.from('batches').update(data).eq('id', id).select().single()
+            supabase.from('batches').update(updateData).eq('id', id).select().single()
         );
     },
 
