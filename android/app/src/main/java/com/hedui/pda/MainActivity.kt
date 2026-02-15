@@ -135,5 +135,46 @@ class MainActivity : AppCompatActivity() {
         fun toast(message: String) {
              android.widget.Toast.makeText(this@MainActivity, message, android.widget.Toast.LENGTH_SHORT).show()
         }
+
+        @JavascriptInterface
+        fun saveFile(base64Data: String, fileName: String, mimeType: String) {
+            try {
+                // Remove base64 header if present
+                val pureBase64 = if (base64Data.contains(",")) base64Data.split(",")[1] else base64Data
+                val bytes = android.util.Base64.decode(pureBase64, android.util.Base64.DEFAULT)
+                
+                val resolver = contentResolver
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+                    }
+                }
+
+                val collection = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI
+                } else {
+                    // Fallback for older versions if needed, but MediaStore.Files is safer
+                    android.provider.MediaStore.Files.getContentUri("external")
+                }
+
+                val uri = resolver.insert(collection, contentValues)
+                uri?.let {
+                    resolver.openOutputStream(it)?.use { outputStream ->
+                        outputStream.write(bytes)
+                    }
+                    runOnUiThread {
+                        android.widget.Toast.makeText(this@MainActivity, "文件已保存到下载目录: $fileName", android.widget.Toast.LENGTH_LONG).show()
+                    }
+                } ?: throw Exception("Failed to create MediaStore entry")
+                
+            } catch (e: Exception) {
+                android.util.Log.e("WebView", "Save file failed", e)
+                runOnUiThread {
+                    android.widget.Toast.makeText(this@MainActivity, "保存失败: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 }

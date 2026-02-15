@@ -214,8 +214,18 @@ const Reports: React.FC = () => {
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "全环节时间审计");
-        XLSX.writeFile(wb, `审计报表_${activeBatch?.batch_no || '未命名'}_VN.xlsx`);
-        toast.success('Excel 导出成功 (越南时间)');
+
+        const filename = `审计报表_${activeBatch?.batch_no || '未命名'}_VN.xlsx`;
+
+        if ((window as any).Android) {
+            // Android APK Environment
+            const base64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+            (window as any).Android.saveFile(base64, filename, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        } else {
+            // Web Browser Environment
+            XLSX.writeFile(wb, filename);
+            toast.success('Excel 导出成功 (越南时间)');
+        }
     };
 
     const handleExportPNG = async () => {
@@ -223,11 +233,17 @@ const Reports: React.FC = () => {
         setIsExporting(true);
         try {
             const dataUrl = await toPng(reportRef.current, { cacheBust: true, backgroundColor: '#f8fafc' });
-            const link = document.createElement('a');
-            link.download = `报表_${activeBatch?.batch_no || '未命名'}_VN.png`;
-            link.href = dataUrl;
-            link.click();
-            toast.success('PNG 图片导出成功');
+            const filename = `报表_${activeBatch?.batch_no || '未命名'}_VN.png`;
+
+            if ((window as any).Android) {
+                (window as any).Android.saveFile(dataUrl, filename, "image/png");
+            } else {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = dataUrl;
+                link.click();
+                toast.success('PNG 图片导出成功');
+            }
         } catch (err) {
             toast.error('图片导出失败');
         } finally {
@@ -245,8 +261,16 @@ const Reports: React.FC = () => {
             const imgWidth = 210;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            pdf.save(`报表_${activeBatch?.batch_no || '未命名'}_VN.pdf`);
-            toast.success('PDF 导出成功');
+
+            const filename = `报表_${activeBatch?.batch_no || '未命名'}_VN.pdf`;
+
+            if ((window as any).Android) {
+                const pdfBase64 = pdf.output('datauristring');
+                (window as any).Android.saveFile(pdfBase64, filename, "application/pdf");
+            } else {
+                pdf.save(filename);
+                toast.success('PDF 导出成功');
+            }
         } catch (err) {
             toast.error('PDF 导出失败');
         } finally {
