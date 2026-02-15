@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/user.store';
+import { useBatchStore } from '../store/batch.store';
 import { useCreateBatch } from '../hooks/useBatches';
 import { useCompanies } from '../hooks/useCompanies';
 import { toast } from 'react-hot-toast';
@@ -8,6 +9,7 @@ import { toast } from 'react-hot-toast';
 const CreateBatch: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUserStore();
+  const { setActiveBatchId } = useBatchStore();
   const { data: companies } = useCompanies();
   const createBatch = useCreateBatch();
 
@@ -46,13 +48,22 @@ const CreateBatch: React.FC = () => {
     }
 
     try {
-      await createBatch.mutateAsync({
+      const res = await createBatch.mutateAsync({
         batch_no: batchNo,
         sender_company_id: user.company_id,
         transit_company_id: transitId,
         receiver_company_id: receiverId,
         currency: 'CNY',
+        remarks: remarks || undefined
       });
+
+      // Automatically set as active batch
+      if (res && res.id) {
+        setActiveBatchId(res.id);
+        console.log('[CreateBatch] Active batch auto-switched to:', res.id);
+        toast.success(`已切换到新批次: ${batchNo}`);
+      }
+
       navigate('/');
     } catch (err) {
       // Error handled by hook
