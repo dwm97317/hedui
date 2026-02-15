@@ -21,6 +21,14 @@ export const useUserStore = create<UserState>((set, get) => ({
     isLoading: true,
 
     fetchUser: async () => {
+        // If already loading, don't start another request to avoid redundancy
+        if (get().isLoading && get().user === null) {
+            // This handles the initial loading state correctly
+        } else if (get().isLoading) {
+            console.log('[UserStore] ⏩ fetchUser: Already loading, skipping duplicate request');
+            return;
+        }
+
         console.log('[UserStore] 🔄 fetchUser: Starting...');
         set({ isLoading: true });
         try {
