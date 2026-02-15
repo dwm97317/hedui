@@ -13,12 +13,13 @@ import './index.css';
 import 'material-icons/iconfont/material-icons.css';
 import 'material-icons/iconfont/round.css';
 import App from './App';
-import VConsole from 'vconsole';
 
 // Only init vConsole in production/app environment if needed, 
 // or always keep it for PDA debugging.
 if (window.location.protocol === 'file:') {
-  new VConsole();
+  import('vconsole').then(({ default: VConsole }) => {
+    new VConsole();
+  });
 }
 
 import { queryClient } from './services/queryClient';

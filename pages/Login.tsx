@@ -22,19 +22,21 @@ const Login: React.FC = () => {
         console.log('Redirecting to role:', role);
         switch (role) {
             case 'sender':
-                navigate('/sender');
+                navigate('/sender', { replace: true });
                 break;
             case 'transit':
-                navigate('/transit');
+                navigate('/transit', { replace: true });
                 break;
             case 'receiver':
-                navigate('/receiver');
+                navigate('/receiver', { replace: true });
                 break;
             case 'admin':
-                navigate('/admin/dashboard');
+                navigate('/admin/dashboard', { replace: true });
                 break;
             default:
-                navigate('/');
+                console.warn('Unknown role:', role);
+                toast.error('未知的用户角色');
+                navigate('/login', { replace: true });
         }
     }, [navigate]);
 
