@@ -16,7 +16,6 @@ const Login: React.FC = () => {
     // Track if we've already redirected to prevent duplicate navigation
     const hasRedirected = useRef(false);
 
-
     const handleRedirect = React.useCallback((role: string) => {
         console.log('[Login] 🧭 handleRedirect: Called with role:', role);
         switch (role) {
@@ -43,9 +42,9 @@ const Login: React.FC = () => {
         }
     }, [navigate]);
 
-    // 2. Auto-redirect if already logged in (but only once)
+    // Auto-redirect if already logged in (but only once)
     useEffect(() => {
-        console.log('[Login] 🔍 useEffect[2]: Auto-redirect check', {
+        console.log('[Login] 🔍 useEffect: Auto-redirect check', {
             isAuthenticated,
             hasUser: !!user,
             userRole: user?.role,
@@ -54,28 +53,15 @@ const Login: React.FC = () => {
         });
 
         if (isAuthenticated && user && !hasRedirected.current && !isCheckingSession) {
-            console.log('[Login] ✅ useEffect[2]: Conditions met, triggering auto-redirect');
-            console.log('[Login] 👤 Auto-redirect for already logged-in user:', user.role);
+            console.log('[Login] ✅ useEffect: Conditions met, triggering auto-redirect');
             hasRedirected.current = true;
             handleRedirect(user.role);
-        } else {
-            console.log('[Login] ⏸️ useEffect[2]: Conditions not met, skipping redirect');
         }
     }, [isAuthenticated, user, isCheckingSession, handleRedirect]);
-
-
-    if (isCheckingSession) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
-                <span className="material-icons animate-spin text-primary text-4xl">refresh</span>
-            </div>
-        );
-    }
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log('[Login] 🔐 handleLogin: Starting login process');
-        console.log('[Login] 📧 Email:', email);
         setLoading(true);
 
         try {
@@ -90,123 +76,31 @@ const Login: React.FC = () => {
                 throw error;
             }
 
-            console.log('[Login] ✅ Step 1 Complete: Auth successful', {
-                userId: data.user?.id,
-                email: data.user?.email
-            });
-
             if (data.user) {
-                toast.success('登录成功');
+                console.log('[Login] ✅ Step 1 Complete: Auth successful, email:', data.user.email);
+                toast.success('登录成功，正在加载配置...');
 
-
-
-
-                console.log('[Login] 📤 Step 2: Fetching user profile from database');
-                console.log('[Login] 🔍 Query details:', {
-                    userId: data.user.id,
-                    query: 'profiles.select(*) with 2s timeout'
-                });
-
-                const queryStartTime = Date.now();
-
-                // Create timeout promise (2 seconds)
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Query timeout after 2 seconds')), 2000);
-                });
-
-                // Race between query and timeout
-                let profile, profileError;
-                try {
-                    const result: any = await Promise.race([
-                        supabase
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', data.user.id)
-                            .single(),
-                        timeoutPromise
-                    ]);
-                    profile = result.data;
-                    profileError = result.error;
-                } catch (timeoutError: any) {
-                    console.error('[Login] ⏰ Query timeout!', timeoutError.message);
-                    console.log('[Login] 🔄 Fallback: Redirecting to home page');
-
-                    // Fallback: redirect to home page and let it handle the routing
-                    hasRedirected.current = true;
-                    window.location.href = '/';
-                    return;
-                }
-
-                const queryDuration = Date.now() - queryStartTime;
-                console.log('[Login] ⏱️ Profile query completed in', queryDuration, 'ms');
-                console.log('[Login] 📦 Profile query result:', {
-                    hasProfile: !!profile,
-                    hasError: !!profileError,
-                    errorDetails: profileError
-                });
-
-                if (profileError || !profile) {
-                    console.error('[Login] ❌ Step 2 Failed: Profile error:', profileError);
-                    console.error('[Login] 💡 Possible causes:', {
-                        noProfile: !profile,
-                        errorCode: profileError?.code,
-                        errorMessage: profileError?.message,
-                        errorDetails: profileError?.details
-                    });
-                    throw new Error('无法获取用户信息');
-                }
-
-                // Fetch company separately if company_id exists
-                let company = null;
-                if (profile.company_id) {
-                    console.log('[Login] 📤 Step 2.5: Fetching company data');
-                    const companyStartTime = Date.now();
-                    const { data: companyData, error: companyError } = await supabase
-                        .from('companies')
-                        .select('*')
-                        .eq('id', profile.company_id)
-                        .single();
-
-                    const companyDuration = Date.now() - companyStartTime;
-                    console.log('[Login] ⏱️ Company query completed in', companyDuration, 'ms');
-
-                    if (companyError) {
-                        console.warn('[Login] ⚠️ Company fetch failed:', companyError);
-                    } else {
-                        company = companyData;
-                        console.log('[Login] ✅ Company fetched:', companyData?.name);
-                    }
-                }
-
-                console.log('[Login] ✅ Step 2 Complete: Profile fetched', {
-                    role: profile.role,
-                    companyId: profile.company_id,
-                    hasCompany: !!company
-                });
-
-                console.log('[Login] 📤 Step 3: Updating UserStore with profile data');
-                // Update store with profile data (including company if fetched)
-                const userWithEmail = { ...profile, company, email: data.user.email };
-                useUserStore.getState().setUser(userWithEmail);
-                console.log('[Login] ✅ Step 3 Complete: UserStore updated');
-
-                console.log('[Login] 🚩 Step 4: Setting hasRedirected flag');
-                // Mark as redirected to prevent useEffect from triggering
-                hasRedirected.current = true;
-
-                console.log('[Login] 🧭 Step 5: Redirecting to role-specific page');
-                // Immediate redirect
-                console.log('[Login] 🎯 Direct redirect after login for role:', profile.role);
-                handleRedirect(profile.role);
+                // Use the store's fetchUser to get profile and company data
+                console.log('[Login] 🔄 Step 2: Calling store.fetchUser()');
+                await fetchUser();
+                console.log('[Login] 🏁 Step 2 Complete: fetchUser called');
             }
         } catch (error: any) {
             console.error('[Login] 💥 Login failed:', error);
             toast.error(error.message || '登录失败');
         } finally {
-            console.log('[Login] 🏁 handleLogin: Complete, setLoading(false)');
+            console.log('[Login] 🏁 handleLogin: Process finished');
             setLoading(false);
         }
     };
+
+    if (isCheckingSession) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+                <span className="material-icons animate-spin text-primary text-4xl">refresh</span>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col items-center justify-center p-6 relative">
@@ -286,7 +180,6 @@ const Login: React.FC = () => {
                     <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
                 </div>
 
-                {/* Quick Login for Dev/Demo */}
                 <div className="grid grid-cols-3 gap-2">
                     <button onClick={() => { setEmail('sender@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Use Sender</button>
                     <button onClick={() => { setEmail('transit@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Use Transit</button>

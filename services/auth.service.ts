@@ -22,25 +22,32 @@ export const AuthService = {
      * Get current authenticated user
      */
     async getCurrentUser(): Promise<ServiceResponse<Profile & { company?: Company }>> {
+        console.log('[AuthService] 🔍 getCurrentUser: Checking session');
         const { data: { session }, error: authError } = await supabase.auth.getSession();
+
         if (authError || !session) {
+            console.log('[AuthService] ℹ️ no active session found');
             return { data: null, error: authError?.message || 'No active session', success: false };
         }
 
-        // Now fetch profile
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*, company:companies(*)') // Joint Fetch
-            .eq('id', session.user.id)
-            .single();
+        console.log('[AuthService] 📡 Fetching profile for user:', session.user.id);
 
-        if (profileError) {
-            console.error('Failed to fetch profile', profileError);
-            return { data: null, error: profileError.message, success: false };
+        // Use handleServiceCall which has retries and better error handling
+        const response = await handleServiceCall<Profile & { company: Company }>(
+            supabase
+                .from('profiles')
+                .select('*, company:companies(*)')
+                .eq('id', session.user.id)
+                .single()
+        );
+
+        if (!response.success || !response.data) {
+            console.error('[AuthService] ❌ profile fetch failed:', response.error);
+            return { data: null, error: response.error, success: false };
         }
 
         return {
-            data: { ...profile, email: session.user.email },
+            data: { ...response.data, email: session.user.email || '' },
             error: null,
             success: true
         };

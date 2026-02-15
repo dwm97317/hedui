@@ -106,8 +106,13 @@ const AppContent = () => {
       console.log(`[App] 🔑 Auth State Changed - Event: ${event}`, { hasSession: !!session });
 
       if (event === 'SIGNED_OUT') {
-        await signOut();
-        navigate('/login');
+        console.log('[App] 🚪 User signed out, navigating to login');
+        // Check if we still think we are authenticated
+        if (useUserStore.getState().isAuthenticated) {
+          // Only call signOut if store hasn't been cleared yet
+          await signOut();
+        }
+        navigate('/login', { replace: true });
       } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
         if (session) {
           fetchUser();
