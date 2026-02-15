@@ -109,11 +109,6 @@ const TransitCheck: React.FC = () => {
                 await updateStatus.mutateAsync({ id: batchId!, status: 'transit_processing' });
             }
 
-            if (doneCount + 1 === totalCount) {
-                await updateStatus.mutateAsync({ id: batchId!, status: 'transit_sealed' });
-                toast.success('整个批次查验完毕');
-            }
-
             setActiveShipmentId(null);
             setMeasuredWeight('');
             setDimL('');
@@ -264,10 +259,42 @@ const TransitCheck: React.FC = () => {
                     </section>
                 ) : (
                     <section className="px-4">
-                        <div className="py-12 bg-white/30 dark:bg-white/5 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center opacity-60">
-                            <span className="material-icons-round text-5xl mb-3 text-slate-300">qr_code_2</span>
-                            <p className="text-sm font-medium">请扫描单号开始查验数据</p>
-                        </div>
+                        {doneCount === totalCount && totalCount > 0 && batch.status === 'transit_processing' ? (
+                            <div className="bg-emerald-500 rounded-2xl p-6 text-white shadow-xl shadow-emerald-500/20 text-center animate-in zoom-in duration-500">
+                                <span className="material-icons-round text-5xl mb-2">fact_check</span>
+                                <h3 className="text-xl font-black mb-1">所有包裹查验完毕</h3>
+                                <p className="text-emerald-100 text-xs mb-6 px-4">查验数据已实时保存。请确认无误后点击下方按钮完成该批次的中转封存。</p>
+                                <button
+                                    onClick={() => {
+                                        updateStatus.mutate({ id: batchId!, status: 'transit_sealed' });
+                                        toast.success('批次已成功封存', { icon: '🔒' });
+                                    }}
+                                    disabled={updateStatus.isPending}
+                                    className="w-full bg-white text-emerald-600 py-4 rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
+                                >
+                                    {updateStatus.isPending ? '正在封存...' : '立即封存批次'}
+                                    {!updateStatus.isPending && <span className="material-icons-round">lock</span>}
+                                </button>
+                            </div>
+                        ) : batch.status === 'transit_sealed' || batch.status === 'inspected' ? (
+                            <div className="bg-blue-500 rounded-2xl p-6 text-white shadow-xl shadow-blue-500/20 text-center animate-in zoom-in duration-500">
+                                <span className="material-icons-round text-5xl mb-2">task_alt</span>
+                                <h3 className="text-xl font-black mb-1">批次已封存</h3>
+                                <p className="text-blue-100 text-xs mb-6 px-4">该批次已完成中转查验并处于封存状态，目前无法进行二次修改。</p>
+                                <button
+                                    onClick={() => navigate('/transit')}
+                                    className="w-full bg-white text-blue-600 py-4 rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
+                                >
+                                    回到中转首页
+                                    <span className="material-icons-round">home</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="py-12 bg-white/30 dark:bg-white/5 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center opacity-60">
+                                <span className="material-icons-round text-5xl mb-3 text-slate-300">qr_code_2</span>
+                                <p className="text-sm font-medium">请扫描单号开始查验数据</p>
+                            </div>
+                        )}
                     </section>
                 )}
 
