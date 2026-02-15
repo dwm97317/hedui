@@ -71,20 +71,24 @@ const Login: React.FC = () => {
             if (data.user) {
                 toast.success('登录成功');
 
-                // Fetch user profile to update store
-                await fetchUser();
-
-                // Also directly query profile to ensure immediate redirect
-                const { data: profile } = await supabase
+                // Query profile once and use it for both store update and redirect
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
-                    .select('*')
+                    .select('*, company:companies(*)')
                     .eq('id', data.user.id)
                     .single();
 
-                if (profile) {
-                    console.log('Direct redirect after login for role:', profile.role);
-                    handleRedirect(profile.role);
+                if (profileError || !profile) {
+                    throw new Error('无法获取用户信息');
                 }
+
+                // Update store with profile data
+                const userWithEmail = { ...profile, email: data.user.email };
+                useUserStore.getState().setUser(userWithEmail);
+
+                // Immediate redirect
+                console.log('Direct redirect after login for role:', profile.role);
+                handleRedirect(profile.role);
             }
         } catch (error: any) {
             toast.error(error.message || '登录失败');
