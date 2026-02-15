@@ -127,11 +127,54 @@ export const useUpdateBatchStatus = () => {
             // Handle "Invalid Transition" or "Frozen" errors from Trigger
             if (error.message.includes('Invalid status transition')) {
                 toast.error('Cannot move to this status directly!');
-            } else if (error.message.includes('final and cannot be modified')) {
-                toast.error('This batch is locked/completed.');
             } else {
                 toast.error(`Update Failed: ${error.message}`);
             }
+        }
+    });
+};
+
+/**
+ * Mutation for Deleting Batch
+ */
+export const useDeleteBatch = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const response = await BatchService.delete(id);
+            if (!response.success) throw new Error(response.error || 'Delete Failed');
+            return id;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['batches'] });
+            toast.success('批次已删除');
+        },
+        onError: (error: any) => {
+            toast.error(`删除失败: ${error.message}`);
+        }
+    });
+};
+
+/**
+ * Mutation for Updating Batch
+ */
+export const useUpdateBatch = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: string, data: Partial<Batch> }) => {
+            const response = await BatchService.update(id, data);
+            if (!response.success) throw new Error(response.error || 'Update Failed');
+            return response.data;
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['batch', data.id] });
+            queryClient.invalidateQueries({ queryKey: ['batches'] });
+            toast.success('批次已更新');
+        },
+        onError: (error: any) => {
+            toast.error(`更新失败: ${error.message}`);
         }
     });
 };

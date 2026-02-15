@@ -71,6 +71,24 @@ export const BatchService = {
         return this.updateStatus(id, 'cancelled');
     },
 
+    /**
+     * Update Batch metadata
+     */
+    async update(id: string, data: Partial<Batch>): Promise<ServiceResponse<Batch>> {
+        return handleServiceCall(
+            supabase.from('batches').update(data).eq('id', id).select().single()
+        );
+    },
+
+    /**
+     * Delete Batch
+     */
+    async delete(id: string): Promise<ServiceResponse<void>> {
+        return handleServiceCall(
+            supabase.from('batches').delete().eq('id', id)
+        );
+    },
+
     getStatusLabel(status: Batch['status']): string {
         const labels: Record<string, string> = {
             'draft': '发出方：处理中',

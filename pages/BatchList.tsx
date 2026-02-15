@@ -1,12 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBatches } from '../hooks/useBatches';
-import { Batch, BatchService } from '../services/batch.service';
+import { useBatches, useDeleteBatch, useUpdateBatch } from '../hooks/useBatches';
+import { Batch } from '../services/batch.service';
 import { toast } from 'react-hot-toast';
 
 const BatchList: React.FC = () => {
     const navigate = useNavigate();
     const { data: batches, isLoading } = useBatches();
+    const deleteBatch = useDeleteBatch();
+    const [editingBatch, setEditingBatch] = useState<Batch | null>(null);
+    const [newBatchNo, setNewBatchNo] = useState('');
+    const updateBatch = useUpdateBatch();
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -110,6 +114,28 @@ const BatchList: React.FC = () => {
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         toast.success('单号已复制');
+    };
+
+    const handleEdit = (batch: Batch) => {
+        setEditingBatch(batch);
+        setNewBatchNo(batch.batch_no);
+    };
+
+    const handleUpdate = async () => {
+        if (!editingBatch || !newBatchNo) return;
+        try {
+            await updateBatch.mutateAsync({ id: editingBatch.id, data: { batch_no: newBatchNo } });
+            setEditingBatch(null);
+        } catch (err) { }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('确定要删除这个批次吗？该操作不可撤销。')) return;
+        try {
+            await deleteBatch.mutateAsync(id);
+        } catch (err) {
+            // Error handled by hook
+        }
     };
 
     if (isLoading) return <div className="p-8 text-center text-gray-400 bg-background-dark h-screen flex items-center justify-center italic">加载中...</div>;
@@ -237,13 +263,37 @@ const BatchList: React.FC = () => {
                             </div>
 
                             {/* Card Footer */}
-                            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/30 flex justify-end items-center border-t border-slate-100 dark:border-slate-800">
-                                <button
-                                    onClick={() => navigate(`/batch/${batch.id}`)}
-                                    className="bg-primary hover:bg-blue-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg transition-colors shadow-sm shadow-primary/20 active:scale-95"
-                                >
-                                    查看详情
-                                </button>
+                            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/30 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
+                                <div className="flex gap-2">
+                                    {(batch.status === 'draft' || batch.status === 'sender_processing') && (
+                                        <>
+                                            <button
+                                                onClick={() => handleEdit(batch)}
+                                                className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors flex items-center justify-center"
+                                                title="编辑批次"
+                                            >
+                                                <span className="material-icons-round text-lg">edit</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(batch.id)}
+                                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors flex items-center justify-center"
+                                                title="删除批次"
+                                            >
+                                                <span className="material-icons-round text-lg">delete_outline</span>
+                                            </button>
+                                        </>
+                                    )}
+                                    {/* Edit button could go here */}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => navigate(`/batch/${batch.id}`)}
+                                        className="bg-primary hover:bg-blue-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg transition-colors shadow-sm shadow-primary/20 active:scale-95 flex items-center gap-1"
+                                    >
+                                        <span className="material-icons-round text-[14px]">visibility</span>
+                                        详情
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     );
@@ -256,6 +306,47 @@ const BatchList: React.FC = () => {
                     </div>
                 )}
             </main>
+
+            {/* Edit Modal */}
+            {editingBatch && (
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-white dark:bg-[#1c222d] rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                            <h3 className="text-xl font-bold">编辑批次信息</h3>
+                            <button onClick={() => setEditingBatch(null)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+                                <span className="material-icons-round text-slate-400">close</span>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">批次号 (Batch Number)</label>
+                                <input
+                                    type="text"
+                                    value={newBatchNo}
+                                    onChange={(e) => setNewBatchNo(e.target.value)}
+                                    className="w-full bg-slate-100 dark:bg-slate-800/50 border-none rounded-xl px-4 py-3 text-lg font-mono focus:ring-2 focus:ring-primary transition-all"
+                                />
+                            </div>
+                            <p className="text-xs text-slate-500 italic">注意：仅支持修改批次显示编号。如需修改路线或仓库，请删除并重新创建。</p>
+                        </div>
+                        <div className="p-6 bg-slate-50 dark:bg-slate-800/30 flex gap-3">
+                            <button
+                                onClick={() => setEditingBatch(null)}
+                                className="flex-1 py-3 text-sm font-bold text-slate-500 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl active:scale-95 transition-all"
+                            >
+                                取消
+                            </button>
+                            <button
+                                onClick={handleUpdate}
+                                disabled={updateBatch.isPending}
+                                className="flex-1 py-3 text-sm font-bold text-white bg-primary rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50"
+                            >
+                                {updateBatch.isPending ? '保存中...' : '提交修改'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
