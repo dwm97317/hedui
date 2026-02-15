@@ -103,7 +103,14 @@ const Login: React.FC = () => {
             if (data.user) {
                 toast.success('登录成功');
 
+
                 console.log('[Login] 📤 Step 2: Fetching user profile from database');
+                console.log('[Login] 🔍 Query details:', {
+                    userId: data.user.id,
+                    query: 'profiles.select(*, company:companies(*))'
+                });
+
+                const queryStartTime = Date.now();
                 // Query profile once and use it for both store update and redirect
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
@@ -111,8 +118,22 @@ const Login: React.FC = () => {
                     .eq('id', data.user.id)
                     .single();
 
+                const queryDuration = Date.now() - queryStartTime;
+                console.log('[Login] ⏱️ Query completed in', queryDuration, 'ms');
+                console.log('[Login] 📦 Query result:', {
+                    hasProfile: !!profile,
+                    hasError: !!profileError,
+                    errorDetails: profileError
+                });
+
                 if (profileError || !profile) {
                     console.error('[Login] ❌ Step 2 Failed: Profile error:', profileError);
+                    console.error('[Login] 💡 Possible causes:', {
+                        noProfile: !profile,
+                        errorCode: profileError?.code,
+                        errorMessage: profileError?.message,
+                        errorDetails: profileError?.details
+                    });
                     throw new Error('无法获取用户信息');
                 }
 
