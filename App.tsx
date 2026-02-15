@@ -102,6 +102,8 @@ const AppContent = () => {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[App] 🔑 Auth State Changed - Event: ${event}`, { hasSession: !!session });
+
       if (event === 'SIGNED_OUT') {
         await signOut();
         navigate('/login');

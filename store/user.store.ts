@@ -15,48 +15,56 @@ interface UserState {
     checkRole: (allowedRoles: ('admin' | 'sender' | 'transit' | 'receiver')[]) => boolean;
 }
 
+const fetchUserLock = {
+    promise: null as Promise<void> | null
+};
+
 export const useUserStore = create<UserState>((set, get) => ({
     user: null,
     isAuthenticated: false,
     isLoading: true,
 
     fetchUser: async () => {
-        // If already loading, don't start another request to avoid redundancy
-        if (get().isLoading && get().user === null) {
-            // This handles the initial loading state correctly
-        } else if (get().isLoading) {
-            console.log('[UserStore] ⏩ fetchUser: Already loading, skipping duplicate request');
-            return;
+        // If there's an active fetch promise, return it to avoid redundancy
+        if (fetchUserLock.promise) {
+            console.log('[UserStore] ⏩ fetchUser: Request already in progress, joining existing promise');
+            return fetchUserLock.promise;
         }
 
         console.log('[UserStore] 🔄 fetchUser: Starting...');
         set({ isLoading: true });
-        try {
-            console.log('[UserStore] 📡 fetchUser: Calling AuthService.getCurrentUser()');
-            const response = await AuthService.getCurrentUser();
-            console.log('[UserStore] 📦 fetchUser: Response received:', {
-                success: response.success,
-                hasData: !!response.data,
-                userId: response.data?.id
-            });
 
-            if (response.success && response.data) {
-                console.log('[UserStore] ✅ fetchUser: User authenticated', {
-                    role: response.data.role,
-                    email: response.data.email
+        fetchUserLock.promise = (async () => {
+            try {
+                console.log('[UserStore] 📡 fetchUser: Calling AuthService.getCurrentUser()');
+                const response = await AuthService.getCurrentUser();
+                console.log('[UserStore] 📦 fetchUser: Response received:', {
+                    success: response.success,
+                    hasData: !!response.data,
+                    userId: response.data?.id
                 });
-                set({ user: response.data, isAuthenticated: true });
-            } else {
-                console.log('[UserStore] ❌ fetchUser: No user data, setting unauthenticated');
+
+                if (response.success && response.data) {
+                    console.log('[UserStore] ✅ fetchUser: User authenticated', {
+                        role: response.data.role,
+                        email: response.data.email
+                    });
+                    set({ user: response.data, isAuthenticated: true });
+                } else {
+                    console.log('[UserStore] ❌ fetchUser: No user data, setting unauthenticated');
+                    set({ user: null, isAuthenticated: false });
+                }
+            } catch (e) {
+                console.error('[UserStore] 💥 fetchUser: Error occurred:', e);
                 set({ user: null, isAuthenticated: false });
+            } finally {
+                console.log('[UserStore] 🏁 fetchUser: Complete, clearing promise lock');
+                set({ isLoading: false });
+                fetchUserLock.promise = null;
             }
-        } catch (e) {
-            console.error('[UserStore] 💥 fetchUser: Error occurred:', e);
-            set({ user: null, isAuthenticated: false });
-        } finally {
-            console.log('[UserStore] 🏁 fetchUser: Complete, isLoading = false');
-            set({ isLoading: false });
-        }
+        })();
+
+        return fetchUserLock.promise;
     },
 
     setUser: (user) => {
