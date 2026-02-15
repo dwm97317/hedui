@@ -27,7 +27,7 @@ export const useCreateInspection = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: Pick<Inspection, 'batch_id' | 'result' | 'photos' | 'notes' | 'transit_weight' | 'check_weight'>) => {
+        mutationFn: async (data: any) => {
             const response = await InspectionService.create(data);
             console.log('Inspection Create Response:', response);
             if (!response.success) throw new Error(response.error || 'Failed to create inspection');

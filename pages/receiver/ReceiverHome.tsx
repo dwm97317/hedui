@@ -15,20 +15,20 @@ const ReceiverHome: React.FC = () => {
   // Auto-select first active batch if none selected
   useEffect(() => {
     if (!activeBatchId && batches && batches.length > 0) {
-      const firstActive = batches.find(b => b.status === 'in_transit' || b.status === 'inspected');
+      const firstActive = batches.find(b => b.status === 'transit_sealed' || b.status === 'receiver_processing' || b.status === 'inspected');
       if (firstActive) setActiveBatchId(firstActive.id);
     }
   }, [batches, activeBatchId, setActiveBatchId]);
 
   // Find the selected batch or fallback to first relevant one
   const activeBatch = batches?.find(b => b.id === activeBatchId) ||
-    batches?.find(b => b.status === 'in_transit' || b.status === 'inspected');
+    batches?.find(b => b.status === 'transit_sealed' || b.status === 'receiver_processing' || b.status === 'inspected');
 
   // Stats for the "Progress" card
-  const totalProcessedItems = batches?.filter(b => b.status === 'received' || b.status === 'completed').reduce((sum, b) => sum + (b.item_count || 0), 0) || 0;
-  const totalProcessedWeight = batches?.filter(b => b.status === 'received' || b.status === 'completed').reduce((sum, b) => sum + (Number(b.total_weight) || 0), 0) || 0;
-  const inTransitCount = batches?.filter(b => b.status === 'in_transit' || b.status === 'inspected').length || 0;
-  const pendingCount = batches?.filter(b => b.status === 'sealed').length || 0;
+  const totalProcessedItems = batches?.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.item_count || 0), 0) || 0;
+  const totalProcessedWeight = batches?.filter(b => b.status === 'completed').reduce((sum, b) => sum + (Number(b.total_weight) || 0), 0) || 0;
+  const inTransitCount = batches?.filter(b => b.status === 'receiver_processing').length || 0;
+  const pendingCount = batches?.filter(b => b.status === 'transit_sealed' || b.status === 'inspected').length || 0;
 
   if (isLoading) return <div className="p-8 text-center text-gray-400 bg-background-light h-screen flex items-center justify-center italic">加载中...</div>;
 
@@ -207,30 +207,6 @@ const ReceiverHome: React.FC = () => {
         </section>
       </main>
 
-      {/* Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 pb-safe z-50">
-        <div className="flex justify-around items-center h-16 px-2">
-          <button className="flex flex-col items-center justify-center w-full h-full gap-1 text-primary">
-            <span className="material-icons text-2xl">home</span>
-            <span className="text-[10px] font-bold">首页</span>
-          </button>
-          <button className="flex flex-col items-center justify-center w-full h-full gap-1 text-gray-400 relative group">
-            <div className="absolute -top-6 bg-primary border-4 border-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transform transition-transform group-active:scale-95">
-              <span className="material-icons text-white text-2xl">qr_code_scanner</span>
-            </div>
-            <span className="text-[10px] font-medium mt-8">扫码</span>
-          </button>
-          <button onClick={() => navigate('/reports')} className="flex flex-col items-center justify-center w-full h-full gap-1 text-gray-400 hover:text-text-main">
-            <span className="material-icons text-2xl">bar_chart</span>
-            <span className="text-[10px] font-medium">报表</span>
-          </button>
-          <button onClick={() => navigate('/settings')} className="flex flex-col items-center justify-center w-full h-full gap-1 text-gray-400 hover:text-text-main">
-            <span className="material-icons text-2xl">settings</span>
-            <span className="text-[10px] font-medium">设置</span>
-          </button>
-        </div>
-      </nav>
-      <div className="h-16 w-full"></div>
 
       <BatchSwitchModal
         isOpen={isSwitchModalOpen}

@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBatches } from '../hooks/useBatches';
-import { useAllShipments } from '../hooks/useShipments';
+import { useShipments } from '../hooks/useShipments';
 import { useUserStore } from '../store/user.store';
+import { useBatchStore } from '../store/batch.store';
 
 const Reports: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useUserStore();
+    const { activeBatchId } = useBatchStore();
     const { data: batches, isLoading: batchesLoading } = useBatches();
-    const { data: shipments, isLoading: shipmentsLoading } = useAllShipments();
+    const { data: shipments, isLoading: shipmentsLoading } = useShipments(activeBatchId || '');
     const [searchQuery, setSearchQuery] = useState('');
+
+    const activeBatch = batches?.find(b => b.id === activeBatchId);
 
     if (batchesLoading || shipmentsLoading) {
         return (
@@ -19,11 +23,9 @@ const Reports: React.FC = () => {
         );
     }
 
-    // Today's Stats
-    const today = new Date().toISOString().split('T')[0];
-    const todayShipments = shipments?.filter(s => s.created_at.startsWith(today)) || [];
-    const todayTotalCount = todayShipments.length;
-    const todayTotalWeight = todayShipments.reduce((acc, s) => acc + (s.weight || 0), 0).toFixed(1);
+    // Batch Specific Stats
+    const batchTotalCount = shipments?.length || 0;
+    const batchTotalWeight = shipments?.reduce((acc, s) => acc + (s.weight || 0), 0).toFixed(1) || '0.0';
 
     // Prepare Maps (BatchId -> Batch)
     const batchMap = batches?.reduce((acc: any, b) => {
@@ -65,27 +67,32 @@ const Reports: React.FC = () => {
                     <span className="font-mono tracking-wider">设备号: NT20-001</span>
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1">
-                            <span className="material-icons text-[14px] text-primary">bluetooth_connected</span>
+                            <span className="material-icons-round text-[14px] text-primary">bluetooth_connected</span>
                             <span className="text-primary font-medium">蓝牙秤: 已连接</span>
                         </span>
                         <span className="flex items-center gap-1">
-                            <span className="material-icons text-[14px]">wifi</span>
+                            <span className="material-icons-round text-[14px]">wifi</span>
                             <span>5G</span>
                         </span>
-                        <span className="flex items-center gap-1">
-                            <span className="material-icons text-[14px]">battery_std</span>
+                        <span className="flex items-center gap-1 text-green-400">
+                            <span className="material-icons-round text-[14px]">battery_std</span>
                             <span>85%</span>
                         </span>
                     </div>
                 </div>
                 <div className="px-5 py-4 flex justify-between items-center">
                     <div>
-                        <h1 className="text-xl font-bold leading-tight text-white">近期扫描记录与报表</h1>
-                        <p className="text-xs text-gray-400 mt-1">发出方 / 历史记录</p>
+                        <h1 className="text-xl font-bold leading-tight text-white">
+                            {activeBatch ? `批次: ${activeBatch.batch_no}` : '请先选择批次'}
+                        </h1>
+                        <p className="text-xs text-gray-400 mt-1">发件报表 / 包裹明细</p>
                     </div>
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 relative">
-                        <span className="material-icons text-primary text-xl">person</span>
-                    </div>
+                    <button
+                        onClick={() => navigate('/sender')}
+                        className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 relative"
+                    >
+                        <span className="material-icons-round text-primary text-xl">home</span>
+                    </button>
                 </div>
             </header>
 
@@ -93,11 +100,11 @@ const Reports: React.FC = () => {
                 <div className="sticky top-0 z-30 bg-background-dark px-4 py-3 border-b border-white/5 shadow-sm flex-none">
                     <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="material-icons text-gray-400">search</span>
+                            <span className="material-icons-round text-gray-400">search</span>
                         </span>
                         <input
                             className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg leading-5 bg-surface-dark text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
-                            placeholder="搜索单号..."
+                            placeholder="在该批次中搜索..."
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -108,22 +115,22 @@ const Reports: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-4 no-scrollbar pb-24">
                     <div className="bg-surface-dark rounded-lg p-4 mb-4 shadow-lg border border-white/5 flex justify-between gap-4">
                         <div className="flex-1 text-center border-r border-white/10 last:border-0">
-                            <p className="text-xs text-gray-400 mb-1">今日总票数</p>
-                            <p className="text-2xl font-bold text-white">{todayTotalCount}</p>
+                            <p className="text-xs text-gray-400 mb-1">本批次票数</p>
+                            <p className="text-2xl font-bold text-white">{batchTotalCount}</p>
                         </div>
                         <div className="flex-1 text-center">
-                            <p className="text-xs text-gray-400 mb-1">今日总重量 (kg)</p>
-                            <p className="text-2xl font-bold text-primary-light">{todayTotalWeight}</p>
+                            <p className="text-xs text-gray-400 mb-1">总计发出重量 (kg)</p>
+                            <p className="text-2xl font-bold text-primary">{batchTotalWeight}</p>
                         </div>
                     </div>
 
                     <div className="flex justify-between items-center mb-3 px-1">
-                        <h2 className="text-gray-400 font-bold text-sm uppercase tracking-wider">最近扫描</h2>
+                        <h2 className="text-gray-400 font-bold text-sm uppercase tracking-wider">包裹明细</h2>
                         <div className="flex items-center gap-2">
                             <button className="text-gray-400 hover:text-white transition-colors">
-                                <span className="material-icons text-sm">filter_list</span>
+                                <span className="material-icons-round text-sm">filter_list</span>
                             </button>
-                            <span className="text-xs text-gray-500">按时间排序</span>
+                            <span className="text-xs text-gray-500">按扫描顺序</span>
                         </div>
                     </div>
 
@@ -204,9 +211,9 @@ const Reports: React.FC = () => {
                     </div>
 
                     <div className="pb-6 px-2">
-                        <button className="w-full bg-surface-hover hover:bg-primary border border-white/10 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg">
-                            <span className="material-icons">download</span>
-                            导出报表 (Excel)
+                        <button className="w-full bg-surface-hover hover:bg-primary border border-white/10 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]">
+                            <span className="material-icons-round">download</span>
+                            导出批次报表 (Excel)
                         </button>
                     </div>
                 </div>

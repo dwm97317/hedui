@@ -8,26 +8,29 @@ const BottomNav: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: '/', icon: 'grid_view', label: '首页' },
-    { path: '/create', icon: 'qr_code_scanner', label: '扫码' }, // Direct link to create for flow
-    { path: '/reports', icon: 'insert_chart_outlined', label: '报表' },
+    { path: '/', icon: 'home', label: '首页' },
+    { path: '/create', icon: 'qr_code_scanner', label: '扫码' },
+    { path: '/batch-list', icon: 'analytics', label: '记录' },
     { path: '/settings', icon: 'settings', label: '设置' },
   ];
 
   return (
-    <nav className="bg-surface-dark border-t border-white/5 safe-area-pb z-40 shrink-0">
-      <div className="flex justify-around items-center h-16">
+    <nav className="bg-white dark:bg-[#1c1f27] border-t border-slate-200 dark:border-slate-800 px-4 py-2 safe-area-pb z-40 shrink-0">
+      <div className="flex justify-between items-center h-12">
         {navItems.map((item) => (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`flex flex-col items-center justify-center w-full h-full transition-colors ${isActive(item.path) ? 'text-primary' : 'text-gray-400 hover:text-white'
+            className={`flex flex-col items-center justify-center w-full transition-all ${isActive(item.path) ? 'text-primary' : 'text-slate-400 hover:text-slate-200'
               }`}
           >
-            <span className={`material-icons${isActive(item.path) ? '' : '-outlined'} text-2xl`}>
+            <span
+              className="material-symbols-outlined transition-all"
+              style={{ fontVariationSettings: isActive(item.path) ? "'FILL' 1" : "'FILL' 0" }}
+            >
               {item.icon}
             </span>
-            <span className="text-[10px] font-medium mt-1">{item.label}</span>
+            <span className="text-[10px] font-bold mt-0.5">{item.label}</span>
           </button>
         ))}
       </div>

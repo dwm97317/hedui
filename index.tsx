@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import '@fontsource/inter';
 import '@fontsource/noto-sans-sc';
 import 'material-icons/iconfont/material-icons.css';
+import 'material-icons/iconfont/round.css';
 import App from './App';
 import VConsole from 'vconsole';
 

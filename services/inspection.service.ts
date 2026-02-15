@@ -8,7 +8,13 @@ export interface Inspection {
     photos: string[];
     notes?: string;
     transit_weight?: number;
+    transit_length?: number;
+    transit_width?: number;
+    transit_height?: number;
     check_weight?: number;
+    check_length?: number;
+    check_width?: number;
+    check_height?: number;
     created_at: string;
 }
 
@@ -16,7 +22,7 @@ export const InspectionService = {
     /**
      * Create Inspection Report
      */
-    async create(data: Pick<Inspection, 'batch_id' | 'result' | 'photos' | 'notes' | 'transit_weight' | 'check_weight'>): Promise<ServiceResponse<Inspection>> {
+    async create(data: Partial<Inspection> & { batch_id: string; result: Inspection['result'] }): Promise<ServiceResponse<Inspection>> {
         // Requires authenticated user (inspector_id auto-fills via RLS/Trigger usually, or set via auth.uid() if column policy allows)
         // Here we might need to rely on the backend setting inspector_id or pass it if RLS allows.
         // For simplicity, let's assume auth.uid() is used by the backend default or RLS context.

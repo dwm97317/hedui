@@ -1,9 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FinanceBottomNav } from '../components/FinanceLayout';
+import { useUserStore } from '../store/user.store';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
+  const { signOut } = useUserStore();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 antialiased selection:bg-primary selection:text-white h-screen flex flex-col">
@@ -125,8 +132,8 @@ const Profile: React.FC = () => {
         </div>
 
         <div className="pt-4 pb-8 flex flex-col items-center space-y-4">
-          <button 
-            onClick={() => navigate('/login')}
+          <button
+            onClick={handleLogout}
             className="w-full bg-white dark:bg-slate-800 text-red-500 dark:text-red-400 font-medium py-3.5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 active:scale-[0.99] transition-transform"
           >
             退出登录

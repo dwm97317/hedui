@@ -11,6 +11,7 @@ export interface Shipment {
     length?: number;
     width?: number;
     height?: number;
+    shipper_name?: string;
 }
 
 export const ShipmentService = {
@@ -18,7 +19,7 @@ export const ShipmentService = {
      * Create (Add) a Shipment to a Batch
      * Trigger: update_batch_totals will auto-recalculate batch weight
      */
-    async create(data: Pick<Shipment, 'tracking_no' | 'batch_id' | 'weight' | 'volume' | 'length' | 'width' | 'height'>): Promise<ServiceResponse<Shipment>> {
+    async create(data: Pick<Shipment, 'tracking_no' | 'batch_id' | 'weight' | 'volume' | 'length' | 'width' | 'height' | 'shipper_name'>): Promise<ServiceResponse<Shipment>> {
         return handleServiceCall(
             supabase.from('shipments').insert({ ...data, status: 'pending' }).select().single()
         );

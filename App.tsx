@@ -6,7 +6,7 @@ import { useUserStore } from './store/user.store';
 import { useScannerStore } from './store/scanner.store';
 import Home from './pages/Home';
 import CreateShipment from './pages/CreateShipment';
-import History from './pages/History';
+import BatchList from './pages/BatchList';
 import Settings from './pages/Settings';
 import TransitHome from './pages/transit/TransitHome';
 import TransitCheck from './pages/transit/TransitCheck';
@@ -35,7 +35,7 @@ import ExchangeRates from './pages/finance/ExchangeRates';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
 import BottomNav from './components/BottomNav';
-import BatchDetailPage from './pages/sender/BatchDetailPage';
+import BatchDetailPage from './pages/batch-detail';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { toast, Toaster } from 'react-hot-toast';
@@ -83,7 +83,7 @@ const AppContent = () => {
         '/receiver',
         '/finance',
         '/settings',
-        '/history',
+        '/batch-list',
         '/reports',
         '/profile',
         '/supervisor/risk',
@@ -145,13 +145,12 @@ const AppContent = () => {
 
   const isFullScreenPage =
     location.pathname === '/login' ||
-    location.pathname.startsWith('/transit') ||
-    location.pathname.startsWith('/receiver') ||
-    (location.pathname.startsWith('/sender') && location.pathname !== '/sender') ||
-    location.pathname.startsWith('/create') ||
-    location.pathname.startsWith('/finance') ||
-    location.pathname.startsWith('/supervisor') ||
-    location.pathname.startsWith('/batch');
+    (location.pathname.startsWith('/transit/') && location.pathname !== '/transit') ||
+    (location.pathname.startsWith('/receiver/') && location.pathname !== '/receiver') ||
+    (location.pathname.startsWith('/sender/') && location.pathname !== '/sender') ||
+    (location.pathname.startsWith('/finance/') && location.pathname !== '/finance') ||
+    (location.pathname.startsWith('/supervisor/') && location.pathname !== '/supervisor') ||
+    location.pathname.startsWith('/batch/');
 
   return (
     <div className="flex flex-col h-screen w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100">
@@ -161,7 +160,7 @@ const AppContent = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/create" element={<CreateShipment />} />
           <Route path="/create-batch" element={<CreateBatch />} />
-          <Route path="/history" element={<History />} />
+          <Route path="/batch-list" element={<BatchList />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/bartender" element={<BartenderConfig />} />

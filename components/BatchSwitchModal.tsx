@@ -1,6 +1,6 @@
 import React from 'react';
 import { useBatchStore } from '../store/batch.store';
-import { Batch } from '../services/batch.service';
+import { Batch, BatchService } from '../services/batch.service';
 
 interface BatchSwitchModalProps {
     isOpen: boolean;
@@ -38,8 +38,8 @@ export const BatchSwitchModal: React.FC<BatchSwitchModalProps> = ({ isOpen, onCl
                                     onClose();
                                 }}
                                 className={`w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between group ${activeBatchId === batch.id
-                                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                        : 'border-slate-100 dark:border-slate-800 hover:border-primary/50 bg-slate-50/50 dark:bg-slate-800/50'
+                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                    : 'border-slate-100 dark:border-slate-800 hover:border-primary/50 bg-slate-50/50 dark:bg-slate-800/50'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -50,7 +50,7 @@ export const BatchSwitchModal: React.FC<BatchSwitchModalProps> = ({ isOpen, onCl
                                     <div>
                                         <div className="font-mono font-bold text-slate-800 dark:text-white">{batch.batch_no}</div>
                                         <div className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">
-                                            {batch.status} • {batch.item_count}件 • {batch.total_weight}KG
+                                            {BatchService.getStatusLabel(batch.status)} • {batch.item_count}件 • {batch.total_weight}KG
                                         </div>
                                     </div>
                                 </div>

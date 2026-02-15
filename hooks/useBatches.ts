@@ -11,34 +11,21 @@ export const useBatches = (status?: string) => {
     return useQuery<Batch[], Error>({
         queryKey: ['batches', status],
         queryFn: async () => {
-            const response = await BatchService.list(status);
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to fetch batches');
-            }
-            const batches = response.data || [];
+            let query = supabase
+                .from('batches')
+                .select('*, inspections(*)')
+                .order('created_at', { ascending: false });
 
-            if (batches.length === 0) return [];
+            if (status) query = query.eq('status', status);
 
-            const batchIds = batches.map(b => b.id);
-            const { data: inspections, error: inspError } = await supabase
-                .from('inspections')
-                .select('*')
-                .in('batch_id', batchIds);
+            const { data, error } = await query;
 
-            if (inspError) {
-                console.error('Failed to fetch inspections:', inspError);
+            if (error) {
+                console.error('Failed to fetch batches:', error);
+                throw new Error(error.message || 'Failed to fetch batches');
             }
 
-            const inspectionsMap = (inspections || []).reduce((acc: any, insp) => {
-                if (!acc[insp.batch_id]) acc[insp.batch_id] = [];
-                acc[insp.batch_id].push(insp);
-                return acc;
-            }, {});
-
-            return batches.map(b => ({
-                ...b,
-                inspections: inspectionsMap[b.id] || []
-            }));
+            return (data || []) as Batch[];
         },
     });
 };

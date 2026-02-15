@@ -1,15 +1,21 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useScannerStore } from '../store/scanner.store';
+import { useUserStore } from '../store/user.store';
 
 const Settings: React.FC = () => {
     const navigate = useNavigate();
+    const { signOut } = useUserStore();
     const { model: pdaModel, setModel, scanAction, scanExtra, setConfig } = useScannerStore();
     const [showPrinterModal, setShowPrinterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showPdaModal, setShowPdaModal] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleLogout = async () => {
+        await signOut();
+        navigate('/login');
+    };
 
     // Printer Config Modal
     const PrinterModal = () => (
@@ -525,7 +531,7 @@ const Settings: React.FC = () => {
                 </section>
 
                 <div className="mt-4">
-                    <button onClick={() => navigate('/login')} className="w-full py-4 rounded-xl bg-surface-dark border border-danger/30 text-danger font-bold text-lg hover:bg-danger hover:text-white transition-all active:scale-[0.98] shadow-lg">
+                    <button onClick={handleLogout} className="w-full py-4 rounded-xl bg-surface-dark border border-danger/30 text-danger font-bold text-lg hover:bg-danger hover:text-white transition-all active:scale-[0.98] shadow-lg">
                         退出登录
                     </button>
                 </div>
