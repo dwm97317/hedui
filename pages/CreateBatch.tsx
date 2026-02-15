@@ -91,7 +91,7 @@ const CreateBatch: React.FC = () => {
           <div className="flex gap-2">
             <div className="relative flex-1">
               <input
-                className="w-full bg-input-bg border border-white/10 rounded-xl px-4 py-4 font-mono text-lg text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                className="w-full bg-white border border-white/10 rounded-xl px-4 py-4 font-mono text-lg text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                 placeholder="请输入或生成批次号"
                 type="text"
                 value={batchNo}
@@ -112,7 +112,7 @@ const CreateBatch: React.FC = () => {
           <label className="text-sm font-medium text-gray-400 ml-1">运输中转方 (Transit Carrier)</label>
           <div className="relative">
             <select
-              className="w-full bg-input-bg border border-white/10 rounded-xl px-4 py-4 text-lg text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none"
+              className="w-full bg-white border border-white/10 rounded-xl px-4 py-4 text-lg text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none"
               value={transitId}
               onChange={(e) => setTransitId(e.target.value)}
             >
@@ -130,7 +130,7 @@ const CreateBatch: React.FC = () => {
           <label className="text-sm font-medium text-gray-400 ml-1">目的地接收方 (Destination Warehouse)</label>
           <div className="relative">
             <select
-              className="w-full bg-input-bg border border-white/10 rounded-xl px-4 py-4 text-lg text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none"
+              className="w-full bg-white border border-white/10 rounded-xl px-4 py-4 text-lg text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none"
               value={receiverId}
               onChange={(e) => setReceiverId(e.target.value)}
             >
@@ -147,7 +147,7 @@ const CreateBatch: React.FC = () => {
           <label className="text-sm font-medium text-gray-400 ml-1">批次日期</label>
           <div className="relative">
             <input
-              className="w-full bg-input-bg border border-white/10 rounded-xl px-4 py-4 text-lg text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none"
+              className="w-full bg-white border border-white/10 rounded-xl px-4 py-4 text-lg text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -159,7 +159,7 @@ const CreateBatch: React.FC = () => {
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-400 ml-1">备注信息</label>
           <textarea
-            className="w-full bg-input-bg border border-white/10 rounded-xl px-4 py-3 text-base text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none min-h-[80px]"
+            className="w-full bg-white border border-white/10 rounded-xl px-4 py-3 text-base text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none min-h-[80px]"
             placeholder="添加批次提示..."
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}

@@ -81,7 +81,7 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
                         <input
                             value={length}
                             onChange={(e) => setLength(e.target.value)}
-                            className="w-full bg-surface-dark border border-white/10 rounded-xl px-3 py-3 text-center text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg font-medium"
+                            className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-center text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg font-medium transition-all"
                             placeholder="0"
                             type="number"
                         />
@@ -91,7 +91,7 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
                         <input
                             value={width}
                             onChange={(e) => setWidth(e.target.value)}
-                            className="w-full bg-surface-dark border border-white/10 rounded-xl px-3 py-3 text-center text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg font-medium"
+                            className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-center text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg font-medium transition-all"
                             placeholder="0"
                             type="number"
                         />
@@ -101,7 +101,7 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
                         <input
                             value={height}
                             onChange={(e) => setHeight(e.target.value)}
-                            className="w-full bg-surface-dark border border-white/10 rounded-xl px-3 py-3 text-center text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg font-medium"
+                            className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-xl px-3 py-3 text-center text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg font-medium transition-all"
                             placeholder="0"
                             type="number"
                         />
