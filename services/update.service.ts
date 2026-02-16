@@ -36,11 +36,14 @@ export const updateService = {
                 return { success: true, data: null, error: 'No APK found in the latest release' };
             }
 
+            // Apply acceleration proxy for China (ghproxy.com)
+            const acceleratedUrl = `https://ghproxy.com/${apkAsset.browser_download_url}`;
+
             return {
                 success: true,
                 data: {
                     version_name: release.tag_name,
-                    download_url: apkAsset.browser_download_url,
+                    download_url: acceleratedUrl,
                     changelog: release.body,
                     is_critical: release.body.includes('[critical]'),
                     publish_at: release.published_at
