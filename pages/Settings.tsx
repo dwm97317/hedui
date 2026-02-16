@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useScannerStore } from '../store/scanner.store';
 import { useUserStore } from '../store/user.store';
+import { updateService, AppVersion } from '../services/update.service';
+import toast from 'react-hot-toast';
+import pkg from '../package.json';
 
 const Settings: React.FC = () => {
     const navigate = useNavigate();
@@ -11,6 +14,10 @@ const Settings: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showPdaModal, setShowPdaModal] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [latestVersion, setLatestVersion] = useState<AppVersion | null>(null);
+    const [checking, setChecking] = useState(false);
+
+    const currentVersion = pkg.version;
 
     const handleLogout = async () => {
         await signOut();
@@ -118,70 +125,87 @@ const Settings: React.FC = () => {
     );
 
     // Update Check Modal
-    const UpdateModal = () => (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-            <div className="bg-surface-dark w-full max-w-sm rounded-xl overflow-hidden border border-white/10 shadow-2xl animate-scale">
-                <header className="p-6 text-center border-b border-white/10">
-                    <h2 className="text-white text-xl font-bold">检查更新</h2>
-                </header>
-                <main className="p-6">
-                    <div className="flex flex-col items-center mb-6">
-                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                            <span className="material-icons text-primary text-3xl">rocket_launch</span>
+    const UpdateModal = () => {
+        if (!latestVersion) return null;
+
+        const hasNewVersion = latestVersion.version_name !== `v${currentVersion}` && latestVersion.version_name !== currentVersion;
+
+        return (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+                <div className="bg-surface-dark w-full max-w-sm rounded-xl overflow-hidden border border-white/10 shadow-2xl animate-scale">
+                    <header className="p-6 text-center border-b border-white/10">
+                        <h2 className="text-white text-xl font-bold">{hasNewVersion ? '发现新版本' : '检查更新'}</h2>
+                    </header>
+                    <main className="p-6">
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                                <span className="material-icons text-primary text-3xl">
+                                    {hasNewVersion ? 'rocket_launch' : 'check_circle'}
+                                </span>
+                            </div>
+                            {hasNewVersion ? (
+                                <p className="text-green-500 font-semibold text-lg">新版本 <span className="font-mono">{latestVersion.version_name}</span></p>
+                            ) : (
+                                <p className="text-gray-400 font-semibold text-lg">已是最新版本</p>
+                            )}
                         </div>
-                        <p className="text-green-500 font-semibold text-lg">发现新版本 <span className="font-mono">v2.2.0</span></p>
-                    </div>
-                    <div className="space-y-4">
-                        <p className="text-gray-400 text-sm">当前版本: <span className="font-mono">v2.1.0</span></p>
-                        <div className="bg-background-dark/50 rounded-lg p-4 border border-white/5">
-                            <h3 className="text-white font-semibold mb-2 text-sm">更新内容:</h3>
-                            <ul className="text-gray-300 text-sm space-y-3 leading-relaxed">
-                                <li className="flex gap-2">
-                                    <span className="text-primary">1.</span>
-                                    <span>大幅提升扫码识别响应速度</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="text-primary">2.</span>
-                                    <span>优化蓝牙电子秤连接稳定性</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="text-primary">3.</span>
-                                    <span>修复报表导出时的数据偏差问题</span>
-                                </li>
-                            </ul>
+                        <div className="space-y-4">
+                            <p className="text-gray-400 text-sm">当前版本: <span className="font-mono">v{currentVersion}</span></p>
+                            {hasNewVersion && (
+                                <div className="bg-background-dark/50 rounded-lg p-4 border border-white/5">
+                                    <h3 className="text-white font-semibold mb-2 text-sm">更新内容:</h3>
+                                    <div className="text-gray-300 text-sm whitespace-pre-line leading-relaxed">
+                                        {latestVersion.changelog || '优化系统体验，修复已知问题。'}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    </div>
-                </main>
-                <footer className="p-6 pt-2 space-y-3">
-                    <button
-                        onClick={() => {
-                            setIsUpdating(true);
-                            setTimeout(() => setShowUpdateModal(false), 2000);
-                        }}
-                        disabled={isUpdating}
-                        className="w-full bg-primary hover:bg-primary-dark active:scale-95 transition-all text-white font-bold rounded-lg py-3.5 shadow-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                        {isUpdating ? (
-                            <>
-                                <span className="material-icons animate-spin text-sm mr-2">sync</span>
-                                正在下载 v2.2.0...
-                            </>
+                    </main>
+                    <footer className="p-6 pt-2 space-y-3">
+                        {hasNewVersion ? (
+                            <button
+                                onClick={() => {
+                                    setIsUpdating(true);
+                                    window.open(latestVersion.download_url, '_blank');
+                                    toast.success('正在从 GitHub 下载...');
+                                    setTimeout(() => {
+                                        setIsUpdating(false);
+                                        setShowUpdateModal(false);
+                                    }, 2000);
+                                }}
+                                disabled={isUpdating}
+                                className="w-full bg-primary hover:bg-primary-dark active:scale-95 transition-all text-white font-bold rounded-lg py-3.5 shadow-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isUpdating ? (
+                                    <>
+                                        <span className="material-icons animate-spin text-sm mr-2">sync</span>
+                                        正在准备下载...
+                                    </>
+                                ) : (
+                                    "立即更新"
+                                )}
+                            </button>
                         ) : (
-                            "立即更新"
+                            <button
+                                onClick={() => setShowUpdateModal(false)}
+                                className="w-full bg-surface-hover hover:bg-white/10 text-white font-bold rounded-lg py-3.5 border border-white/10"
+                            >
+                                我知道了
+                            </button>
                         )}
-                    </button>
-                    {!isUpdating && (
-                        <button
-                            onClick={() => setShowUpdateModal(false)}
-                            className="w-full text-gray-400 hover:text-white transition-colors py-3 text-sm font-medium"
-                        >
-                            稍后再说
-                        </button>
-                    )}
-                </footer>
+                        {hasNewVersion && !isUpdating && (
+                            <button
+                                onClick={() => setShowUpdateModal(false)}
+                                className="w-full text-gray-400 hover:text-white transition-colors py-3 text-sm font-medium"
+                            >
+                                稍后再说
+                            </button>
+                        )}
+                    </footer>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     // PDA Model Selection Modal
     const PdaModal = () => (
@@ -499,17 +523,38 @@ const Settings: React.FC = () => {
                             </div>
                         </div>
                         <button
-                            onClick={() => setShowUpdateModal(true)}
-                            className="w-full flex items-center justify-between p-4 active:bg-surface-hover transition-colors"
+                            onClick={async () => {
+                                if (checking) return;
+                                setChecking(true);
+                                const loadingToast = toast.loading('正在检查更新...');
+                                try {
+                                    const response = await updateService.getLatestVersion();
+                                    if (response.success && response.data) {
+                                        setLatestVersion(response.data);
+                                        setShowUpdateModal(true);
+                                        toast.dismiss(loadingToast);
+                                    } else {
+                                        toast.error('检查更新失败: ' + response.error, { id: loadingToast });
+                                    }
+                                } catch (e) {
+                                    toast.error('检查更新出错', { id: loadingToast });
+                                } finally {
+                                    setChecking(false);
+                                }
+                            }}
+                            disabled={checking}
+                            className="w-full flex items-center justify-between p-4 active:bg-surface-hover transition-colors disabled:opacity-70"
                         >
                             <div className="flex items-center gap-3">
                                 <div className="p-2 rounded-lg bg-surface-hover text-gray-400">
-                                    <span className="material-icons">system_update</span>
+                                    <span className={`material-icons ${checking ? 'animate-spin' : ''}`}>
+                                        {checking ? 'sync' : 'system_update'}
+                                    </span>
                                 </div>
                                 <span className="text-base font-medium text-gray-200">检查更新</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-400 font-mono">v2.1.0</span>
+                                <span className="text-sm text-gray-400 font-mono">v{currentVersion}</span>
                                 <span className="material-icons text-gray-500 text-sm">chevron_right</span>
                             </div>
                         </button>
