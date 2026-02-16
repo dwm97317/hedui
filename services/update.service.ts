@@ -7,7 +7,8 @@ export interface AppVersion {
 }
 
 // The URL of your version manifest file
-const UPDATE_CONFIG_URL = 'http://hedui.itaoth.com/uploads/update.json';
+// Use a relative path to avoid CORS and Mixed Content (HTTP/HTTPS) issues
+const UPDATE_CONFIG_URL = '/uploads/update.json';
 
 export const updateService = {
     /**
