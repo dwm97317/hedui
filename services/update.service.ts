@@ -6,47 +6,32 @@ export interface AppVersion {
     publish_at: string;
 }
 
-const GITHUB_REPO = 'dwm97317/hedui';
+// The URL of your version manifest file
+const UPDATE_CONFIG_URL = 'http://hedui.itaoth.com/uploads/update.json';
 
 export const updateService = {
     /**
-     * Check for the latest version from GitHub Releases
+     * Check for the latest version from your own server manifest
      */
     async getLatestVersion(): Promise<{ success: boolean; data: AppVersion | null; error: string | null }> {
         try {
-            const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
-                headers: {
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
+            // Add a timestamp to bypass cache
+            const response = await fetch(`${UPDATE_CONFIG_URL}?t=${Date.now()}`);
 
             if (!response.ok) {
-                if (response.status === 404) {
-                    return { success: true, data: null, error: 'No releases found' };
-                }
-                throw new Error(`GitHub API error: ${response.statusText}`);
+                throw new Error(`Server error: ${response.statusText}`);
             }
 
-            const release = await response.json();
-
-            // Find APK asset
-            const apkAsset = release.assets.find((asset: any) => asset.name.endsWith('.apk'));
-
-            if (!apkAsset) {
-                return { success: true, data: null, error: 'No APK found in the latest release' };
-            }
-
-            // Apply acceleration proxy for China (ghproxy.com)
-            const acceleratedUrl = `https://ghproxy.com/${apkAsset.browser_download_url}`;
+            const config = await response.json();
 
             return {
                 success: true,
                 data: {
-                    version_name: release.tag_name,
-                    download_url: acceleratedUrl,
-                    changelog: release.body,
-                    is_critical: release.body.includes('[critical]'),
-                    publish_at: release.published_at
+                    version_name: config.version,
+                    download_url: config.url,
+                    changelog: config.changelog,
+                    is_critical: config.isCritical || false,
+                    publish_at: config.publishAt || ''
                 },
                 error: null
             };
