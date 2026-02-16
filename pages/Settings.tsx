@@ -167,7 +167,7 @@ const Settings: React.FC = () => {
                                 onClick={() => {
                                     setIsUpdating(true);
                                     window.open(latestVersion.download_url, '_blank');
-                                    toast.success('正在从 GitHub 下载...');
+                                    toast.success('正在从服务器下载...');
                                     setTimeout(() => {
                                         setIsUpdating(false);
                                         setShowUpdateModal(false);
