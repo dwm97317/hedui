@@ -41,6 +41,7 @@ import Profile from './pages/Profile';
 import Reports from './pages/Reports';
 import BottomNav from './components/BottomNav';
 import BatchDetailPage from './pages/batch-detail';
+import { BatchBillingSettings } from './pages/finance/BatchBillingSettings';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { toast, Toaster } from 'react-hot-toast';
@@ -236,7 +237,9 @@ const AppContent = () => {
           <Route path="/finance/reconciliation" element={<ProtectedRoute><Reconciliation /></ProtectedRoute>} />
           <Route path="/finance/rates" element={<ProtectedRoute><ExchangeRates /></ProtectedRoute>} />
           <Route path="/finance/admin/pricing" element={<ProtectedRoute><AdminPriceConfig /></ProtectedRoute>} />
+          <Route path="/finance/batch-settings/:batchId" element={<ProtectedRoute><BatchBillingSettings /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
         </Routes>
       </div>
       {!isFullScreenPage && <BottomNav />}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FinanceBottomNav } from '../../components/FinanceLayout';
 import { useBills } from '../../hooks/useBilling';
+import { useFinanceStats } from '../../hooks/useFinanceStats';
 import { useFinanceStore } from '../../store/finance.store';
 import BillCPriceModal from '../../components/finance/BillCPriceModal';
 import BillTemplateModal from '../../components/finance/BillTemplateModal';
@@ -9,6 +10,7 @@ import BillTemplateModal from '../../components/finance/BillTemplateModal';
 const FinanceHome: React.FC = () => {
   const navigate = useNavigate();
   const { data: bills } = useBills();
+  const { data: stats, isLoading: statsLoading } = useFinanceStats();
   const batches = useFinanceStore(state => state.batches);
   const fetchBatches = useFinanceStore(state => state.fetchBatches);
   const updateBillUnitPrice = useFinanceStore(state => state.updateBillUnitPrice);
@@ -21,10 +23,14 @@ const FinanceHome: React.FC = () => {
   }, [fetchBatches]);
 
   const latestBatch = batches[0];
-
   const pendingBills = bills?.filter(b => b.status === 'pending') || [];
-  const cnyTotal = pendingBills.filter(b => b.currency === 'CNY').reduce((sum, b) => sum + Number(b.total_amount), 0);
-  const vndTotal = pendingBills.filter(b => b.currency === 'VND').reduce((sum, b) => sum + Number(b.total_amount), 0);
+
+  // 使用真实统计数据
+  const cnyPending = stats?.cny.pending || 0;
+  const cnyPaid = stats?.cny.paid || 0;
+  const vndPending = stats?.vnd.pending || 0;
+  const vndPaid = stats?.vnd.paid || 0;
+  const collectionRate = stats?.collectionRate || 0;
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 antialiased selection:bg-primary selection:text-white h-full flex flex-col">
@@ -89,15 +95,15 @@ const FinanceHome: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">待结算总额</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{cnyTotal.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{cnyPending.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">本月已收</p>
-                <p className="text-2xl font-bold text-primary">0</p>
+                <p className="text-2xl font-bold text-primary">{cnyPaid.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             </div>
             <div className="mt-4 w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
-              <div className="bg-primary h-1.5 rounded-full" style={{ width: '68%' }}></div>
+              <div className="bg-primary h-1.5 rounded-full" style={{ width: `${stats?.cny.total > 0 ? (cnyPaid / stats.cny.total * 100) : 0}%` }}></div>
             </div>
           </div>
           {/* VND Card */}
@@ -115,15 +121,15 @@ const FinanceHome: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">待结算总额</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-white">{vndTotal.toLocaleString()}</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">{vndPending.toLocaleString('vi-VN')}</p>
               </div>
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">本月已收</p>
-                <p className="text-xl font-bold text-indigo-600 dark:text-indigo-400">0</p>
+                <p className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{vndPaid.toLocaleString('vi-VN')}</p>
               </div>
             </div>
             <div className="mt-4 w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
-              <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '40%' }}></div>
+              <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${stats?.vnd.total > 0 ? (vndPaid / stats.vnd.total * 100) : 0}%` }}></div>
             </div>
           </div>
         </div>
@@ -136,10 +142,10 @@ const FinanceHome: React.FC = () => {
             <div className="relative w-24 h-24 flex items-center justify-center">
               <svg className="transform -rotate-90 w-24 h-24">
                 <circle className="text-slate-100 dark:text-slate-700" cx="48" cy="48" fill="transparent" r="36" stroke="currentColor" strokeWidth="8"></circle>
-                <circle className="text-primary" cx="48" cy="48" fill="transparent" r="36" stroke="currentColor" strokeDasharray="226.2" strokeDashoffset="72" strokeWidth="8"></circle>
+                <circle className="text-primary" cx="48" cy="48" fill="transparent" r="36" stroke="currentColor" strokeDasharray="226.2" strokeDashoffset={226.2 * (1 - collectionRate / 100)} strokeWidth="8"></circle>
               </svg>
               <div className="absolute text-center">
-                <span className="text-xl font-bold text-slate-800 dark:text-white">68%</span>
+                <span className="text-xl font-bold text-slate-800 dark:text-white">{collectionRate}%</span>
               </div>
             </div>
             <p className="text-xs text-slate-400 mt-2">较上月 +5%</p>
@@ -216,54 +222,30 @@ const FinanceHome: React.FC = () => {
             </div>
           </div>
           <div className="flex items-end justify-between h-40 space-x-2">
-            {/* Month 1 */}
-            <div className="flex flex-col items-center space-y-1 w-full group">
-              <div className="relative w-full flex items-end justify-center h-full space-x-1">
-                <div className="w-1.5 bg-slate-300 dark:bg-slate-600 rounded-t-sm h-[40%] group-hover:bg-slate-400 transition-all"></div>
-                <div className="w-1.5 bg-primary rounded-t-sm h-[55%] group-hover:bg-blue-600 transition-all"></div>
-              </div>
-              <span className="text-[10px] text-slate-400">5月</span>
-            </div>
-            {/* Month 2 */}
-            <div className="flex flex-col items-center space-y-1 w-full group">
-              <div className="relative w-full flex items-end justify-center h-full space-x-1">
-                <div className="w-1.5 bg-slate-300 dark:bg-slate-600 rounded-t-sm h-[35%] group-hover:bg-slate-400 transition-all"></div>
-                <div className="w-1.5 bg-primary rounded-t-sm h-[45%] group-hover:bg-blue-600 transition-all"></div>
-              </div>
-              <span className="text-[10px] text-slate-400">6月</span>
-            </div>
-            {/* Month 3 */}
-            <div className="flex flex-col items-center space-y-1 w-full group">
-              <div className="relative w-full flex items-end justify-center h-full space-x-1">
-                <div className="w-1.5 bg-slate-300 dark:bg-slate-600 rounded-t-sm h-[50%] group-hover:bg-slate-400 transition-all"></div>
-                <div className="w-1.5 bg-primary rounded-t-sm h-[60%] group-hover:bg-blue-600 transition-all"></div>
-              </div>
-              <span className="text-[10px] text-slate-400">7月</span>
-            </div>
-            {/* Month 4 */}
-            <div className="flex flex-col items-center space-y-1 w-full group">
-              <div className="relative w-full flex items-end justify-center h-full space-x-1">
-                <div className="w-1.5 bg-slate-300 dark:bg-slate-600 rounded-t-sm h-[65%] group-hover:bg-slate-400 transition-all"></div>
-                <div className="w-1.5 bg-primary rounded-t-sm h-[80%] group-hover:bg-blue-600 transition-all"></div>
-              </div>
-              <span className="text-[10px] text-slate-400">8月</span>
-            </div>
-            {/* Month 5 */}
-            <div className="flex flex-col items-center space-y-1 w-full group">
-              <div className="relative w-full flex items-end justify-center h-full space-x-1">
-                <div className="w-1.5 bg-slate-300 dark:bg-slate-600 rounded-t-sm h-[45%] group-hover:bg-slate-400 transition-all"></div>
-                <div className="w-1.5 bg-primary rounded-t-sm h-[75%] group-hover:bg-blue-600 transition-all"></div>
-              </div>
-              <span className="text-[10px] text-slate-400">9月</span>
-            </div>
-            {/* Month 6 (Current) */}
-            <div className="flex flex-col items-center space-y-1 w-full group">
-              <div className="relative w-full flex items-end justify-center h-full space-x-1">
-                <div className="w-1.5 bg-slate-300 dark:bg-slate-600 rounded-t-sm h-[55%] group-hover:bg-slate-400 transition-all"></div>
-                <div className="w-1.5 bg-primary rounded-t-sm h-[90%] group-hover:bg-blue-600 transition-all"></div>
-              </div>
-              <span className="text-[10px] font-bold text-primary">10月</span>
-            </div>
+            {stats?.monthlyTrend.map((month, index) => {
+              const maxValue = Math.max(...(stats?.monthlyTrend.map(m => Math.max(m.income, m.expense)) || [1]));
+              const incomeHeight = maxValue > 0 ? (month.income / maxValue * 100) : 0;
+              const expenseHeight = maxValue > 0 ? (month.expense / maxValue * 100) : 0;
+              const isCurrentMonth = index === stats.monthlyTrend.length - 1;
+
+              return (
+                <div key={month.month} className="flex flex-col items-center space-y-1 w-full group">
+                  <div className="relative w-full flex items-end justify-center h-full space-x-1">
+                    <div
+                      className="w-1.5 bg-slate-300 dark:bg-slate-600 rounded-t-sm group-hover:bg-slate-400 transition-all"
+                      style={{ height: `${expenseHeight}%` }}
+                    ></div>
+                    <div
+                      className="w-1.5 bg-primary rounded-t-sm group-hover:bg-blue-600 transition-all"
+                      style={{ height: `${incomeHeight}%` }}
+                    ></div>
+                  </div>
+                  <span className={`text-[10px] ${isCurrentMonth ? 'font-bold text-primary' : 'text-slate-400'}`}>
+                    {month.month}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

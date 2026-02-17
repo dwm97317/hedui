@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>账单模板画廊 (选项版)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(19, 127, 236, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full max-w-[430px] mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<!-- Header -->
+<header class="sticky top-0 z-30 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-b border-primary/10">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="flex-1 text-center pr-10 text-lg font-bold tracking-tight">账单样式选择</h1>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto pb-32 custom-scrollbar">
+<div class="px-4 pt-6 pb-2">
+<h2 class="text-xl font-bold tracking-tight">选择模版</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">为您的财务报表选择最佳视觉呈现方式</p>
+</div>
+<!-- Gallery Grid -->
+<div class="grid grid-cols-2 gap-4 p-4">
+<!-- Template Card 1 (Active) -->
+<div class="group relative flex flex-col gap-3">
+<div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl border-2 border-primary active-glow transition-all duration-300">
+<img alt="Modern Minimal Bill Template" class="h-full w-full object-cover transition-transform group-hover:scale-105" data-alt="Modern minimal white bill layout with blue accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvatpw3sW5hhAh3-T0fyI1ZEbZDRX3Nmk1J__DbxIKpM5odLPIWzse2KsXdHNi6oOVXfQtpk3pkJ2BmWRFcP65b8-VuT1I1J-g6LlEPZXi9AK29XMNnSkHkZGzGZ3OIqw-U139HMQmY70EAhzdWFFURyiHRjBFleY0jevguRfUpy-Iw43qCORdVb8LIgwm-I20_bmc4lU0dH-TvBWjpfds_Khb_etj7XlEgY9azJO4nuq1oJHXk0Rmva7zp4Njv7fuYJTmXjGCbRc"/>
+<div class="absolute inset-0 bg-primary/5"></div>
+<!-- Checkmark Badge -->
+<div class="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-primary text-white">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+</div>
+<div>
+<p class="text-primary font-bold text-base">简洁现代</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">突出总额，适合移动端快速查看</p>
+<span class="inline-flex mt-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">当前选择</span>
+</div>
+</div>
+<!-- Template Card 2 -->
+<div class="group relative flex flex-col gap-3">
+<div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl border border-primary/10 bg-slate-800 transition-all duration-300">
+<img alt="Classic Pro Bill Template" class="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-105" data-alt="Classic professional invoice document style with tables" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6rUE1BC7IFr5pvU-2V4At1wUUDVNvyaqGlri4-jKFCvZh0xXqBqyR3EQsOY6fvmqqdk7F8YTm_0dQdvk6AFPLST6YtJ_EkS-S0ieX18WAR2JTqtWpGhMRw5iVaXrVXn-3UupQ_zgejLk_85rMosKvhZ-PntM9zt2AvocmJ31zEy2vNGRUPOHzHP1KjcbHbL07QAxdTAO9CBEx27PhiRK0tnw3lhHxAojEbjuWTfelZgmXLn75yQnrlhXp-y5szUBuOaeNyYanKUo"/>
+<div class="absolute inset-0 bg-black/20"></div>
+</div>
+<div>
+<p class="font-bold text-base">经典专业</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">明细清晰，符合国际财务标准</p>
+</div>
+</div>
+<!-- Template Card 3 -->
+<div class="group relative flex flex-col gap-3">
+<div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl border border-primary/10 bg-slate-800 transition-all duration-300">
+<img alt="Data Dense Bill Template" class="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition-all group-hover:scale-105" data-alt="Complex data visualization and charts on a bill" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFrwkcC3mDpP4x0yN4oaKi42ktElsXUYoxJin7Ja7puHBoe5ABVTDqiz6OB9tqsC2PzXxH47obCygiwstr-t8aKoamNEbx_9soCfG54GxFoCz1qzXNC-TA5Dzc_BRmmsqapdNcR4XV1jfUvFXmkEmejOg_ihmJLAAhdYOsBLYpsboh3VorBkxWaFZFF6tKlDsS-JGjJLEz-PGbaSP8iWPSqkVsoE-TXMQeBx2SpZOgXolIcVDGVliSzDFSoV5At6YeedJcUyilx-I"/>
+<div class="absolute inset-0 bg-black/20"></div>
+</div>
+<div>
+<p class="font-bold text-base">数据密集</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">适合多品类、高频次物流对账</p>
+</div>
+</div>
+<!-- Template Card 4 -->
+<div class="group relative flex flex-col gap-3">
+<div class="relative w-full aspect-[3/4] overflow-hidden rounded-xl border border-primary/10 bg-slate-800 transition-all duration-300">
+<div class="h-full w-full flex flex-col items-center justify-center bg-slate-900/50 border border-dashed border-primary/30">
+<span class="material-symbols-outlined text-4xl text-primary/40">add_circle</span>
+<p class="text-[10px] font-medium text-primary/50 mt-2 uppercase tracking-widest">即将推出</p>
+</div>
+</div>
+<div>
+<p class="font-bold text-base text-slate-500">商务极简</p>
+<p class="text-xs text-slate-600 dark:text-slate-500 leading-relaxed mt-0.5">极致灰调，稳重且专业的视觉体验</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Preview Overlay (Semi-transparent) -->
+<!-- In a real app, this would be toggled. For the mockup, it's visible as the "Large Preview" requested. -->
+<div class="absolute inset-0 z-50 flex items-end bg-background-dark/80 backdrop-blur-sm pointer-events-none">
+<div class="w-full bg-background-light dark:bg-[#16202a] rounded-t-[2.5rem] p-6 pb-40 shadow-2xl pointer-events-auto transform transition-transform duration-500 translate-y-0">
+<div class="mx-auto h-1.5 w-12 rounded-full bg-slate-700/30 mb-6"></div>
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-2xl font-bold">预览：简洁现代</h3>
+<p class="text-primary text-sm font-medium">适合所有物流对账场景</p>
+</div>
+<button class="size-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+<div class="relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-inner border border-primary/10">
+<div class="absolute inset-0 bg-gradient-to-b from-white to-slate-100 p-6 flex flex-col gap-4 text-slate-800">
+<!-- Mockup Bill Header -->
+<div class="flex justify-between items-start">
+<div class="size-10 rounded-lg bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+</div>
+<div class="text-right">
+<p class="text-[10px] text-slate-400 font-bold uppercase">Bill Statement</p>
+<p class="text-xs font-bold">INV-2023-0892</p>
+</div>
+</div>
+<!-- Amount -->
+<div class="py-4 border-b border-slate-200">
+<p class="text-[10px] text-slate-400 uppercase font-bold">Total Amount Due</p>
+<p class="text-4xl font-black tracking-tighter text-primary">¥ 28,450.00</p>
+</div>
+<!-- Details -->
+<div class="space-y-3">
+<div class="flex justify-between text-[11px] font-medium border-b border-slate-100 pb-2">
+<span class="text-slate-400">运输费用 (42单)</span>
+<span>¥ 22,000.00</span>
+</div>
+<div class="flex justify-between text-[11px] font-medium border-b border-slate-100 pb-2">
+<span class="text-slate-400">仓储服务费</span>
+<span>¥ 4,500.00</span>
+</div>
+<div class="flex justify-between text-[11px] font-medium border-b border-slate-100 pb-2">
+<span class="text-slate-400">增值服务 (保险)</span>
+<span>¥ 1,950.00</span>
+</div>
+</div>
+<!-- QR Code Area -->
+<div class="mt-auto flex items-center gap-3">
+<div class="size-14 bg-slate-200 rounded-md border border-slate-300 flex items-center justify-center overflow-hidden">
+<img alt="QR Code" class="w-full h-full opacity-30" data-alt="Stylized QR code for payment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpCaiSgLOPeZX6C4oE-mESwSpnCy2WcB69WdMNH1HWYMu-2XlWyMN72sYdBBbcZVybRaKxziGmmURFhf9aSWVkxsi_pfv0ViwEsEF1Q0G4xSNVy0zsRFoI3r-hogC3TrbT6N8mOMMA96pKK_0QUBOJFuzURTQVivZx3StXFdrPpkgZw1CNXLXzpq_O-JgJ1Uzl9yzxdgJdlYPJ9UtxYGHoSbVJOMzYmTY8HjD_NwLqr1zCdXoRz300Y3l69JCpuCbiHZbn6cWqQhw"/>
+</div>
+<div class="text-[10px] leading-tight text-slate-400">
+                                扫描二维码<br/>
+                                快速完成对账及支付
+                            </div>
+</div>
+</div>
+<!-- Zoom indicator overlay -->
+<div class="absolute inset-0 bg-primary/5 pointer-events-none flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+<div class="size-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+<span class="material-symbols-outlined text-white">zoom_in</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Action -->
+<footer class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[60] w-full max-w-[430px] p-6 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light/95 dark:via-background-dark/95 to-transparent">
+<button class="w-full h-14 rounded-full bg-primary text-white font-bold text-lg shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">check_circle</span>
+                应用此样式
+            </button>
+</footer>
+</div>
+</body></html>
