@@ -16,6 +16,7 @@ const Settings: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showPdaModal, setShowPdaModal] = useState(false);
     const [showStaffModal, setShowStaffModal] = useState(false);
+    const [showAddStaffModal, setShowAddStaffModal] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [latestVersion, setLatestVersion] = useState<AppVersion | null>(null);
     const [checking, setChecking] = useState(false);
@@ -322,17 +323,313 @@ const Settings: React.FC = () => {
         </div>
     );
 
-    // Staff Management Modal
+    // Staff Detail Modal (Permission Settings) - Screen 2 Style
+    const StaffDetailModal = ({ staff, onClose, onRefresh }: { staff: StaffProfile; onClose: () => void; onRefresh: () => void }) => {
+        const [isRemoving, setIsRemoving] = useState(false);
+
+        const togglePermission = async (permission: string) => {
+            let next = [...(staff.permissions || [])];
+            if (next.includes(permission)) {
+                next = next.filter(p => p !== permission);
+            } else {
+                next.push(permission);
+            }
+            try {
+                await StaffService.updatePermissions(staff.id, next);
+                toast.success('权限已更新');
+                onRefresh();
+            } catch (e) {
+                toast.error('更新失败');
+            }
+        };
+
+        const handleRemoveStaff = async () => {
+            if (!window.confirm(`确定要移除员工 ${staff.full_name} 吗？\n移除后该员工将无法访问公司数据。`)) return;
+            setIsRemoving(true);
+            try {
+                await StaffService.removeStaff(staff.id);
+                toast.success('员工已移除');
+                onRefresh();
+                onClose();
+            } catch (e) {
+                toast.error('移除失败');
+            } finally {
+                setIsRemoving(false);
+            }
+        };
+
+        return (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+                <div className="relative w-full max-w-[360px] flex flex-col gap-6 overflow-hidden rounded-[24px] border border-white/10 bg-[#1e2330]/80 p-6 shadow-2xl backdrop-blur-xl animate-scale">
+                    {/* Close Button */}
+                    <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                        <span className="material-icons text-[20px]">close</span>
+                    </button>
+
+                    {/* Profile Section */}
+                    <div className="flex flex-col items-center gap-3 pt-2">
+                        <div className="relative">
+                            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 p-0.5 shadow-lg ring-2 ring-white/5 flex items-center justify-center overflow-hidden">
+                                {staff.full_name?.[0] || 'U'}
+                            </div>
+                            <div className="absolute bottom-0 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 ring-2 ring-[#1e2330]">
+                                <span className="material-icons text-white text-[14px]">check</span>
+                            </div>
+                        </div>
+                        <div className="text-center">
+                            <h2 className="text-xl font-bold text-white tracking-tight">{staff.full_name}</h2>
+                            <p className="text-sm font-medium text-gray-400 mt-1">{staff.email}</p>
+                            <div className="mt-2 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-black uppercase text-primary ring-1 ring-inset ring-primary/20">
+                                {staff.is_master ? 'MASTER OWNER' : 'OFFICIAL STAFF'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                    {/* Permissions List */}
+                    <div className="flex flex-col gap-4">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 pl-1">权限设置 (Access Control)</h3>
+
+                        {[
+                            { id: 'warehouse', label: '仓库操作权限', desc: '入库、出库与盘点', icon: 'inventory_2', color: 'indigo' },
+                            { id: 'finance', label: '财务对账权限', desc: '查看报表与对账', icon: 'account_balance_wallet', color: 'emerald' },
+                            { id: 'manager', label: '企业管理权限', desc: '人员管理与系统设置', icon: 'admin_panel_settings', color: 'orange' }
+                        ].map(p => (
+                            <div key={p.id} className="group flex items-center justify-between gap-3 rounded-xl bg-white/5 p-3.5 transition-colors border border-white/5">
+                                <div className="flex items-center gap-3.5">
+                                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-${p.color}-500/20 text-${p.color}-400`}>
+                                        <span className="material-icons text-xl">{p.icon}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-white">{p.label}</span>
+                                        <span className="text-[10px] text-gray-400 font-medium">{p.desc}</span>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex cursor-pointer items-center">
+                                    <input
+                                        type="checkbox"
+                                        className="peer sr-only"
+                                        checked={staff.permissions?.includes(p.id)}
+                                        onChange={() => togglePermission(p.id)}
+                                        disabled={staff.is_master}
+                                    />
+                                    <div className="peer h-6 w-11 rounded-full bg-slate-700 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full outline-none"></div>
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-3">
+                        <button
+                            onClick={onClose}
+                            className="flex w-full items-center justify-center rounded-xl bg-primary py-4 text-sm font-black text-white shadow-xl shadow-primary/30 active:scale-[0.98] transition-all"
+                        >
+                            保存并返回
+                        </button>
+                        {!staff.is_master && (
+                            <button
+                                onClick={handleRemoveStaff}
+                                disabled={isRemoving}
+                                className="flex w-full items-center justify-center rounded-xl bg-transparent py-2.5 text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
+                            >
+                                <span className="material-icons mr-1.5 text-base">person_remove</span>
+                                {isRemoving ? '正在移除...' : '移除该成员'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Add Staff Directly Modal - Generated from Stitch UI "create for employee"
+    const AddStaffModal = ({ onClose, onRefresh }: { onClose: () => void; onRefresh: () => void }) => {
+        const { user } = useUserStore();
+        const [loading, setLoading] = useState(false);
+        const [formData, setFormData] = useState({
+            fullName: '',
+            email: '',
+            password: '',
+            permissions: [] as string[]
+        });
+        const [showPassword, setShowPassword] = useState(false);
+
+        const handleSubmit = async (e: React.FormEvent) => {
+            e.preventDefault();
+            if (!user?.company_id) return;
+            setLoading(true);
+
+            try {
+                await StaffService.createStaffDirectly({
+                    ...formData,
+                    companyId: user.company_id,
+                    companyRole: user.role || 'sender', // Default to sender role if unknown
+                });
+                toast.success('员工账号已创建');
+                if (onRefresh) onRefresh();
+                onClose();
+            } catch (error: any) {
+                toast.error(error.message || '创建失败');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const togglePermission = (p: string) => {
+            setFormData(prev => ({
+                ...prev,
+                permissions: prev.permissions.includes(p)
+                    ? prev.permissions.filter(x => x !== p)
+                    : [...prev.permissions, p]
+            }));
+        };
+
+        return (
+            <div className="fixed inset-0 z-[80] bg-[#0f172a] flex flex-col animate-slide-up">
+                <header className="flex items-center justify-between px-4 py-3 bg-[#111827]/90 backdrop-blur-md border-b border-white/5">
+                    <button onClick={onClose} className="flex items-center justify-center p-2 rounded-full hover:bg-white/10 text-white transition-colors">
+                        <span className="material-icons">close</span>
+                    </button>
+                    <h1 className="text-lg font-black tracking-tight text-white">添加团队成员</h1>
+                    <div className="w-10"></div>
+                </header>
+
+                <main className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8 pb-32">
+                    <form id="add-staff-form" onSubmit={handleSubmit} className="space-y-6">
+                        {/* Input Fields */}
+                        <div className="space-y-5">
+                            <div className="group">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 mb-2 block">姓名 (FULL NAME)</label>
+                                <div className="relative">
+                                    <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">person</span>
+                                    <input
+                                        required
+                                        className="w-full h-14 pl-12 pr-4 bg-[#1e293b] border border-white/5 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-inner"
+                                        placeholder="请输入员工真实姓名"
+                                        value={formData.fullName}
+                                        onChange={(e) => setFormData(x => ({ ...x, fullName: e.target.value }))}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 mb-2 block">邮箱 (EMAIL)</label>
+                                <div className="relative">
+                                    <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">alternate_email</span>
+                                    <input
+                                        required
+                                        type="email"
+                                        className="w-full h-14 pl-12 pr-4 bg-[#1e293b] border border-white/5 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-inner"
+                                        placeholder="name@example.com"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData(x => ({ ...x, email: e.target.value }))}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 mb-2 block">登录密码 (PASSWORD)</label>
+                                <div className="relative">
+                                    <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">lock</span>
+                                    <input
+                                        required
+                                        type={showPassword ? "text" : "password"}
+                                        className="w-full h-14 pl-12 pr-12 bg-[#1e293b] border border-white/5 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-inner"
+                                        placeholder="设置初始登录密码"
+                                        value={formData.password}
+                                        onChange={(e) => setFormData(x => ({ ...x, password: e.target.value }))}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 p-1"
+                                    >
+                                        <span className="material-icons text-lg">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Permissions Section */}
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 block">权限设置 (ACCESS CONTROL)</label>
+                            <div className="bg-[#1e293b] rounded-2xl border border-white/5 divide-y divide-white/5 overflow-hidden">
+                                {[
+                                    { id: 'warehouse', label: '仓库操作权限', desc: '入库、出库与查验', icon: 'inventory_2', color: 'indigo' },
+                                    { id: 'finance', label: '财务对账权限', desc: '查看报表与利润统计', icon: 'account_balance_wallet', color: 'emerald' },
+                                    { id: 'manager', label: '管理员权限', desc: '人员管理与系统设置', icon: 'admin_panel_settings', color: 'orange' }
+                                ].map(p => (
+                                    <div key={p.id} className="flex items-center justify-between p-4 bg-white/5 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-${p.color}-500/20 text-${p.color}-400`}>
+                                                <span className="material-icons text-xl">{p.icon}</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-white">{p.label}</span>
+                                                <span className="text-[10px] text-gray-500 font-medium">{p.desc}</span>
+                                            </div>
+                                        </div>
+                                        <label className="relative inline-flex cursor-pointer items-center">
+                                            <input
+                                                type="checkbox"
+                                                className="peer sr-only"
+                                                checked={formData.permissions.includes(p.id)}
+                                                onChange={() => togglePermission(p.id)}
+                                            />
+                                            <div className="peer h-6 w-11 rounded-full bg-slate-700 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full outline-none"></div>
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </form>
+                </main>
+
+                <div className="fixed bottom-0 left-0 right-0 bg-[#0f172a]/90 backdrop-blur-xl border-t border-white/5 p-6 z-[90]">
+                    <button
+                        form="add-staff-form"
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-blue-600 text-white font-black text-base shadow-2xl shadow-primary/40 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group overflow-hidden"
+                    >
+                        {loading ? (
+                            <>
+                                <span className="material-icons animate-spin">refresh</span>
+                                正在创建账号...
+                            </>
+                        ) : (
+                            <>
+                                保存并创建账号
+                                <span className="material-icons text-xl group-hover:translate-x-1 transition-transform">person_add</span>
+                            </>
+                        )}
+                        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-[-20deg]"></div>
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    // Staff Management Modal - Screen 1 Style
     const StaffManagementModal = () => {
         const { user } = useUserStore();
         const [staff, setStaff] = React.useState<StaffProfile[]>([]);
         const [loading, setLoading] = React.useState(true);
+        const [search, setSearch] = React.useState('');
+        const [selectedStaff, setSelectedStaff] = React.useState<StaffProfile | null>(null);
 
         const fetchStaff = async () => {
             if (!user?.company_id) return;
+            setLoading(true);
             try {
                 const data = await StaffService.getStaff(user.company_id);
                 setStaff(data);
+                // Update selected staff if it's currently open
+                if (selectedStaff) {
+                    const updated = data.find(s => s.id === selectedStaff.id);
+                    if (updated) setSelectedStaff(updated);
+                }
             } catch (e) {
                 toast.error('获取员工列表失败');
             } finally {
@@ -344,109 +641,169 @@ const Settings: React.FC = () => {
             fetchStaff();
         }, []);
 
-        const togglePermission = async (staffId: string, currentPermissions: string[], permission: string) => {
-            let next = [...(currentPermissions || [])];
-            if (next.includes(permission)) {
-                next = next.filter(p => p !== permission);
-            } else {
-                next.push(permission);
-            }
-            try {
-                await StaffService.updatePermissions(staffId, next);
-                toast.success('权限已更新');
-                fetchStaff();
-            } catch (e) {
-                toast.error('更新失败');
-            }
+        const filteredStaff = staff.filter(s =>
+            s.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+            s.email?.toLowerCase().includes(search.toLowerCase())
+        );
+
+        const copyToClipboard = (text: string) => {
+            if (!text) return;
+            navigator.clipboard.writeText(text);
+            toast.success('邀请码已复制');
         };
 
         return (
-            <div className="fixed inset-0 z-[60] bg-background-light dark:bg-background-dark flex flex-col animate-slide-up">
-                <header className="bg-surface-dark/95 backdrop-blur shadow-md z-50 sticky top-0 border-b border-white/5">
-                    <div className="px-4 py-4 flex items-center justify-between relative">
+            <div className="fixed inset-0 z-[60] bg-[#0f172a] flex flex-col animate-slide-up">
+                <header className="flex items-center justify-between px-4 py-3 bg-[#111827]/90 backdrop-blur-md sticky top-0 z-50 border-b border-white/5">
+                    <button onClick={() => setShowStaffModal(false)} className="flex items-center justify-center p-2 rounded-full hover:bg-white/10 text-white transition-colors">
+                        <span className="material-icons">arrow_back_ios_new</span>
+                    </button>
+                    <h1 className="text-lg font-black tracking-tight text-white">团队管理</h1>
+                    <div className="flex items-center gap-1">
                         <button
-                            onClick={() => setShowStaffModal(false)}
-                            className="p-2 -ml-2 text-gray-400 hover:text-white rounded-full active:bg-white/10 transition-colors"
+                            onClick={() => setShowAddStaffModal(true)}
+                            className="flex items-center justify-center p-2 rounded-full hover:bg-white/10 text-primary transition-colors"
                         >
-                            <span className="material-icons">close</span>
+                            <span className="material-icons">person_add_alt_1</span>
                         </button>
-                        <h1 className="text-lg font-bold text-white tracking-wide">员工账号管理</h1>
-                        <div className="w-10"></div>
+                        <button onClick={fetchStaff} className="flex items-center justify-center p-2 rounded-full hover:bg-white/10 text-white transition-colors">
+                            <span className="material-icons">refresh</span>
+                        </button>
                     </div>
                 </header>
-                <main className="flex-1 p-4 overflow-y-auto flex flex-col gap-5 pb-32 no-scrollbar">
-                    <section>
-                        <div className="mb-4 bg-primary/10 border border-primary/20 p-4 rounded-xl">
-                            <h3 className="text-primary font-bold text-sm mb-1">如何增加员工？</h3>
-                            <p className="text-[11px] text-primary/80 leading-relaxed">
-                                请让您的员工在登录页点击注册，并输入公司代码：
-                                <span className="bg-primary/20 px-2 py-0.5 rounded font-mono font-bold ml-1">{user?.company?.code || '尚未配置'}</span>
-                                <br />
-                                注册成功后，此列表会自动出现该员工，您可以为其分配权限。
-                            </p>
-                        </div>
 
-                        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">员工列表</h2>
-                        <div className="space-y-3">
-                            {loading ? (
-                                <div className="p-10 text-center text-gray-500 animate-pulse">加载中...</div>
-                            ) : staff.length === 0 ? (
-                                <div className="p-10 text-center text-gray-500 bg-surface-dark rounded-xl border border-dashed border-white/10">暂无员工信息</div>
-                            ) : staff.map(s => (
-                                <div key={s.id} className="bg-surface-dark rounded-xl border border-white/5 p-4 flex flex-col gap-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-400">
-                                                {s.full_name?.[0] || 'U'}
-                                            </div>
-                                            <div>
-                                                <div className="text-sm font-bold text-white flex items-center gap-2">
-                                                    {s.full_name}
-                                                    {s.is_master && <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase">主管</span>}
-                                                </div>
-                                                <div className="text-[10px] text-gray-500 font-mono">{s.id.slice(0, 8)}...</div>
-                                            </div>
-                                        </div>
+                <main className="flex-1 overflow-y-auto no-scrollbar pb-24">
+                    {/* Screen 1 Company Card */}
+                    <div className="p-4">
+                        <div className="bg-[#1e293b] rounded-2xl p-5 border border-white/5 shadow-2xl relative overflow-hidden group">
+                            <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500"></div>
+                            <div className="relative z-10">
+                                <div className="flex flex-col gap-1 mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-icons text-primary" style={{ fontSize: '20px' }}>domain</span>
+                                        <h2 className="text-lg font-black text-white">{user?.company?.name || '越通物流'}</h2>
                                     </div>
-
-                                    {!s.is_master && (
-                                        <div className="grid grid-cols-3 gap-2 mt-1">
-                                            <button
-                                                onClick={() => togglePermission(s.id, s.permissions || [], 'warehouse')}
-                                                className={`flex flex-col items-center justify-center py-2 rounded-lg border transition-all ${s.permissions?.includes('warehouse') || s.permissions?.includes('manager') ? 'bg-accent-yellow/20 border-accent-yellow text-accent-yellow' : 'bg-surface-hover border-white/5 text-gray-500'}`}
-                                            >
-                                                <span className="material-icons text-sm mb-0.5">inventory_2</span>
-                                                <span className="text-[10px] font-bold">仓管</span>
-                                            </button>
-                                            <button
-                                                onClick={() => togglePermission(s.id, s.permissions || [], 'finance')}
-                                                className={`flex flex-col items-center justify-center py-2 rounded-lg border transition-all ${s.permissions?.includes('finance') || s.permissions?.includes('manager') ? 'bg-accent-green/20 border-accent-green text-accent-green' : 'bg-surface-hover border-white/5 text-gray-500'}`}
-                                            >
-                                                <span className="material-icons text-sm mb-0.5">account_balance_wallet</span>
-                                                <span className="text-[10px] font-bold">财务</span>
-                                            </button>
-                                            <button
-                                                onClick={() => togglePermission(s.id, s.permissions || [], 'manager')}
-                                                className={`flex flex-col items-center justify-center py-2 rounded-lg border transition-all ${s.permissions?.includes('manager') ? 'bg-primary/20 border-primary text-primary' : 'bg-surface-hover border-white/5 text-gray-500'}`}
-                                            >
-                                                <span className="material-icons text-sm mb-0.5">admin_panel_settings</span>
-                                                <span className="text-[10px] font-bold">主管权限</span>
-                                            </button>
-                                        </div>
-                                    )}
+                                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest ml-7 opacity-60">(中转方)</p>
                                 </div>
-                            ))}
+                                <div className="flex flex-col gap-3 bg-[#0f172a]/50 rounded-xl p-4 border border-white/5 backdrop-blur-sm">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-1">团队邀请码 (JOIN CODE)</span>
+                                        <span className="text-2xl font-mono font-black text-white tracking-[0.2em]">{user?.company?.code || 'HT-8890'}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => copyToClipboard(user?.company?.code || '')}
+                                        className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 active:scale-95 text-white w-full py-3.5 rounded-xl text-sm font-black transition-all shadow-xl shadow-primary/20"
+                                    >
+                                        <span className="material-icons" style={{ fontSize: '18px' }}>content_copy</span>
+                                        <span>复制邀请码</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </section>
+                    </div>
+
+                    {/* Search Bar */}
+                    <div className="px-4 pb-2 sticky top-0 z-30 bg-[#0f172a]/95 backdrop-blur-sm pt-2 -mt-2">
+                        <div className="relative group">
+                            <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors text-lg">search</span>
+                            <input
+                                className="block w-full pl-12 pr-4 py-4 border-none rounded-2xl bg-[#1e293b] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-inner"
+                                placeholder="搜索员工姓名或邮箱..."
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex justify-between items-center mt-4 mb-2 px-1">
+                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">团队资源 ({loading ? '...' : filteredStaff.length})</h3>
+                            <span className="text-[10px] text-primary font-black flex items-center gap-1 uppercase tracking-widest cursor-pointer">
+                                <span className="material-icons" style={{ fontSize: '14px' }}>filter_list</span>
+                                筛选
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Staff List */}
+                    <div className="px-4 space-y-3 pb-4">
+                        {loading ? (
+                            <div className="py-12 flex flex-col items-center gap-4">
+                                <span className="material-icons animate-spin text-4xl text-primary/30">refresh</span>
+                                <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">同步中...</span>
+                            </div>
+                        ) : filteredStaff.length === 0 ? (
+                            <div className="py-12 text-center opacity-30">
+                                <span className="material-icons text-6xl block mb-2">person_off</span>
+                                <p className="text-sm font-bold uppercase tracking-widest">暂无记录</p>
+                            </div>
+                        ) : filteredStaff.map(s => (
+                            <div
+                                key={s.id}
+                                onClick={() => setSelectedStaff(s)}
+                                className="bg-[#1e293b] hover:bg-[#1e293b]/80 rounded-2xl p-4 flex items-center gap-4 transition-all border border-white/5 cursor-pointer group active:scale-[0.98]"
+                            >
+                                <div className="relative shrink-0">
+                                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center font-black text-white text-xl border-2 border-[#1e293b] group-hover:border-primary/50 transition-colors shadow-lg">
+                                        {s.full_name?.[0] || 'U'}
+                                    </div>
+                                    <div className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-[#1e293b] ${s.is_master ? 'bg-primary' : 'bg-green-500'}`}></div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between mb-0.5">
+                                        <p className="text-white text-base font-black truncate">{s.full_name}</p>
+                                        {s.is_master && (
+                                            <span className="bg-primary/20 text-primary text-[9px] px-2 py-0.5 rounded-full font-black border border-primary/20 uppercase tracking-tighter">MASTER</span>
+                                        )}
+                                    </div>
+                                    <p className="text-slate-400 text-[11px] font-medium truncate mb-2 opacity-60 italic">{s.email}</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {s.permissions?.includes('warehouse') && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-slate-800 text-slate-400 border border-white/5">仓管</span>
+                                        )}
+                                        {s.permissions?.includes('finance') && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-slate-800 text-slate-400 border border-white/5">财务</span>
+                                        )}
+                                        {s.permissions?.includes('manager') && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-primary/20 text-primary border border-primary/10">主管</span>
+                                        )}
+                                        {(!s.permissions || s.permissions.length === 0) && !s.is_master && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-slate-800/50 text-slate-600 border border-white/5 italic">未指派权限</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="shrink-0 text-slate-600 group-hover:text-primary transition-colors">
+                                    <span className="material-icons">chevron_right</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </main>
-                <div className="fixed bottom-0 left-0 right-0 bg-surface-dark/95 backdrop-blur border-t border-white/10 p-4 safe-area-pb z-50">
+
+                {/* Bottom Bar */}
+                <div className="bg-[#111827]/90 backdrop-blur-xl border-t border-white/5 pb-8 pt-3 z-50 fixed bottom-0 w-full px-6">
                     <button
                         onClick={() => setShowStaffModal(false)}
-                        className="w-full py-3.5 rounded-xl bg-surface-hover text-white font-bold text-base border border-white/10"
+                        className="w-full py-4 rounded-2xl bg-white/5 text-white/50 text-sm font-black uppercase tracking-[0.2em] border border-white/5 active:scale-95 transition-all"
                     >
-                        关闭
+                        关闭控制台
                     </button>
                 </div>
+
+                {/* Detail Modal layer */}
+                {selectedStaff && (
+                    <StaffDetailModal
+                        staff={selectedStaff}
+                        onClose={() => setSelectedStaff(null)}
+                        onRefresh={fetchStaff}
+                    />
+                )}
+
+                {/* Add Staff Modal layer */}
+                {showAddStaffModal && (
+                    <AddStaffModal
+                        onClose={() => setShowAddStaffModal(false)}
+                        onRefresh={fetchStaff}
+                    />
+                )}
             </div>
         );
     };
