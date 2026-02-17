@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile Batch Management List</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0f3461",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#1a1a2e",
+                        "card-dark": "#16213e",
+                        "accent-yellow": "#f1c40f",
+                        "accent-green": "#2ecc71",
+                        "accent-blue": "#3498db",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Main Wrapper (Phone Container 390px simulated) -->
+<div class="relative mx-auto min-h-screen w-full max-w-[390px] flex flex-col bg-background-light dark:bg-background-dark overflow-hidden border-x border-slate-200 dark:border-slate-800">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-4 py-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<button class="p-2 -ml-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Batch Management</h1>
+<div class="flex items-center gap-1">
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">search</span>
+</button>
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+</header>
+<!-- Main Scrollable Content -->
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Stats Area (Horizontal Scrolling) -->
+<section class="mt-2">
+<div class="flex gap-4 overflow-x-auto px-4 py-2 hide-scrollbar">
+<!-- Total Batches -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-gradient-to-br from-primary to-[#16213e] shadow-lg">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-white/70">layers</span>
+</div>
+<div>
+<p class="text-white/60 text-xs font-medium uppercase tracking-wider">Total Batches</p>
+<p class="text-white text-2xl font-bold mt-1">127</p>
+</div>
+</div>
+<!-- In Transit -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-gradient-to-br from-primary to-[#16213e] shadow-lg">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-accent-yellow">local_shipping</span>
+</div>
+<div>
+<p class="text-white/60 text-xs font-medium uppercase tracking-wider">In Transit</p>
+<p class="text-white text-2xl font-bold mt-1">23</p>
+</div>
+</div>
+<!-- Completed -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-gradient-to-br from-primary to-[#16213e] shadow-lg">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-accent-green">check_circle</span>
+</div>
+<div>
+<p class="text-white/60 text-xs font-medium uppercase tracking-wider">Completed</p>
+<p class="text-white text-2xl font-bold mt-1">15</p>
+</div>
+</div>
+<!-- Total Amount -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-gradient-to-br from-primary to-[#16213e] shadow-lg">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-accent-blue">payments</span>
+</div>
+<div>
+<p class="text-white/60 text-xs font-medium uppercase tracking-wider">Total Amount</p>
+<p class="text-white text-2xl font-bold mt-1">₫125M</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Filters -->
+<nav class="mt-6">
+<div class="flex gap-2 overflow-x-auto px-4 hide-scrollbar">
+<button class="flex h-10 shrink-0 items-center justify-center px-5 rounded-full bg-primary text-white text-sm font-semibold">
+                        All
+                    </button>
+<button class="flex h-10 shrink-0 items-center justify-center px-5 rounded-full bg-slate-200 dark:bg-card-dark text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                        Pending
+                    </button>
+<button class="flex h-10 shrink-0 items-center justify-center px-5 rounded-full bg-slate-200 dark:bg-card-dark text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                        In Transit
+                    </button>
+<button class="flex h-10 shrink-0 items-center justify-center px-5 rounded-full bg-slate-200 dark:bg-card-dark text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                        Receiving
+                    </button>
+<button class="flex h-10 shrink-0 items-center justify-center px-5 rounded-full bg-slate-200 dark:bg-card-dark text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                        Completed
+                    </button>
+</div>
+</nav>
+<!-- Batch List Container -->
+<section class="mt-6 px-4 flex flex-col gap-4">
+<h3 class="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Recent Batches</h3>
+<!-- Batch Card 1: In Transit -->
+<div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-3">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">#B-2024-001</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
+                            In Transit
+                        </span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="text-sm text-slate-600 dark:text-slate-400">Sender Co.</span>
+<span class="material-symbols-outlined text-xs text-slate-400">arrow_forward</span>
+<span class="text-sm text-slate-600 dark:text-slate-400">FastTrans</span>
+<span class="material-symbols-outlined text-xs text-slate-400">arrow_forward</span>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-semibold">Receiver A</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/50">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">weight</span>
+<span class="text-xs font-medium">100.5 kg</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span class="text-xs font-medium">2h ago</span>
+</div>
+</div>
+<div class="text-primary dark:text-white font-bold text-lg">₫5.0M</div>
+</div>
+</div>
+<!-- Batch Card 2: Completed -->
+<div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-3">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">#B-2024-012</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent-green/10 text-accent-green border border-accent-green/20">
+                            Completed
+                        </span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="text-sm text-slate-600 dark:text-slate-400">Global Mart</span>
+<span class="material-symbols-outlined text-xs text-slate-400">arrow_forward</span>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-semibold">Distro X</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/50">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">weight</span>
+<span class="text-xs font-medium">45.0 kg</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span class="text-xs font-medium">5h ago</span>
+</div>
+</div>
+<div class="text-primary dark:text-white font-bold text-lg">₫1.2M</div>
+</div>
+</div>
+<!-- Batch Card 3: Receiving -->
+<div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-3">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">#B-2024-045</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
+                            Receiving
+                        </span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="text-sm text-slate-600 dark:text-slate-400">Pharma Co.</span>
+<span class="material-symbols-outlined text-xs text-slate-400">arrow_forward</span>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-semibold">City Hospital</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/50">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">weight</span>
+<span class="text-xs font-medium">12.5 kg</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span class="text-xs font-medium">12m ago</span>
+</div>
+</div>
+<div class="text-primary dark:text-white font-bold text-lg">₫8.5M</div>
+</div>
+</div>
+<!-- Batch Card 4: In Transit -->
+<div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-3">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">#B-2024-067</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
+                            In Transit
+                        </span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="text-sm text-slate-600 dark:text-slate-400">Factory Z</span>
+<span class="material-symbols-outlined text-xs text-slate-400">arrow_forward</span>
+<span class="text-sm text-slate-600 dark:text-slate-400 font-semibold">Outlet 04</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/50">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">weight</span>
+<span class="text-xs font-medium">250.0 kg</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span class="text-xs font-medium">1d ago</span>
+</div>
+</div>
+<div class="text-primary dark:text-white font-bold text-lg">₫12.0M</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white/95 dark:bg-[#1b2531]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe-area">
+<div class="flex items-center justify-around h-20 px-2">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">dashboard</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">group</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Users</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary dark:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">inventory_2</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Batches</span>
+<div class="w-1 h-1 bg-primary dark:bg-white rounded-full mt-0.5"></div>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">receipt_long</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Bills</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Home Indicator (iOS style) -->
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-900/10 dark:bg-white/10 rounded-full pointer-events-none"></div>
+</div>
+</body></html>

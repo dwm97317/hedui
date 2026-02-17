@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Management Dashboard - Dark Mode</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4b91e2",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#0f3460",
+                        "sidebar-navy": "#16213e",
+                        "table-dark": "#1a1a2e",
+                        "text-main": "#e4e4e4",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f3460;
+            color: #e4e4e4;
+        }
+        .sidebar-active {
+            background-color: rgba(75, 145, 226, 0.2);
+            border-left: 4px solid #4b91e2;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-text-main font-display antialiased">
+<div class="flex h-screen overflow-hidden">
+<!-- Left Sidebar (200px) -->
+<aside class="w-64 bg-sidebar-navy flex flex-col shrink-0 border-r border-primary/10">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white text-2xl">local_shipping</span>
+</div>
+<div>
+<h1 class="font-bold text-lg tracking-tight text-white leading-none">Logistics</h1>
+<span class="text-[10px] uppercase tracking-widest text-primary/70 font-bold">Admin Panel</span>
+</div>
+</div>
+<nav class="flex-1 px-3 py-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white sidebar-active group" href="#">
+<span class="material-symbols-outlined text-xl filled-icon text-primary">group</span>
+                    User Management
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">domain</span>
+                    Company
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">inventory_2</span>
+                    Batch
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">payments</span>
+                    Finance
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+                    Settings
+                </a>
+</nav>
+<div class="p-4 border-t border-primary/10">
+<div class="flex items-center gap-3 p-2 rounded-lg bg-background-dark/30">
+<img class="w-10 h-10 rounded-full border border-primary/20" data-alt="Admin user profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLCvINsUMFXbbKYiGgWgB53rt34bExyUy5wO8V_8YJNVpEYpWlkOo0V-fZR49KaTmriG7Uie7Cfos8dPWmljm8x1tj26q6FgVOUD1fb9Xqsod0SDqlXDIHTvkmYDWShTDmmVTBSrMYgAz0gJWD0IizCbFIDmipkNeJ2_uZyyXuySdexD-pxe17im0hqLLJ1jF282QsMK3NcCYvxsa-sW3Wqn8dSZzo3QshoGAwwwS2WdSrlwmeqYklxB1ZGsvMzLTxMzDBPBcdnZc"/>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-white truncate">Super Admin</p>
+<p class="text-[10px] text-gray-400 truncate">admin@logistics.com</p>
+</div>
+<button class="text-gray-400 hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden bg-background-dark">
+<!-- Header Section -->
+<header class="p-8 pb-4">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-3xl font-black text-white tracking-tight">User Management</h2>
+<p class="text-gray-400 mt-1">Manage platform access and user roles across the logistics network.</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">person_add</span>
+                        Add User
+                    </button>
+</div>
+<!-- Controls: Search & Filters -->
+<div class="flex flex-wrap gap-4 items-center">
+<div class="relative flex-1 min-w-[300px]">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="w-full bg-table-dark border-none rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-primary placeholder:text-gray-500" placeholder="Search email, name..." type="text"/>
+</div>
+<div class="flex items-center gap-3 bg-table-dark p-1 rounded-lg">
+<span class="text-xs font-bold text-gray-500 px-3 uppercase">Role</span>
+<div class="flex gap-1">
+<button class="px-3 py-1.5 text-xs font-semibold rounded bg-primary text-white">All</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded text-gray-400 hover:bg-background-dark">Sender</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded text-gray-400 hover:bg-background-dark">Transit</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded text-gray-400 hover:bg-background-dark">Receiver</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded text-gray-400 hover:bg-background-dark">Admin</button>
+</div>
+</div>
+<div class="flex items-center gap-3 bg-table-dark p-1 rounded-lg">
+<span class="text-xs font-bold text-gray-500 px-3 uppercase">Status</span>
+<div class="flex gap-1">
+<button class="px-3 py-1.5 text-xs font-semibold rounded bg-primary text-white">All</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded text-gray-400 hover:bg-background-dark">Active</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded text-gray-400 hover:bg-background-dark">Disabled</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Table Section -->
+<section class="flex-1 overflow-auto px-8 pb-8">
+<div class="bg-table-dark rounded-xl border border-primary/10 shadow-2xl overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead class="bg-background-dark/50 border-b border-primary/10">
+<tr>
+<th class="py-4 px-6 w-10">
+<input class="rounded bg-background-dark border-primary/20 text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+</th>
+<th class="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">User Info</th>
+<th class="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Role</th>
+<th class="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Company</th>
+<th class="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
+<th class="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Last Login</th>
+<th class="py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="py-4 px-6">
+<input class="rounded bg-background-dark border-primary/20 text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full border border-primary/10" data-alt="Avatar of user 张三" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH16IEIWZznuMlTZO3o2sm3gBn48O9iIshWqfNhhbY2xw6C0Rg-FwJDUFr7PKCay9-8r1qz_GkCena06Alm2rcyfFhu4JLApLTsAlBGJbPqk3LDdksKQguevpm85LR3V9TUJmpHvlGrIVzKSvVh3sBz1cao7BzSbcFj0pxMJzHJ_bDc_tbW0Zy4f2tOLNazusbr6OZ-JOMauxZz4QSO4um-qT7JlCWvD2ZuksXtnXM8XB87XM-KSlAaYCYM-dxgJQNaSx-B01IXDY"/>
+<div>
+<p class="font-bold text-white leading-tight">张三 (Zhang San)</p>
+<p class="text-xs text-gray-500">zhang.san@logistics.com</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-400 border border-blue-500/30">Sender</span>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">East China Hub</td>
+<td class="py-4 px-6 text-center">
+<div class="flex justify-center items-center">
+<span class="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</div>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">2023-11-24 10:45</td>
+<td class="py-4 px-6 text-right space-x-2">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded transition-all"><span class="material-symbols-outlined text-xl">edit</span></button>
+<button class="p-1.5 text-gray-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">toggle_on</span></button>
+<button class="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">delete</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="py-4 px-6">
+<input class="rounded bg-background-dark border-primary/20 text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full border border-primary/10" data-alt="Avatar of user 李四" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBoRlY1d-CQd6mmsn7p0Il3E7JR5LsXCe14C09KSXU1IMDoEv91Fkk2jyLoUEvYQVA4E3vOGzKDkE5mOgV31a1YnxoWdtQuhx_QUXBN_aRY1r_R-OfyEu8JxUkEacOSXQoJynlJVblKE4ihj6Dt6YExozbLW-x0ps506g1IioRMCjQRCilh4SjYb4Z48rlbA4Nk5hPPGAEXwRLaqk-P6uWb0QQuOAHyfB-lyNCr2OSGqTs7l_23qweOr5CodfTnAn4DGryYedTKPk"/>
+<div>
+<p class="font-bold text-white leading-tight">李四 (Li Si)</p>
+<p class="text-xs text-gray-500">li.si@logistics.com</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Transit</span>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">Shenzhen Port Authority</td>
+<td class="py-4 px-6 text-center">
+<div class="flex justify-center items-center">
+<span class="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</div>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">2023-11-24 09:20</td>
+<td class="py-4 px-6 text-right space-x-2">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded transition-all"><span class="material-symbols-outlined text-xl">edit</span></button>
+<button class="p-1.5 text-gray-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">toggle_on</span></button>
+<button class="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">delete</span></button>
+</td>
+</tr>
+<!-- Row 3 - Disabled -->
+<tr class="hover:bg-primary/5 transition-colors group bg-background-dark/20">
+<td class="py-4 px-6">
+<input class="rounded bg-background-dark border-primary/20 text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3 opacity-60">
+<img class="w-10 h-10 rounded-full border border-primary/10 grayscale" data-alt="Avatar of user 王五" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7jJCBVFQeZ1ScHv8kpcLeuQTK8mQmtgk4C2tzvZC9tu80itpYcek1snUH99dqhCGvOqj0eE-xFI9Po3lo0YwfJH1l80fz5Dc0Ilhm-Fc_Yt6Mij5Be1yAtJyBevzo67bLoYLLQNkI5SAIMjxYuv9gTiUE1NEHq2CsWnu1gGeWOxkSsuGbYNcCucs6DDuBzI2pIHnI3pJMdXGzmICkTl5HEJbNDEhzClTEmEwaiasJyJAt_JGrCFMN8KkRAlt-3KgasjxYHp63b6s"/>
+<div>
+<p class="font-bold text-white leading-tight">王五 (Wang Wu)</p>
+<p class="text-xs text-gray-500">wang.wu@logistics.com</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-400 border border-orange-500/30">Receiver</span>
+</td>
+<td class="py-4 px-6 text-sm text-gray-500 opacity-60">Global Express Ltd.</td>
+<td class="py-4 px-6 text-center">
+<div class="flex justify-center items-center">
+<span class="w-2.5 h-2.5 bg-gray-600 rounded-full"></span>
+</div>
+</td>
+<td class="py-4 px-6 text-sm text-gray-500 opacity-60">2023-10-15 14:12</td>
+<td class="py-4 px-6 text-right space-x-2">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded transition-all"><span class="material-symbols-outlined text-xl">edit</span></button>
+<button class="p-1.5 text-emerald-500 hover:bg-emerald-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">toggle_off</span></button>
+<button class="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">delete</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="py-4 px-6">
+<input class="rounded bg-background-dark border-primary/20 text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full border border-primary/10" data-alt="Avatar of user 赵六" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDOqhxD2D5FWHIvdJmpSmLokS8Ziq_uLIhj2GiK2fAJ6F4DQZeliKLcAb6EiAK_vKovFXHS_ry6JiYRmsF6fg9_NiOCOMDCk81pxd8N-aHPd377mvNBqD99SBOSI-ti24txKM8ykEc3zy_LpsE8eE9PfauWB0TY_WQUo1-Rei0dab3ko7LCNHL4sXX9KJJjO7_0JrSK0mEKhS0WIwTzyPeCrnV02wLwUIkafc04Pbw97EpHRlU5kdj0z1Y2hCdfAQABh6pkb7GjyU"/>
+<div>
+<p class="font-bold text-white leading-tight">赵六 (Zhao Liu)</p>
+<p class="text-xs text-gray-500">zhao.liu@logistics.com</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wide bg-red-500/20 text-red-400 border border-red-500/30">Admin</span>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">Headquarters</td>
+<td class="py-4 px-6 text-center">
+<div class="flex justify-center items-center">
+<span class="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</div>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">2023-11-24 11:30</td>
+<td class="py-4 px-6 text-right space-x-2">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded transition-all"><span class="material-symbols-outlined text-xl">edit</span></button>
+<button class="p-1.5 text-gray-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">toggle_on</span></button>
+<button class="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">delete</span></button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="py-4 px-6">
+<input class="rounded bg-background-dark border-primary/20 text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full border border-primary/10" data-alt="Avatar of user 孙七" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGgqdyztdb_JrVnJ3I7MKVnYBYopoxT4RbMjqP0EbqAuBqhgJf4jUADYwVrFC55uZ1Nil9H4w4PrrXccfy9SPVJwYpFxtaD0-XxmksyXrGVkSc6SmB_x7BtfJvs_7utqs93woohKe9rvzU8UKe-WbO714E3Qek4VDwNrTWdZGlWSPn-GKdWKnARCljUTBOk9eDXU5LYuQR0CWrX5NFuNkbB-BUQ7dfOJZtlt-3C4IHKA15BCGJENkauc07mFXk9wqsAg3lkPto98Y"/>
+<div>
+<p class="font-bold text-white leading-tight">孙七 (Sun Qi)</p>
+<p class="text-xs text-gray-500">sun.qi@logistics.com</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-400 border border-blue-500/30">Sender</span>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">Northern Logistics Hub</td>
+<td class="py-4 px-6 text-center">
+<div class="flex justify-center items-center">
+<span class="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</div>
+</td>
+<td class="py-4 px-6 text-sm text-gray-400">2023-11-23 16:55</td>
+<td class="py-4 px-6 text-right space-x-2">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded transition-all"><span class="material-symbols-outlined text-xl">edit</span></button>
+<button class="p-1.5 text-gray-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">toggle_on</span></button>
+<button class="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"><span class="material-symbols-outlined text-xl">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination Footer -->
+<div class="flex items-center justify-between px-6 py-4 bg-background-dark/30 border-t border-primary/10">
+<p class="text-sm text-gray-400">
+                            Total <span class="font-bold text-white">127</span> users, Page <span class="font-bold text-white">1</span> of <span class="text-gray-400">13</span>
+</p>
+<div class="flex gap-2">
+<button class="p-2 bg-background-dark/50 text-gray-400 rounded hover:text-white transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="px-3.5 py-1.5 bg-primary text-white text-sm font-bold rounded">1</button>
+<button class="px-3.5 py-1.5 bg-background-dark/50 text-gray-400 text-sm font-bold rounded hover:text-white transition-colors">2</button>
+<button class="px-3.5 py-1.5 bg-background-dark/50 text-gray-400 text-sm font-bold rounded hover:text-white transition-colors">3</button>
+<span class="text-gray-600 px-2 flex items-center">...</span>
+<button class="px-3.5 py-1.5 bg-background-dark/50 text-gray-400 text-sm font-bold rounded hover:text-white transition-colors">13</button>
+<button class="p-2 bg-background-dark/50 text-gray-400 rounded hover:text-white transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

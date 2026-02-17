@@ -13,6 +13,7 @@ interface UserState {
     signOut: () => Promise<void>;
     setUser: (user: Profile | null) => void;
     checkRole: (allowedRoles: ('admin' | 'sender' | 'transit' | 'receiver')[]) => boolean;
+    hasPermission: (permission: 'warehouse' | 'finance' | 'manager') => boolean;
 }
 
 const fetchUserLock = {
@@ -106,5 +107,13 @@ export const useUserStore = create<UserState>((set, get) => ({
         const { user } = get();
         if (!user) return false;
         return allowedRoles.includes(user.role);
+    },
+
+    hasPermission: (permission) => {
+        const { user } = get();
+        if (!user) return false;
+        if (user.role === 'admin' || user.is_master) return true;
+        if (!user.permissions) return false;
+        return user.permissions.includes(permission) || user.permissions.includes('manager');
     }
 }));

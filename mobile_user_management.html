@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile User Management List</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4891e5",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#1a1a2e",
+                        "nav-dark": "#0f3460",
+                        "card-dark": "#16213e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Main Container (Mobile Viewport) -->
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- Top Navigation -->
+<nav class="sticky top-0 z-50 flex items-center justify-between bg-nav-dark px-4 py-4 shadow-lg border-b border-white/5">
+<div class="flex items-center gap-4">
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-white">menu</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-white">User Management</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-white">search</span>
+</button>
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/20 transition-transform active:scale-95">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</nav>
+<!-- Search & Filter Section -->
+<div class="bg-nav-dark/50 backdrop-blur-md px-4 pt-4 pb-2 border-b border-white/5">
+<!-- Search Bar -->
+<div class="relative mb-4">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full rounded-full border-none bg-background-dark/80 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search users by name or email..." type="text"/>
+</div>
+<!-- Capsule Filters -->
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-white">All</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 px-5 text-sm font-medium text-slate-300 hover:bg-white/10">Sender</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 px-5 text-sm font-medium text-slate-300 hover:bg-white/10">Transit</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 px-5 text-sm font-medium text-slate-300 hover:bg-white/10">Receiver</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 px-5 text-sm font-medium text-slate-300 hover:bg-white/10">Admin</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 px-5 text-sm font-medium text-slate-300 hover:bg-white/10">Active</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 px-5 text-sm font-medium text-slate-300 hover:bg-white/10">Disabled</button>
+</div>
+<p class="mt-2 text-[11px] font-medium uppercase tracking-wider text-slate-500">Total 127 users</p>
+</div>
+<!-- User List Area -->
+<main class="flex-1 space-y-3 p-4">
+<!-- User Card 1 -->
+<div class="group relative flex flex-col gap-3 rounded-2xl bg-card-dark p-4 shadow-sm ring-1 ring-white/5 active:bg-white/5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="relative">
+<img class="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20" data-alt="Profile photo of a young male professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBVHrRQhFy5uAllnGcRj8lzB3ZpbtXBRPQZnxgrNu1AQlfwpI0px9JS57gMhVxpajAJK-4ewVrp4avUuqw2ajGWijCyfPRngOQxd4sLyI0TrpkaM8GBqK-qn-Xj0qFqsWL1q8KhaCs6rqj4rTZErLoZSELJoEso0ko14BYagsiMXkZsj_yg7pJO76MQHDPDqRrBGs70LZuYd4NfstSaliPSnAvAFQpb-_-Z_UJuC55wTOH-uY1jriXgUMbbvP0WzrH-z9ujZPw94c"/>
+<div class="absolute -right-0.5 -bottom-0.5 h-3.5 w-3.5 rounded-full border-2 border-card-dark bg-emerald-500"></div>
+</div>
+<div class="flex flex-col">
+<h3 class="text-base font-bold leading-tight text-white">Alex Rivera</h3>
+<p class="text-[12px] text-slate-400">alex.rivera@logistics.co</p>
+</div>
+</div>
+<span class="rounded-full bg-primary/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">Sender</span>
+</div>
+<div class="flex items-center justify-between border-t border-white/5 pt-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-slate-500 text-sm">business</span>
+<span class="text-[12px] text-slate-400 font-medium">Global Express Inc.</span>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg">chevron_right</span>
+</div>
+</div>
+<!-- User Card 2 -->
+<div class="group relative flex flex-col gap-3 rounded-2xl bg-card-dark p-4 shadow-sm ring-1 ring-white/5 active:bg-white/5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="relative">
+<img class="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20" data-alt="Profile photo of a smiling female executive" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoY1JDbopFnHaI1dE5f3PzhSL-acvovFIDUIUOJs74YloJblLU7nh5dGAKOPqU_xe1Q8w8MMkxVNcMne4hqBriyMDVA9QL-BSlf1JLI8_YdbA-uKyjLqtMZCtW-BoEWMjbYjdTuoBgKfKbfT0uHhLVap0C80G2UTXZIqiuRJZAd5ZwhJxKcLtjeSfCmB1gOzWlWxnrNR2_no-m9-b8prsKq5xe8qBjPXlBA45gcbQVvGxFoK_mbRx18Vdw61Dedvc23OB77tcW4kE"/>
+<div class="absolute -right-0.5 -bottom-0.5 h-3.5 w-3.5 rounded-full border-2 border-card-dark bg-emerald-500"></div>
+</div>
+<div class="flex flex-col">
+<h3 class="text-base font-bold leading-tight text-white">Sarah Jenkins</h3>
+<p class="text-[12px] text-slate-400">s.jenkins@transit.io</p>
+</div>
+</div>
+<span class="rounded-full bg-emerald-500/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400">Transit</span>
+</div>
+<div class="flex items-center justify-between border-t border-white/5 pt-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-slate-500 text-sm">business</span>
+<span class="text-[12px] text-slate-400 font-medium">Skyline Fleet Services</span>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg">chevron_right</span>
+</div>
+</div>
+<!-- User Card 3 (Inactive) -->
+<div class="group relative flex flex-col gap-3 rounded-2xl bg-card-dark p-4 shadow-sm ring-1 ring-white/5 active:bg-white/5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="relative">
+<img class="h-12 w-12 rounded-full object-cover opacity-60" data-alt="Profile photo of a male administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA13DR4IbUqV4pU2wAGEKo66jx-pGGaYSeDfxEeanZ4EdSkKoCtFrksViTXkr7vQBWAo8S5xadDFFVWL5QgiHO2wtyfztvBuBLx7d6GCHb923HMp3QsXxndn39pIoIZD68m4F1jABq7snOS19gSG8GEHQlceD8UC3KYwjCVtwXSamBKw5Qfg4XedHRvp8oYqMcnc8I0yCXURw2cNjiCL2sVDr6mzz6lAQ6engbxu338INXaqTMYA3dgp3PP337BkTfVo9mVfAAeD-M"/>
+<div class="absolute -right-0.5 -bottom-0.5 h-3.5 w-3.5 rounded-full border-2 border-card-dark bg-slate-600"></div>
+</div>
+<div class="flex flex-col opacity-60">
+<h3 class="text-base font-bold leading-tight text-white">Michael Chen</h3>
+<p class="text-[12px] text-slate-400">m.chen@admin.portal</p>
+</div>
+</div>
+<span class="rounded-full bg-purple-500/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-purple-400">Admin</span>
+</div>
+<div class="flex items-center justify-between border-t border-white/5 pt-2 opacity-60">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-slate-500 text-sm">business</span>
+<span class="text-[12px] text-slate-400 font-medium">Central Systems HQ</span>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg">chevron_right</span>
+</div>
+</div>
+<!-- User Card 4 -->
+<div class="group relative flex flex-col gap-3 rounded-2xl bg-card-dark p-4 shadow-sm ring-1 ring-white/5 active:bg-white/5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="relative">
+<img class="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20" data-alt="Profile photo of a professional woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdQJF5Fm5bN3Ln1W1dGoc6QwlS-qzpd41t8nealCf1q9F40qR0kXYaHJpAQ6n0l9Dk8jB05-c9gTTiPf_6EeEteWbdUUChxDEsShzb-bpYNCWMJjzy-P2HgFagkL-Ecx-aSRPSIfehGbSYPrfWJ_WYriYR0ChZ-h8MzvmBsPKnQqPnM1B5fdGJHuv2At4Jn2vDcJ8nXd0immA0Y7vGWXfa4Uj-0dOV3NiboWdxhzLQvCfNfRrABVpkH37c6mf0tjdR7uFvCxrD6mY"/>
+<div class="absolute -right-0.5 -bottom-0.5 h-3.5 w-3.5 rounded-full border-2 border-card-dark bg-emerald-500"></div>
+</div>
+<div class="flex flex-col">
+<h3 class="text-base font-bold leading-tight text-white">Elena Rodriguez</h3>
+<p class="text-[12px] text-slate-400">e.rodriguez@delivery.com</p>
+</div>
+</div>
+<span class="rounded-full bg-orange-500/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-400">Receiver</span>
+</div>
+<div class="flex items-center justify-between border-t border-white/5 pt-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-slate-500 text-sm">business</span>
+<span class="text-[12px] text-slate-400 font-medium">Urban Retail Partners</span>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg">chevron_right</span>
+</div>
+</div>
+<!-- User Card 5 -->
+<div class="group relative flex flex-col gap-3 rounded-2xl bg-card-dark p-4 shadow-sm ring-1 ring-white/5 active:bg-white/5 transition-colors">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<div class="relative">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary ring-2 ring-primary/20">
+<span class="text-sm font-bold">DT</span>
+</div>
+<div class="absolute -right-0.5 -bottom-0.5 h-3.5 w-3.5 rounded-full border-2 border-card-dark bg-emerald-500"></div>
+</div>
+<div class="flex flex-col">
+<h3 class="text-base font-bold leading-tight text-white">David Thompson</h3>
+<p class="text-[12px] text-slate-400">d.thompson@prime.co</p>
+</div>
+</div>
+<span class="rounded-full bg-primary/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">Sender</span>
+</div>
+<div class="flex items-center justify-between border-t border-white/5 pt-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-slate-500 text-sm">business</span>
+<span class="text-[12px] text-slate-400 font-medium">Prime Logistics Ltd.</span>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg">chevron_right</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 right-0 z-50 bg-nav-dark/95 backdrop-blur-xl border-t border-white/10 px-2 pb-6 pt-3 shadow-2xl">
+<div class="flex items-end justify-between px-4">
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px]">dashboard</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1">group</span>
+<span class="text-[10px] font-bold">Users</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px]">package_2</span>
+<span class="text-[10px] font-medium">Batches</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px]">receipt_long</span>
+<span class="text-[10px] font-medium">Bills</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</a>
+</div>
+</div>
+</div>
+</body></html>

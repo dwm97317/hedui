@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile System Settings List</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4891e5",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#1a1a2e", // Requested background
+                        "group-bg": "#16213e",       // Requested grouping
+                        "item-bg": "#0f3460",        // Requested item background
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex justify-center">
+<!-- Mobile Screen Wrapper (390px) -->
+<div class="relative w-full max-w-[390px] h-screen bg-background-light dark:bg-background-dark flex flex-col overflow-hidden shadow-2xl border-x border-slate-200 dark:border-slate-800">
+<!-- Top Nav -->
+<header class="sticky top-0 z-20 flex items-center justify-between px-4 py-4 bg-white/80 dark:bg-background-dark/80 ios-blur border-b border-slate-200 dark:border-slate-800">
+<button class="flex items-center justify-center size-10 -ml-2 text-primary">
+<span class="material-symbols-outlined text-[28px]">chevron_left</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight flex-1 text-center pr-8">System Settings</h1>
+<div class="w-2"></div>
+</header>
+<!-- Main Content (Scrollable) -->
+<main class="flex-1 overflow-y-auto hide-scrollbar pb-10">
+<!-- FUNCTION SWITCHES -->
+<section class="mt-6">
+<h3 class="px-5 mb-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Function Switches</h3>
+<div class="mx-4 overflow-hidden rounded-xl bg-slate-200 dark:bg-group-bg border border-slate-200 dark:border-slate-800">
+<!-- Item 1 -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-item-bg border-b border-slate-200 dark:border-slate-800/50">
+<div class="flex-1 pr-4">
+<p class="text-[15px] font-semibold">Batch Auto-Complete</p>
+<p class="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">Close batches after final scan</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+</label>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-item-bg">
+<div class="flex-1 pr-4">
+<p class="text-[15px] font-semibold">Bill Auto-Gen</p>
+<p class="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">Generate documents on save</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- NOTIFICATION CONFIG -->
+<section class="mt-8">
+<h3 class="px-5 mb-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Notification Config</h3>
+<div class="mx-4 overflow-hidden rounded-xl bg-slate-200 dark:bg-group-bg border border-slate-200 dark:border-slate-800">
+<!-- Email -->
+<a class="flex items-center p-4 bg-white dark:bg-item-bg border-b border-slate-200 dark:border-slate-800/50 active:bg-slate-100 dark:active:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-primary mr-3">mail</span>
+<span class="text-[15px] font-medium flex-1">Email Settings</span>
+<span class="material-symbols-outlined text-slate-400 text-xl">chevron_right</span>
+</a>
+<!-- SMS -->
+<a class="flex items-center p-4 bg-white dark:bg-item-bg border-b border-slate-200 dark:border-slate-800/50 active:bg-slate-100 dark:active:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-primary mr-3">sms</span>
+<span class="text-[15px] font-medium flex-1">SMS Gateway</span>
+<span class="material-symbols-outlined text-slate-400 text-xl">chevron_right</span>
+</a>
+<!-- System -->
+<a class="flex items-center p-4 bg-white dark:bg-item-bg border-b border-slate-200 dark:border-slate-800/50 active:bg-slate-100 dark:active:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-primary mr-3">notifications_active</span>
+<span class="text-[15px] font-medium flex-1">System Alerts</span>
+<span class="material-symbols-outlined text-slate-400 text-xl">chevron_right</span>
+</a>
+<!-- Templates -->
+<a class="flex items-center p-4 bg-white dark:bg-item-bg active:bg-slate-100 dark:active:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-primary mr-3">description</span>
+<span class="text-[15px] font-medium flex-1">Message Templates</span>
+<span class="material-symbols-outlined text-slate-400 text-xl">chevron_right</span>
+</a>
+</div>
+</section>
+<!-- PDA CONFIG -->
+<section class="mt-8">
+<h3 class="px-5 mb-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">PDA Config</h3>
+<div class="mx-4 overflow-hidden rounded-xl bg-slate-200 dark:bg-group-bg border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between p-4 bg-white dark:bg-item-bg border-b border-slate-200 dark:border-slate-800/50">
+<span class="text-[15px] font-medium">Scanning Mode</span>
+<div class="flex items-center text-primary font-medium text-[15px]">
+                            Continuous Scan
+                            <span class="material-symbols-outlined text-slate-400 text-xl ml-1">unfold_more</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-white dark:bg-item-bg">
+<span class="text-[15px] font-medium">Vibration Feedback</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- SYSTEM MAINTENANCE -->
+<section class="mt-8 mb-6">
+<h3 class="px-5 mb-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">System Maintenance</h3>
+<div class="px-4 space-y-3">
+<button class="w-full flex flex-col items-start p-4 bg-white dark:bg-item-bg rounded-xl border border-slate-200 dark:border-slate-800 active:bg-slate-100 dark:active:bg-slate-800 transition-colors">
+<span class="text-[15px] font-semibold">Database Optimization</span>
+<span class="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Last optimized: 2 days ago</span>
+</button>
+<button class="w-full flex flex-col items-start p-4 bg-white dark:bg-item-bg rounded-xl border border-slate-200 dark:border-slate-800 active:bg-slate-100 dark:active:bg-slate-800 transition-colors">
+<span class="text-[15px] font-semibold text-rose-500 dark:text-rose-400">Clear Cache</span>
+<span class="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Current size: 124.8 MB</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Bottom Nav -->
+<nav class="sticky bottom-0 z-20 w-full bg-white dark:bg-group-bg border-t border-slate-200 dark:border-slate-800 pb-safe-area">
+<div class="flex items-center justify-around h-16">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[26px]">grid_view</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[26px]">group</span>
+<span class="text-[10px] font-medium">Users</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[26px]">inventory_2</span>
+<span class="text-[10px] font-medium">Batches</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[26px]">receipt_long</span>
+<span class="text-[10px] font-medium">Bills</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-[26px] fill-current" style="font-variation-settings: 'FILL' 1">settings</span>
+<span class="text-[10px] font-bold">Settings</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

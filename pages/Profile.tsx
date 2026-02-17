@@ -7,8 +7,14 @@ import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut } = useUserStore();
+  const { user, signOut } = useUserStore();
   const [showBillingModal, setShowBillingModal] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin/profile', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleLogout = async () => {
     await signOut();

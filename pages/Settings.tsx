@@ -5,14 +5,17 @@ import { useUserStore } from '../store/user.store';
 import { updateService, AppVersion } from '../services/update.service';
 import toast from 'react-hot-toast';
 import pkg from '../package.json';
+import { StaffService, StaffProfile } from '../services/staff.service';
+import { supabase } from '../services/supabase';
 
 const Settings: React.FC = () => {
     const navigate = useNavigate();
-    const { signOut } = useUserStore();
+    const { user, signOut } = useUserStore();
     const { model: pdaModel, setModel, scanAction, scanExtra, setConfig } = useScannerStore();
     const [showPrinterModal, setShowPrinterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showPdaModal, setShowPdaModal] = useState(false);
+    const [showStaffModal, setShowStaffModal] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [latestVersion, setLatestVersion] = useState<AppVersion | null>(null);
     const [checking, setChecking] = useState(false);
@@ -319,6 +322,135 @@ const Settings: React.FC = () => {
         </div>
     );
 
+    // Staff Management Modal
+    const StaffManagementModal = () => {
+        const { user } = useUserStore();
+        const [staff, setStaff] = React.useState<StaffProfile[]>([]);
+        const [loading, setLoading] = React.useState(true);
+
+        const fetchStaff = async () => {
+            if (!user?.company_id) return;
+            try {
+                const data = await StaffService.getStaff(user.company_id);
+                setStaff(data);
+            } catch (e) {
+                toast.error('获取员工列表失败');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        React.useEffect(() => {
+            fetchStaff();
+        }, []);
+
+        const togglePermission = async (staffId: string, currentPermissions: string[], permission: string) => {
+            let next = [...(currentPermissions || [])];
+            if (next.includes(permission)) {
+                next = next.filter(p => p !== permission);
+            } else {
+                next.push(permission);
+            }
+            try {
+                await StaffService.updatePermissions(staffId, next);
+                toast.success('权限已更新');
+                fetchStaff();
+            } catch (e) {
+                toast.error('更新失败');
+            }
+        };
+
+        return (
+            <div className="fixed inset-0 z-[60] bg-background-light dark:bg-background-dark flex flex-col animate-slide-up">
+                <header className="bg-surface-dark/95 backdrop-blur shadow-md z-50 sticky top-0 border-b border-white/5">
+                    <div className="px-4 py-4 flex items-center justify-between relative">
+                        <button
+                            onClick={() => setShowStaffModal(false)}
+                            className="p-2 -ml-2 text-gray-400 hover:text-white rounded-full active:bg-white/10 transition-colors"
+                        >
+                            <span className="material-icons">close</span>
+                        </button>
+                        <h1 className="text-lg font-bold text-white tracking-wide">员工账号管理</h1>
+                        <div className="w-10"></div>
+                    </div>
+                </header>
+                <main className="flex-1 p-4 overflow-y-auto flex flex-col gap-5 pb-32 no-scrollbar">
+                    <section>
+                        <div className="mb-4 bg-primary/10 border border-primary/20 p-4 rounded-xl">
+                            <h3 className="text-primary font-bold text-sm mb-1">如何增加员工？</h3>
+                            <p className="text-[11px] text-primary/80 leading-relaxed">
+                                请让您的员工在登录页点击注册，并输入公司代码：
+                                <span className="bg-primary/20 px-2 py-0.5 rounded font-mono font-bold ml-1">{user?.company?.code || '尚未配置'}</span>
+                                <br />
+                                注册成功后，此列表会自动出现该员工，您可以为其分配权限。
+                            </p>
+                        </div>
+
+                        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">员工列表</h2>
+                        <div className="space-y-3">
+                            {loading ? (
+                                <div className="p-10 text-center text-gray-500 animate-pulse">加载中...</div>
+                            ) : staff.length === 0 ? (
+                                <div className="p-10 text-center text-gray-500 bg-surface-dark rounded-xl border border-dashed border-white/10">暂无员工信息</div>
+                            ) : staff.map(s => (
+                                <div key={s.id} className="bg-surface-dark rounded-xl border border-white/5 p-4 flex flex-col gap-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-400">
+                                                {s.full_name?.[0] || 'U'}
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-bold text-white flex items-center gap-2">
+                                                    {s.full_name}
+                                                    {s.is_master && <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase">主管</span>}
+                                                </div>
+                                                <div className="text-[10px] text-gray-500 font-mono">{s.id.slice(0, 8)}...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {!s.is_master && (
+                                        <div className="grid grid-cols-3 gap-2 mt-1">
+                                            <button
+                                                onClick={() => togglePermission(s.id, s.permissions || [], 'warehouse')}
+                                                className={`flex flex-col items-center justify-center py-2 rounded-lg border transition-all ${s.permissions?.includes('warehouse') || s.permissions?.includes('manager') ? 'bg-accent-yellow/20 border-accent-yellow text-accent-yellow' : 'bg-surface-hover border-white/5 text-gray-500'}`}
+                                            >
+                                                <span className="material-icons text-sm mb-0.5">inventory_2</span>
+                                                <span className="text-[10px] font-bold">仓管</span>
+                                            </button>
+                                            <button
+                                                onClick={() => togglePermission(s.id, s.permissions || [], 'finance')}
+                                                className={`flex flex-col items-center justify-center py-2 rounded-lg border transition-all ${s.permissions?.includes('finance') || s.permissions?.includes('manager') ? 'bg-accent-green/20 border-accent-green text-accent-green' : 'bg-surface-hover border-white/5 text-gray-500'}`}
+                                            >
+                                                <span className="material-icons text-sm mb-0.5">account_balance_wallet</span>
+                                                <span className="text-[10px] font-bold">财务</span>
+                                            </button>
+                                            <button
+                                                onClick={() => togglePermission(s.id, s.permissions || [], 'manager')}
+                                                className={`flex flex-col items-center justify-center py-2 rounded-lg border transition-all ${s.permissions?.includes('manager') ? 'bg-primary/20 border-primary text-primary' : 'bg-surface-hover border-white/5 text-gray-500'}`}
+                                            >
+                                                <span className="material-icons text-sm mb-0.5">admin_panel_settings</span>
+                                                <span className="text-[10px] font-bold">主管权限</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                </main>
+                <div className="fixed bottom-0 left-0 right-0 bg-surface-dark/95 backdrop-blur border-t border-white/10 p-4 safe-area-pb z-50">
+                    <button
+                        onClick={() => setShowStaffModal(false)}
+                        className="w-full py-3.5 rounded-xl bg-surface-hover text-white font-bold text-base border border-white/10"
+                    >
+                        关闭
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="flex flex-col h-full bg-background-light dark:bg-background-dark">
             <header className="bg-surface-dark/95 backdrop-blur shadow-md z-50 sticky top-0 flex-shrink-0">
@@ -340,6 +472,29 @@ const Settings: React.FC = () => {
             </header>
 
             <main className="flex-1 p-4 overflow-y-auto flex flex-col gap-6 pb-24 no-scrollbar">
+                {(user?.is_master || user?.role === 'admin') && (
+                    <section>
+                        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">公司管理</h2>
+                        <div className="bg-surface-dark rounded-xl border border-white/5 overflow-hidden">
+                            <button
+                                onClick={() => setShowStaffModal(true)}
+                                className="w-full flex items-center justify-between p-4 active:bg-surface-hover transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+                                        <span className="material-icons">manage_accounts</span>
+                                    </div>
+                                    <span className="text-base font-medium text-gray-200">员工账号与权限管理</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-400">管理</span>
+                                    <span className="material-icons text-gray-500 text-sm">chevron_right</span>
+                                </div>
+                            </button>
+                        </div>
+                    </section>
+                )}
+
                 <section>
                     <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">连接设置</h2>
                     <div className="bg-surface-dark rounded-xl border border-white/5 overflow-hidden">
@@ -586,6 +741,7 @@ const Settings: React.FC = () => {
             {showPrinterModal && <PrinterModal />}
             {showUpdateModal && <UpdateModal />}
             {showPdaModal && <PdaModal />}
+            {showStaffModal && <StaffManagementModal />}
         </div>
     );
 };

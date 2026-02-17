@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile Add Company Form</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4891e5",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111821",
+                        "input-bg": "#16213e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-toggle:checked + .ios-toggle-label {
+            background-color: #4891e5;
+        }
+        .ios-toggle:checked + .ios-toggle-label::after {
+            transform: translateX(1.25rem);
+        }
+        /* Custom range slider styling */
+        input[type='range']::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #4891e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark pb-24">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 flex items-center justify-between bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 border-b border-primary/10">
+<button class="text-primary font-medium text-base">Cancel</button>
+<h1 class="text-lg font-bold tracking-tight">Add Company</h1>
+<button class="text-primary font-bold text-base">Save</button>
+</header>
+<main class="flex-1 overflow-y-auto px-4 py-6 space-y-8">
+<!-- Group 1: Basic Info -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">corporate_fare</span>
+<h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Basic Info</h2>
+</div>
+<div class="space-y-3">
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Company Name (CN/EN/VN)</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 focus:ring-2 focus:ring-primary text-base placeholder:text-slate-500" placeholder="Global Logistics Co." type="text"/>
+</label>
+<div class="grid grid-cols-2 gap-3">
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Company Code</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 focus:ring-2 focus:ring-primary text-base placeholder:text-slate-500" placeholder="LOG-XYZ" type="text"/>
+</label>
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Role</span>
+<div class="relative">
+<select class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 appearance-none focus:ring-2 focus:ring-primary text-base pr-10">
+<option>Carrier</option>
+<option>Forwarder</option>
+<option>Shipper</option>
+<option>Vendor</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+</div>
+</label>
+</div>
+</div>
+</section>
+<!-- Group 2: Contact -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">contact_mail</span>
+<h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Contact Details</h2>
+</div>
+<div class="space-y-3">
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Contact Name</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 focus:ring-2 focus:ring-primary text-base" placeholder="John Doe" type="text"/>
+</label>
+<div class="grid grid-cols-1 gap-3">
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Phone Number</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 focus:ring-2 focus:ring-primary text-base" placeholder="+1 (555) 000-0000" type="tel"/>
+</label>
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Email Address</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 focus:ring-2 focus:ring-primary text-base" placeholder="contact@company.com" type="email"/>
+</label>
+</div>
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Physical Address</span>
+<textarea class="w-full bg-white dark:bg-input-bg border-none rounded-xl p-4 focus:ring-2 focus:ring-primary text-base resize-none" placeholder="Street, City, Zip Code" rows="3"></textarea>
+</label>
+</div>
+</section>
+<!-- Group 3: Finance (Collapsible Simulation) -->
+<section class="border border-primary/10 rounded-2xl overflow-hidden bg-white/5">
+<button class="w-full flex items-center justify-between p-4 hover:bg-white/10 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="font-semibold">Finance Info</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">expand_less</span>
+</button>
+<div class="p-4 pt-0 space-y-4">
+<label class="block">
+<span class="text-xs font-medium mb-1.5 block text-slate-400 uppercase">Tax ID / VAT</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 focus:ring-2 focus:ring-primary text-base" placeholder="TX-9922883" type="text"/>
+</label>
+<div class="grid grid-cols-3 gap-2">
+<label class="block">
+<span class="text-xs font-medium mb-1.5 block text-slate-400">Unit A</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-3 focus:ring-2 focus:ring-primary text-base" placeholder="0.00" type="number"/>
+</label>
+<label class="block">
+<span class="text-xs font-medium mb-1.5 block text-slate-400">Unit B</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-3 focus:ring-2 focus:ring-primary text-base" placeholder="0.00" type="number"/>
+</label>
+<label class="block">
+<span class="text-xs font-medium mb-1.5 block text-slate-400">Unit C</span>
+<input class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-3 focus:ring-2 focus:ring-primary text-base" placeholder="0.00" type="number"/>
+</label>
+</div>
+</div>
+</section>
+<!-- Group 4: Partners (Collapsible Simulation) -->
+<section class="border border-primary/10 rounded-2xl overflow-hidden bg-white/5">
+<button class="w-full flex items-center justify-between p-4 hover:bg-white/10 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">handshake</span>
+<span class="font-semibold">Partners &amp; Priority</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">expand_less</span>
+</button>
+<div class="p-4 pt-0 space-y-5">
+<div>
+<span class="text-xs font-medium mb-2 block text-slate-400 uppercase">Select Partners</span>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1.5 bg-primary text-white rounded-full text-xs font-medium flex items-center gap-1">Oceanic Ltd <span class="material-symbols-outlined text-xs">close</span></span>
+<span class="px-3 py-1.5 bg-primary text-white rounded-full text-xs font-medium flex items-center gap-1">FastTrack <span class="material-symbols-outlined text-xs">close</span></span>
+<button class="px-3 py-1.5 bg-primary/20 text-primary border border-primary/30 rounded-full text-xs font-medium">+ Add</button>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<span class="text-xs font-medium text-slate-400 uppercase">Priority Level</span>
+<span class="text-primary font-bold">7 / 10</span>
+</div>
+<input class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="10" min="1" type="range" value="7"/>
+</div>
+</div>
+</section>
+<!-- Group 5: Others -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">settings</span>
+<h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Others</h2>
+</div>
+<div class="space-y-4">
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Settlement Cycle</span>
+<div class="relative">
+<select class="w-full bg-white dark:bg-input-bg border-none rounded-xl h-12 px-4 appearance-none focus:ring-2 focus:ring-primary text-base pr-10">
+<option>Monthly (Net 30)</option>
+<option>Bi-Weekly</option>
+<option>Weekly</option>
+<option>Prepaid</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+</div>
+</label>
+<div class="flex items-center justify-between bg-white dark:bg-input-bg p-4 rounded-xl">
+<div>
+<p class="font-medium">Active Status</p>
+<p class="text-xs text-slate-500">Enable or disable company access</p>
+</div>
+<div class="relative inline-block w-12 h-7 align-middle select-none">
+<input checked="" class="ios-toggle absolute block w-0 h-0 opacity-0" id="status-toggle" type="checkbox"/>
+<label class="ios-toggle-label block overflow-hidden h-7 rounded-full bg-slate-600 cursor-pointer transition-colors duration-200 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:w-6 after:h-6 after:rounded-full after:transition-transform after:duration-200" for="status-toggle"></label>
+</div>
+</div>
+<label class="block">
+<span class="text-sm font-medium mb-1.5 block">Internal Remarks</span>
+<textarea class="w-full bg-white dark:bg-input-bg border-none rounded-xl p-4 focus:ring-2 focus:ring-primary text-base resize-none" placeholder="Notes for team..." rows="2"></textarea>
+</label>
+</div>
+</section>
+</main>
+<!-- Fixed Bottom Action Bar -->
+<footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-primary/10">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                Create Company Profile
+            </button>
+</footer>
+</div>
+</body></html>

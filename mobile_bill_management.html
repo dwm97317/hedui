@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile Bill Management List</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3086e8",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#1a1a2e",
+                        "card-dark": "#16213e",
+                        "accent-yellow": "#facc15",
+                        "accent-green": "#22c55e",
+                        "accent-red": "#ef4444",
+                        "accent-orange": "#f97316",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Main Container (Mobile 390px simulated) -->
+<div class="relative mx-auto min-h-screen max-w-[390px] flex flex-col bg-background-light dark:bg-background-dark shadow-2xl overflow-hidden">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">menu</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-slate-800 dark:text-white">Bill Management</h1>
+<div class="flex gap-1">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">search</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">filter_list</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 pb-24 overflow-y-auto">
+<!-- Stats Grid (2x2) -->
+<section class="grid grid-cols-2 gap-3 p-4">
+<!-- Pending Card -->
+<div class="flex flex-col gap-1 rounded-xl p-4 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-1">
+<span class="material-symbols-outlined text-accent-yellow text-xl">hourglass_empty</span>
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending</span>
+</div>
+<div class="flex flex-col">
+<span class="text-2xl font-bold dark:text-white">45</span>
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">₫23.5M</span>
+</div>
+</div>
+<!-- Paid Card -->
+<div class="flex flex-col gap-1 rounded-xl p-4 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-1">
+<span class="material-symbols-outlined text-accent-green text-xl">check_circle</span>
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Paid</span>
+</div>
+<div class="flex flex-col">
+<span class="text-2xl font-bold dark:text-white">82</span>
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">₫102M</span>
+</div>
+</div>
+<!-- This Month Card -->
+<div class="flex flex-col gap-1 rounded-xl p-4 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-1">
+<span class="material-symbols-outlined text-primary text-xl">calendar_month</span>
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">This Month</span>
+</div>
+<div class="flex flex-col">
+<span class="text-2xl font-bold dark:text-white">127</span>
+<span class="text-sm font-medium text-slate-500 dark:text-slate-400">₫125M</span>
+</div>
+</div>
+<!-- Overdue Card (Urgent) -->
+<div class="flex flex-col gap-1 rounded-xl p-4 bg-white dark:bg-card-dark border-2 border-accent-red/40 dark:border-accent-red/50 shadow-sm">
+<div class="flex items-center justify-between mb-1">
+<span class="material-symbols-outlined text-accent-red text-xl">warning</span>
+<span class="text-xs font-semibold text-accent-red uppercase tracking-wider">Overdue</span>
+</div>
+<div class="flex flex-col">
+<span class="text-2xl font-bold dark:text-white">3</span>
+<span class="text-sm font-medium text-accent-red/80">₫1.5M</span>
+</div>
+</div>
+</section>
+<!-- Horizontal Filter Bar -->
+<section class="flex gap-2 px-4 py-2 overflow-x-auto hide-scrollbar whitespace-nowrap">
+<button class="px-4 py-1.5 rounded-full text-sm font-semibold bg-primary text-white shadow-lg shadow-primary/20">All</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Bill A</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Bill B</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Bill C</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Pending</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Paid</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Overdue</button>
+</section>
+<!-- Recent Bills List -->
+<section class="flex flex-col gap-4 p-4">
+<h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest px-1">Recent Transactions</h3>
+<!-- Bill Card 1 (Pending) -->
+<div class="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-sm font-mono font-bold text-slate-800 dark:text-white">#BILL-16213</span>
+<span class="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase border border-primary/20">TYPE A</span>
+</div>
+<span class="text-[11px] text-slate-400 font-medium">10 mins ago</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="text-xs text-slate-500 dark:text-slate-400">
+                            Batch: <a class="underline text-primary/90 font-medium" href="#">#BAT-4421</a>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-400 leading-tight">PAYER</span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Logistics Corp</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">arrow_forward</span>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-400 leading-tight">PAYEE</span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">John Doe</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+<span class="text-xl font-mono font-bold dark:text-white">₫5,025,000</span>
+<span class="px-3 py-1 rounded-full text-[11px] font-bold bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20 uppercase tracking-wide">Pending</span>
+</div>
+</div>
+<!-- Bill Card 2 (Paid) -->
+<div class="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-sm font-mono font-bold text-slate-800 dark:text-white">#BILL-16209</span>
+<span class="px-2 py-0.5 rounded bg-accent-green/10 text-accent-green text-[10px] font-bold uppercase border border-accent-green/20">TYPE B</span>
+</div>
+<span class="text-[11px] text-slate-400 font-medium">2 hours ago</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="text-xs text-slate-500 dark:text-slate-400">
+                            Batch: <a class="underline text-primary/90 font-medium" href="#">#BAT-4398</a>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-400 leading-tight">PAYER</span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Speedy Hub</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">arrow_forward</span>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-400 leading-tight">PAYEE</span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">City Transit</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+<span class="text-xl font-mono font-bold dark:text-white">₫12,450,000</span>
+<span class="px-3 py-1 rounded-full text-[11px] font-bold bg-accent-green/10 text-accent-green border border-accent-green/20 uppercase tracking-wide">Paid</span>
+</div>
+</div>
+<!-- Bill Card 3 (Overdue) -->
+<div class="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-card-dark border border-accent-red/20 shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-sm font-mono font-bold text-slate-800 dark:text-white">#BILL-16198</span>
+<span class="px-2 py-0.5 rounded bg-accent-orange/10 text-accent-orange text-[10px] font-bold uppercase border border-accent-orange/20">TYPE C</span>
+</div>
+<span class="text-[11px] text-accent-red font-bold">OVERDUE</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="text-xs text-slate-500 dark:text-slate-400">
+                            Batch: <a class="underline text-primary/90 font-medium" href="#">#BAT-4355</a>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-400 leading-tight">PAYER</span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">North Depot</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">arrow_forward</span>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-400 leading-tight">PAYEE</span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Express Fleet</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+<span class="text-xl font-mono font-bold text-accent-red">₫1,500,000</span>
+<span class="px-3 py-1 rounded-full text-[11px] font-bold bg-accent-red text-white uppercase tracking-wide shadow-sm">Overdue</span>
+</div>
+</div>
+</section>
+</main>
+<!-- iOS Bottom Tab Bar -->
+<nav class="fixed bottom-0 mx-auto w-full max-w-[390px] bg-white/90 dark:bg-background-dark/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-2 pb-5 pt-2 flex items-center justify-around z-30">
+<a class="flex flex-col items-center gap-1 flex-1 py-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-[24px]">dashboard</span>
+<span class="text-[10px] font-medium leading-none">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 flex-1 py-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-[24px]">group</span>
+<span class="text-[10px] font-medium leading-none">Users</span>
+</a>
+<a class="flex flex-col items-center gap-1 flex-1 py-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-[24px]">inventory_2</span>
+<span class="text-[10px] font-medium leading-none">Batches</span>
+</a>
+<a class="flex flex-col items-center gap-1 flex-1 py-1 text-primary" href="#">
+<span class="material-symbols-outlined text-[24px] fill-current" style="font-variation-settings: 'FILL' 1">receipt_long</span>
+<span class="text-[10px] font-bold leading-none">Bills</span>
+</a>
+<a class="flex flex-col items-center gap-1 flex-1 py-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="text-[10px] font-medium leading-none">Settings</span>
+</a>
+</nav>
+<!-- Home Indicator (iOS style) -->
+<div class="fixed bottom-1 mx-auto left-0 right-0 w-[120px] h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full z-40 opacity-50"></div>
+</div>
+</body></html>

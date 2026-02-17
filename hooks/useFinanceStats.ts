@@ -27,26 +27,30 @@ export const useFinanceStats = () => {
             // 获取账单统计
             const { data: billStats, error: billError } = await supabase
                 .from('bills')
-                .select('currency, status, total_amount');
+                .select('currency, status, total_amount, paid_amount');
 
             if (billError) throw billError;
 
             // 计算各币种的待结算和已结算金额
-            const cnyPending = billStats
-                ?.filter(b => b.currency === 'CNY' && b.status === 'pending')
-                .reduce((sum, b) => sum + Number(b.total_amount || 0), 0) || 0;
-
             const cnyPaid = billStats
-                ?.filter(b => b.currency === 'CNY' && b.status === 'paid')
+                ?.filter(b => b.currency === 'CNY')
+                .reduce((sum, b) => sum + Number(b.paid_amount || 0), 0) || 0;
+
+            const cnyTotal = billStats
+                ?.filter(b => b.currency === 'CNY')
                 .reduce((sum, b) => sum + Number(b.total_amount || 0), 0) || 0;
 
-            const vndPending = billStats
-                ?.filter(b => b.currency === 'VND' && b.status === 'pending')
-                .reduce((sum, b) => sum + Number(b.total_amount || 0), 0) || 0;
+            const cnyPending = cnyTotal - cnyPaid;
 
             const vndPaid = billStats
-                ?.filter(b => b.currency === 'VND' && b.status === 'paid')
+                ?.filter(b => b.currency === 'VND')
+                .reduce((sum, b) => sum + Number(b.paid_amount || 0), 0) || 0;
+
+            const vndTotal = billStats
+                ?.filter(b => b.currency === 'VND')
                 .reduce((sum, b) => sum + Number(b.total_amount || 0), 0) || 0;
+
+            const vndPending = vndTotal - vndPaid;
 
             // 计算回款率
             const totalBilled = cnyPending + cnyPaid + vndPending + vndPaid;

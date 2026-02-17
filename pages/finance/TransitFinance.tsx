@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore, BillStatus, Currency } from '../../store/finance.store';
-import { ArrowUpRight, Clock, CheckCircle, TrendingUp, DollarSign } from 'lucide-react';
+import { ArrowUpRight, Clock, CheckCircle, TrendingUp, DollarSign, Settings } from 'lucide-react';
 
 const TransitFinance = () => {
+    const navigate = useNavigate();
     const fetchBatches = useFinanceStore(state => state.fetchBatches);
     const getTransitBatches = useFinanceStore(state => state.getTransitBatches);
     const loading = useFinanceStore(state => state.loading);
@@ -28,8 +30,17 @@ const TransitFinance = () => {
                     <h1 className="text-2xl font-bold text-white tracking-tight">收益中心</h1>
                     <p className="text-slate-400 text-sm mt-1">中转方门户 • 应收账款</p>
                 </div>
-                <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 font-mono text-sm text-green-400">
-                    <span className="text-slate-500 mr-2">状态：</span> 活跃
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => navigate('/finance/admin/pricing')}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 border border-blue-500/50 rounded-lg text-blue-400 text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all"
+                    >
+                        <Settings size={16} />
+                        <span>价格策略</span>
+                    </button>
+                    <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 font-mono text-sm text-green-400">
+                        <span className="text-slate-500 mr-2">状态：</span> 活跃
+                    </div>
                 </div>
             </header>
 
@@ -92,7 +103,11 @@ const TransitFinance = () => {
                                 <div className="text-2xl font-bold text-white font-mono">
                                     {formatCurrency(batch.billB.amount, 'VND')}
                                 </div>
-                                {/* Unit Price hidden as per requirement, but total is visible */}
+                                {batch.billB.status === BillStatus.PENDING && (
+                                    <div className="mt-2 text-slate-500 text-[10px]">
+                                        待平台手动结算
+                                    </div>
+                                )}
                             </div>
 
                         </div>

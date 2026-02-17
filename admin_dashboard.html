@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4891e5",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#1a1a2e",
+                        "card-dark": "#16213e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+<!-- Header Section -->
+<header class="p-6 pb-4 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-12 h-12 rounded-full border-2 border-primary/30 overflow-hidden bg-slate-800">
+<img alt="Admin Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of professional male administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVijAgqcZjDPBVcOe8yL46y5UsQ--9fZcd1ceLae9WRvMu0sUcRzCyb97wVDLBE9j2chwqLfpb5ACF7bFr_qIuWE-mLQQUpidBPIDXI4t2mk0Dr-QcTbI-xhAdX4baXWU2A4S5yfabZmzYRVN1N9CZfbhs8OaKDx2oS_DIJGIRUAQIAs6yGz4rA9_YEKze9e9wrY5KP1tch9w9fMVGQmquvMHC62wgIhQv2PvIeg0ukeqUwedpY9sxAEd9Apk2bIMcH3l8U1nhqk4"/>
+</div>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background-dark rounded-full"></div>
+</div>
+<div>
+<h1 class="text-2xl font-bold tracking-tight">Good Morning, Admin</h1>
+<p class="text-sm text-slate-400">October 24, 2023</p>
+</div>
+</div>
+<button class="relative p-2 rounded-xl bg-card-dark border border-slate-700/50 hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-300">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-background-dark"></span>
+</button>
+</div>
+</header>
+<!-- Stats Grid (2x2) -->
+<section class="px-6 py-4 grid grid-cols-2 gap-4">
+<!-- Today's Batches -->
+<div class="bg-card-dark p-4 rounded-xl border border-slate-700/30">
+<div class="flex items-center justify-between mb-2">
+<div class="p-2 bg-primary/20 rounded-lg">
+<span class="material-symbols-outlined text-primary text-xl">package_2</span>
+</div>
+<span class="text-xs font-bold text-green-400">+12%</span>
+</div>
+<p class="text-sm text-slate-400">Today's Batches</p>
+<p class="text-2xl font-bold mt-1">15</p>
+</div>
+<!-- Online Users -->
+<div class="bg-card-dark p-4 rounded-xl border border-slate-700/30">
+<div class="flex items-center justify-between mb-2">
+<div class="p-2 bg-green-500/20 rounded-lg">
+<span class="material-symbols-outlined text-green-500 text-xl">group</span>
+</div>
+<div class="flex -space-x-2">
+<div class="w-5 h-5 rounded-full border border-card-dark bg-slate-600"></div>
+<div class="w-5 h-5 rounded-full border border-card-dark bg-slate-500"></div>
+</div>
+</div>
+<p class="text-sm text-slate-400">Online Users</p>
+<p class="text-2xl font-bold mt-1">8</p>
+</div>
+<!-- Today's Bills -->
+<div class="bg-card-dark p-4 rounded-xl border border-slate-700/30">
+<div class="flex items-center justify-between mb-2">
+<div class="p-2 bg-orange-500/20 rounded-lg">
+<span class="material-symbols-outlined text-orange-500 text-xl">payments</span>
+</div>
+<span class="text-xs font-bold text-green-400">+8%</span>
+</div>
+<p class="text-sm text-slate-400">Today's Bills</p>
+<p class="text-2xl font-bold mt-1">₫45M</p>
+</div>
+<!-- System Health -->
+<div class="bg-card-dark p-4 rounded-xl border border-slate-700/30">
+<div class="flex items-center justify-between mb-2">
+<div class="p-2 bg-emerald-500/20 rounded-lg">
+<span class="material-symbols-outlined text-emerald-500 text-xl">check_circle</span>
+</div>
+<span class="text-[10px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full">ONLINE</span>
+</div>
+<p class="text-sm text-slate-400">System Health</p>
+<p class="text-2xl font-bold mt-1">0 <span class="text-sm font-normal text-slate-500">errors</span></p>
+</div>
+</section>
+<!-- Quick Actions (2x2) -->
+<section class="px-6 py-4">
+<h3 class="text-lg font-bold mb-4">Quick Actions</h3>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex flex-col items-center justify-center p-6 bg-card-dark rounded-2xl border border-slate-700/30 hover:bg-primary/10 transition-colors group">
+<span class="material-symbols-outlined text-3xl mb-2 text-primary group-hover:scale-110 transition-transform">person_add</span>
+<span class="text-sm font-medium">Add User</span>
+</button>
+<button class="flex flex-col items-center justify-center p-6 bg-card-dark rounded-2xl border border-slate-700/30 hover:bg-primary/10 transition-colors group">
+<span class="material-symbols-outlined text-3xl mb-2 text-primary group-hover:scale-110 transition-transform">add_box</span>
+<span class="text-sm font-medium">Create Batch</span>
+</button>
+<button class="flex flex-col items-center justify-center p-6 bg-card-dark rounded-2xl border border-slate-700/30 hover:bg-primary/10 transition-colors group">
+<span class="material-symbols-outlined text-3xl mb-2 text-primary group-hover:scale-110 transition-transform">receipt_long</span>
+<span class="text-sm font-medium">View Bills</span>
+</button>
+<button class="flex flex-col items-center justify-center p-6 bg-card-dark rounded-2xl border border-slate-700/30 hover:bg-primary/10 transition-colors group">
+<span class="material-symbols-outlined text-3xl mb-2 text-primary group-hover:scale-110 transition-transform">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</button>
+</div>
+</section>
+<!-- Real-time Activity & Charts Section -->
+<section class="px-6 py-4 space-y-6 mb-24">
+<!-- Batch Distribution (Doughnut Mockup) -->
+<div class="bg-card-dark p-6 rounded-2xl border border-slate-700/30">
+<h3 class="text-lg font-bold mb-4">Batch Distribution</h3>
+<div class="flex items-center justify-between">
+<div class="relative w-32 h-32 flex items-center justify-center">
+<!-- SVG Doughnut Mockup -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#334155" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#4891e5" stroke-dasharray="25 75" stroke-dashoffset="0" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#eab308" stroke-dasharray="20 80" stroke-dashoffset="-25" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#22c55e" stroke-dasharray="35 65" stroke-dashoffset="-45" stroke-width="4"></circle>
+</svg>
+<div class="absolute text-center">
+<p class="text-xl font-bold">128</p>
+<p class="text-[10px] text-slate-400">TOTAL</p>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-slate-500"></span>
+<span class="text-xs text-slate-300">Pending (20%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+<span class="text-xs text-slate-300">In Transit (20%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-xs text-slate-300">Receiving (25%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-green-500"></span>
+<span class="text-xs text-slate-300">Completed (35%)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Weekly Bill Trend (Bar Mockup) -->
+<div class="bg-card-dark p-6 rounded-2xl border border-slate-700/30">
+<h3 class="text-lg font-bold mb-4">Weekly Bill Trend</h3>
+<div class="flex items-end justify-between h-32 gap-2 mt-4">
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary/40 rounded-t-sm h-12"></div>
+<span class="text-[10px] text-slate-500 uppercase">M</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary/60 rounded-t-sm h-20"></div>
+<span class="text-[10px] text-slate-500 uppercase">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary/40 rounded-t-sm h-16"></div>
+<span class="text-[10px] text-slate-500 uppercase">W</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary rounded-t-sm h-28"></div>
+<span class="text-[10px] text-slate-500 uppercase">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary/70 rounded-t-sm h-24"></div>
+<span class="text-[10px] text-slate-500 uppercase">F</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary/30 rounded-t-sm h-8"></div>
+<span class="text-[10px] text-slate-500 uppercase">S</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1">
+<div class="w-full bg-primary/40 rounded-t-sm h-10"></div>
+<span class="text-[10px] text-slate-500 uppercase">S</span>
+</div>
+</div>
+</div>
+<!-- Pending Tasks -->
+<div>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold">Pending Tasks</h3>
+<span class="text-xs font-medium text-primary">View All</span>
+</div>
+<div class="space-y-3">
+<div class="bg-card-dark p-4 rounded-xl border border-slate-700/30 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-2 h-10 bg-red-500 rounded-full"></div>
+<div>
+<p class="font-semibold text-sm">Review Priority Batch #821</p>
+<p class="text-xs text-slate-400">High Priority • 2h left</p>
+</div>
+</div>
+<button class="bg-primary text-white text-xs px-4 py-2 rounded-lg font-bold">Process</button>
+</div>
+<div class="bg-card-dark p-4 rounded-xl border border-slate-700/30 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-2 h-10 bg-yellow-500 rounded-full"></div>
+<div>
+<p class="font-semibold text-sm">Verify User KYC</p>
+<p class="text-xs text-slate-400">Medium • 5 pending</p>
+</div>
+</div>
+<button class="bg-primary text-white text-xs px-4 py-2 rounded-lg font-bold">Process</button>
+</div>
+</div>
+</div>
+<!-- Real-time Activity List -->
+<div>
+<h3 class="text-lg font-bold mb-4">Real-time Activity</h3>
+<div class="space-y-4">
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-lg">add_task</span>
+</div>
+<div class="w-0.5 h-10 bg-slate-800"></div>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold">New Batch Created</p>
+<p class="text-xs text-slate-400">ID: #BTCH-9042 • Admin J.</p>
+<p class="text-[10px] text-slate-500 mt-1">2 mins ago</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-500 text-lg">sync_alt</span>
+</div>
+<div class="w-0.5 h-10 bg-slate-800"></div>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold">Bill Status Changed</p>
+<p class="text-xs text-slate-400">Bill #902 moved to 'Paid'</p>
+<p class="text-[10px] text-slate-500 mt-1">15 mins ago</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-green-500 text-lg">person_check</span>
+</div>
+<div class="w-0.5 h-10 bg-slate-800"></div>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold">User Verified</p>
+<p class="text-xs text-slate-400">Nguyen V. A. completed KYC</p>
+<p class="text-[10px] text-slate-500 mt-1">1 hour ago</p>
+</div>
+</div>
+</div>
+</div>
+<!-- System Health Card -->
+<div class="bg-card-dark p-4 rounded-xl border border-slate-700/30 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-500">sensors</span>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-wider">API LATENCY</p>
+<p class="text-sm font-bold">45ms <span class="text-emerald-500 font-normal ml-1">Excellent</span></p>
+</div>
+</div>
+<div class="h-8 w-[1px] bg-slate-700"></div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-400">database</span>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-wider">DATABASE</p>
+<p class="text-sm font-bold">OK</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-background-dark/80 backdrop-blur-xl border-t border-slate-700/50 px-6 py-2 pb-6 flex justify-between items-end z-50">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-[28px] fill-1">dashboard</span>
+<p class="text-[10px] font-bold">Dashboard</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-[28px]">group</span>
+<p class="text-[10px] font-medium">Users</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-[28px]">inventory_2</span>
+<p class="text-[10px] font-medium">Batches</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-[28px]">receipt</span>
+<p class="text-[10px] font-medium">Bills</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-[28px]">settings</span>
+<p class="text-[10px] font-medium">Settings</p>
+</a>
+</nav>
+</body></html>

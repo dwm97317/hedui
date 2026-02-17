@@ -2,15 +2,20 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FinanceBottomNav } from '../../components/FinanceLayout';
 import { useBills } from '../../hooks/useBilling';
+import { useFinanceStore, BillStatus } from '../../store/finance.store';
+import { useUserStore } from '../../store/user.store';
 
 const BillList: React.FC = () => {
   const navigate = useNavigate();
   const { data: bills, isLoading, error } = useBills();
+  const isAdmin = useUserStore(state => state.checkRole(['admin']));
 
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'paid':
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+      case 'partially_paid':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
       case 'cancelled':
         return 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600';
       default:
@@ -20,7 +25,8 @@ const BillList: React.FC = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'paid': return '已支付';
+      case 'paid': return '已收全款';
+      case 'partially_paid': return '部分支付';
       case 'cancelled': return '已取消';
       default: return '待确认';
     }
@@ -139,13 +145,26 @@ const BillList: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="px-4 pb-4">
+                <div className="px-4 pb-4 flex gap-2">
                   <button
                     onClick={() => navigate(`/finance/bill/${bill.id}`)}
-                    className="w-full py-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 text-primary dark:text-blue-400 text-sm font-medium transition-colors border border-slate-200 dark:border-slate-600"
+                    className="flex-1 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 text-primary dark:text-blue-400 text-sm font-medium transition-colors border border-slate-200 dark:border-slate-600"
                   >
                     查看详情
                   </button>
+                  {isAdmin && (bill.status === 'pending' || bill.status === 'partially_paid') && (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm('确认该账单已收全款？')) {
+                          await useFinanceStore.getState().updateBillStatus(bill.id, BillStatus.PAID);
+                        }
+                      }}
+                      className="flex-1 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-colors shadow-sm"
+                    >
+                      直接确认全收
+                    </button>
+                  )}
                 </div>
               </article>
             ))

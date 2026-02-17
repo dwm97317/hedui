@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore, BillStatus, Currency } from '../../store/finance.store';
-import { ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, AlertCircle, Settings } from 'lucide-react';
 
 const SenderFinance = () => {
+    const navigate = useNavigate();
     const fetchBatches = useFinanceStore(state => state.fetchBatches);
     const getSenderBatches = useFinanceStore(state => state.getSenderBatches);
     const loading = useFinanceStore(state => state.loading);
@@ -30,9 +32,18 @@ const SenderFinance = () => {
                     <h1 className="text-2xl font-bold text-white tracking-tight">结算中心</h1>
                     <p className="text-slate-400 text-sm mt-1">发货方门户 • 应付账款</p>
                 </div>
-                <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider">当前结算期</span>
-                    <div className="text-white font-mono">2026年2月</div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => navigate('/finance/admin/pricing')}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 border border-blue-500/50 rounded-lg text-blue-400 text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all"
+                    >
+                        <Settings size={16} />
+                        <span>价格策略</span>
+                    </button>
+                    <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
+                        <span className="text-xs text-slate-400 uppercase tracking-wider">当前结算期</span>
+                        <div className="text-white font-mono">2026年2月</div>
+                    </div>
                 </div>
             </header>
 
@@ -123,9 +134,9 @@ const SenderFinance = () => {
                                     {formatCurrency(batch.billC.amount, 'CNY')}
                                 </div>
                                 {batch.billC.status === BillStatus.PENDING && (
-                                    <button className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 rounded transition-colors">
-                                        立即支付
-                                    </button>
+                                    <div className="mt-3 w-full bg-slate-800 text-slate-500 text-[10px] text-center py-2 rounded border border-slate-700">
+                                        待平台确认支付
+                                    </div>
                                 )}
                             </div>
 

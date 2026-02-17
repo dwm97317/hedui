@@ -4,6 +4,8 @@ export interface Profile {
     id: string;
     company_id: string;
     role: 'admin' | 'sender' | 'transit' | 'receiver';
+    permissions?: string[];
+    is_master?: boolean;
     full_name?: string;
     is_active: boolean;
     email: string; // Not in profile table by default, usually in auth metadata, but can be managed here

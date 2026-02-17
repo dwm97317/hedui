@@ -24,6 +24,7 @@ import ReceiverExceptions from './pages/receiver/ReceiverExceptions';
 import ReceiverArchive from './pages/receiver/ReceiverArchive';
 import BartenderConfig from './pages/BartenderConfig';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import CreateBatch from './pages/CreateBatch';
 import RiskMonitor from './pages/supervisor/RiskMonitor';
 import BatchManager from './pages/BatchManager';
@@ -39,8 +40,16 @@ import FundsFlow from './pages/finance/FundsFlow';
 import AdminPriceConfig from './pages/finance/AdminPriceConfig';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
+import ReportCenter from './pages/ReportCenter';
 import BottomNav from './components/BottomNav';
 import BatchDetailPage from './pages/batch-detail';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import CompanyManagement from './pages/admin/CompanyManagement';
+import BatchManagement from './pages/admin/BatchManagement';
+import AdminBillManagement from './pages/admin/AdminBillManagement';
+import SystemSettings from './pages/admin/SystemSettings';
+import AdminProfile from './pages/admin/AdminProfile';
 import { BatchBillingSettings } from './pages/finance/BatchBillingSettings';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -164,12 +173,15 @@ const AppContent = () => {
 
   const isFullScreenPage =
     location.pathname === '/login' ||
+    location.pathname === '/register' ||
     (location.pathname.startsWith('/transit/') && location.pathname !== '/transit') ||
     (location.pathname.startsWith('/receiver/') && location.pathname !== '/receiver') ||
     (location.pathname.startsWith('/sender/') && location.pathname !== '/sender') ||
-    location.pathname.startsWith('/finance') ||
     (location.pathname.startsWith('/supervisor/') && location.pathname !== '/supervisor') ||
+    location.pathname.startsWith('/finance') ||
+    location.pathname.startsWith('/admin') ||
     location.pathname.startsWith('/batch/') ||
+    location.pathname.startsWith('/report-center') ||
     location.pathname.startsWith('/batch-detail/');
 
   return (
@@ -178,10 +190,12 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/create" element={<ProtectedRoute><CreateShipment /></ProtectedRoute>} />
           <Route path="/create-batch" element={<ProtectedRoute><CreateBatch /></ProtectedRoute>} />
           <Route path="/batch-list" element={<ProtectedRoute><BatchList /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/report-center" element={<ProtectedRoute><ReportCenter /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/settings/bartender" element={<ProtectedRoute><BartenderConfig /></ProtectedRoute>} />
 
@@ -208,30 +222,37 @@ const AppContent = () => {
             element={<ProtectedRoute allowedRoles={['sender', 'admin']}><SenderMonitor /></ProtectedRoute>}
           />
           <Route path="/transit" element={<ProtectedRoute allowedRoles={['transit', 'admin']}><TransitHome /></ProtectedRoute>} />
-          <Route path="/transit/check" element={<ProtectedRoute allowedRoles={['transit', 'admin']}><TransitCheck /></ProtectedRoute>} />
-          <Route path="/transit/merge" element={<ProtectedRoute allowedRoles={['transit', 'admin']}><MergeParcel /></ProtectedRoute>} />
-          <Route path="/transit/split" element={<ProtectedRoute allowedRoles={['transit', 'admin']}><SplitParcel /></ProtectedRoute>} />
-          <Route path="/transit/exceptions" element={<ProtectedRoute allowedRoles={['transit', 'admin']}><TransitExceptions /></ProtectedRoute>} />
+          <Route path="/transit/check" element={<ProtectedRoute allowedRoles={['transit', 'admin']} requiredPermission="warehouse"><TransitCheck /></ProtectedRoute>} />
+          <Route path="/transit/merge" element={<ProtectedRoute allowedRoles={['transit', 'admin']} requiredPermission="warehouse"><MergeParcel /></ProtectedRoute>} />
+          <Route path="/transit/split" element={<ProtectedRoute allowedRoles={['transit', 'admin']} requiredPermission="warehouse"><SplitParcel /></ProtectedRoute>} />
+          <Route path="/transit/exceptions" element={<ProtectedRoute allowedRoles={['transit', 'admin']} requiredPermission="warehouse"><TransitExceptions /></ProtectedRoute>} />
 
           {/* Receiver Routes */}
           <Route path="/receiver" element={<ProtectedRoute allowedRoles={['receiver', 'admin']}><ReceiverHome /></ProtectedRoute>} />
-          <Route path="/receiver/check" element={<ProtectedRoute allowedRoles={['receiver', 'admin']}><ReceiverCheck /></ProtectedRoute>} />
-          <Route path="/receiver/merge" element={<ProtectedRoute allowedRoles={['receiver', 'admin']}><ReceiverMerge /></ProtectedRoute>} />
-          <Route path="/receiver/split" element={<ProtectedRoute allowedRoles={['receiver', 'admin']}><ReceiverSplit /></ProtectedRoute>} />
-          <Route path="/receiver/exceptions" element={<ProtectedRoute allowedRoles={['receiver', 'admin']}><ReceiverExceptions /></ProtectedRoute>} />
+          <Route path="/receiver/check" element={<ProtectedRoute allowedRoles={['receiver', 'admin']} requiredPermission="warehouse"><ReceiverCheck /></ProtectedRoute>} />
+          <Route path="/receiver/merge" element={<ProtectedRoute allowedRoles={['receiver', 'admin']} requiredPermission="warehouse"><ReceiverMerge /></ProtectedRoute>} />
+          <Route path="/receiver/split" element={<ProtectedRoute allowedRoles={['receiver', 'admin']} requiredPermission="warehouse"><ReceiverSplit /></ProtectedRoute>} />
+          <Route path="/receiver/exceptions" element={<ProtectedRoute allowedRoles={['receiver', 'admin']} requiredPermission="warehouse"><ReceiverExceptions /></ProtectedRoute>} />
           <Route path="/receiver/archive" element={<ProtectedRoute allowedRoles={['receiver', 'admin']}><ReceiverArchive /></ProtectedRoute>} />
 
           {/* Advanced Roles */}
           <Route path="/supervisor/risk" element={<ProtectedRoute allowedRoles={['admin']}><RiskMonitor /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagement /></ProtectedRoute>} />
+          <Route path="/admin/companies" element={<ProtectedRoute allowedRoles={['admin']}><CompanyManagement /></ProtectedRoute>} />
+          <Route path="/admin/batches" element={<ProtectedRoute allowedRoles={['admin']}><BatchManagement /></ProtectedRoute>} />
+          <Route path="/admin/bills" element={<ProtectedRoute allowedRoles={['admin']}><AdminBillManagement /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin']}><SystemSettings /></ProtectedRoute>} />
+          <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminProfile /></ProtectedRoute>} />
           <Route path="/batch-manager" element={<ProtectedRoute allowedRoles={['admin', 'sender', 'transit', 'receiver']}><BatchManager /></ProtectedRoute>} />
 
           {/* Finance & Profile Routes */}
-          <Route path="/finance" element={<ProtectedRoute><FinanceHome /></ProtectedRoute>} />
-          <Route path="/finance/sender" element={<ProtectedRoute><SenderFinance /></ProtectedRoute>} />
-          <Route path="/finance/transit" element={<ProtectedRoute><TransitFinance /></ProtectedRoute>} />
-          <Route path="/finance/receiver" element={<ProtectedRoute><ReceiverFinance /></ProtectedRoute>} />
-          <Route path="/finance/flow" element={<ProtectedRoute><FundsFlow /></ProtectedRoute>} />
-          <Route path="/finance/bills" element={<ProtectedRoute><BillList /></ProtectedRoute>} />
+          <Route path="/finance" element={<ProtectedRoute requiredPermission="finance"><FinanceHome /></ProtectedRoute>} />
+          <Route path="/finance/sender" element={<ProtectedRoute requiredPermission="finance"><SenderFinance /></ProtectedRoute>} />
+          <Route path="/finance/transit" element={<ProtectedRoute requiredPermission="finance"><TransitFinance /></ProtectedRoute>} />
+          <Route path="/finance/receiver" element={<ProtectedRoute requiredPermission="finance"><ReceiverFinance /></ProtectedRoute>} />
+          <Route path="/finance/flow" element={<ProtectedRoute requiredPermission="finance"><FundsFlow /></ProtectedRoute>} />
+          <Route path="/finance/bills" element={<ProtectedRoute requiredPermission="finance"><BillList /></ProtectedRoute>} />
           <Route path="/finance/bill/:id" element={<ProtectedRoute><BillDetail /></ProtectedRoute>} />
           <Route path="/finance/bill/completed" element={<ProtectedRoute><BillDetail /></ProtectedRoute>} />
           <Route path="/finance/reconciliation" element={<ProtectedRoute><Reconciliation /></ProtectedRoute>} />

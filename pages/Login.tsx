@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
@@ -180,10 +181,20 @@ const Login: React.FC = () => {
                     <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                    <button onClick={() => { setEmail('sender@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Use Sender</button>
-                    <button onClick={() => { setEmail('transit@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Use Transit</button>
-                    <button onClick={() => { setEmail('receiver@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Use Receiver</button>
+                <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => { setEmail('sender@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Sender</button>
+                    <button onClick={() => { setEmail('transit@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Transit</button>
+                    <button onClick={() => { setEmail('receiver@test.com'); setPassword('password'); }} className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded">Receiver</button>
+                    <button onClick={() => { setEmail('admin@test.com'); setPassword('123456'); }} className="text-xs bg-primary/10 dark:bg-primary/20 p-2 rounded text-primary font-bold">Platform Admin</button>
+                </div>
+
+                <div className="mt-6 text-center">
+                    <button
+                        onClick={() => navigate('/register')}
+                        className="text-sm text-primary font-medium hover:underline"
+                    >
+                        新员工注册
+                    </button>
                 </div>
             </div>
             <div className="fixed top-0 right-0 p-8 opacity-5 pointer-events-none">

@@ -1,175 +1,225 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFinanceStore } from '../../store/finance.store';
-import ExchangeRateModal from '../../components/finance/ExchangeRateModal';
+import BatchUnitPriceModal from '../../components/finance/BatchUnitPriceModal';
 
 const AdminPriceConfig: React.FC = () => {
     const navigate = useNavigate();
     const batches = useFinanceStore(state => state.batches);
     const fetchBatches = useFinanceStore(state => state.fetchBatches);
+    const loading = useFinanceStore(state => state.loading);
 
-    const [selectedBatchId, setSelectedBatchId] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<'billA' | 'billB'>('billA');
-    const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchBatches();
     }, [fetchBatches]);
 
-    useEffect(() => {
-        if (batches.length > 0 && !selectedBatchId) {
-            setSelectedBatchId(batches[0].id);
-        }
-    }, [batches, selectedBatchId]);
+    const handleEditClick = (batchId: string) => {
+        setSelectedBatchId(batchId);
+        setIsModalOpen(true);
+    };
 
     const selectedBatch = batches.find(b => b.id === selectedBatchId);
 
-    const updateBillUnitPrice = useFinanceStore(state => state.updateBillUnitPrice);
-    const updateExchangeRate = useFinanceStore(state => state.updateExchangeRate);
-
-    const handleSave = async () => {
-        if (!selectedBatch) return;
-
-        // In a real app, we'd loop through categories and update items,
-        // but here we'll update the main bill unit price for demonstration.
-        const billId = activeTab === 'billA' ? selectedBatch.billA.id : selectedBatch.billB.id;
-
-        // Let's just pick the '普货' price as the main unit price for this demo
-        const demoPrice = activeTab === 'billA' ? 3800 : 3200;
-
-        await updateBillUnitPrice(billId, demoPrice);
-        alert(`${activeTab === 'billA' ? '账单A' : '账单B'} 价格已更新`);
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleDateString();
     };
 
-    const mockPricingRules = [
-        { category: '普货', billA: 3800, billB: 3200 },
-        { category: '电子产品', billA: 5500, billB: 4800 },
-        { category: '化妆品', billA: 8000, billB: 7200 },
-        { category: '液体/粉末', billA: 12000, billB: 10500 },
-    ];
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'sealed': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+            case 'in_transit': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+            case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+            default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'new': return '新建';
+            case 'sealed': return '已封车';
+            case 'in_transit': return '运输中';
+            case 'arrived': return '已到达';
+            case 'completed': return '已完成';
+            default: return status;
+        }
+    };
 
     return (
-        <div className="bg-slate-950 min-h-screen text-slate-100 flex flex-col font-sans">
-            {/* Header omitted for brevity in replace, but keeping it same */}
-            <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div className="bg-background-light dark:bg-background-dark min-h-screen text-slate-800 dark:text-slate-100 flex flex-col font-display">
+            {/* Header */}
+            <header className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-white transition-colors">
-                        <span className="material-icons">arrow_back</span>
+                    <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-gray-800 rounded-full transition-colors">
+                        <span className="material-icons">arrow_back_ios_new</span>
                     </button>
                     <div>
-                        <h1 className="text-xl font-black italic tracking-tighter">BATCH PRICING</h1>
-                        <p className="text-[10px] text-blue-500 font-bold uppercase tracking-widest mt-0.5">平台结算策略配置</p>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-white">平台价格策略</h1>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">批次单价管理中心</p>
                     </div>
                 </div>
                 <button
-                    onClick={() => setIsExchangeModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 border border-blue-500/50 rounded-full text-blue-400 text-xs font-bold hover:bg-blue-600 hover:text-white transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                    onClick={() => fetchBatches()}
+                    className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
                 >
-                    <span className="material-icons text-sm">currency_exchange</span>
-                    <span>调整结算汇率</span>
+                    <span className="material-icons">refresh</span>
                 </button>
             </header>
 
-            <main className="flex-1 p-6 space-y-6 max-w-lg mx-auto w-full">
-                {/* Batch Selector */}
-                <div className="group relative">
-                    <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest ml-1 mb-2 block">当前生效批次</label>
-                    <div className="relative">
-                        <select
-                            value={selectedBatchId}
-                            onChange={(e) => setSelectedBatchId(e.target.value)}
-                            className="w-full bg-slate-900 border-2 border-slate-800 rounded-2xl px-5 py-4 text-lg font-bold text-white focus:border-blue-500 outline-none appearance-none transition-all shadow-xl"
-                        >
-                            <option value="" disabled>选择批次...</option>
-                            {batches.map(b => (
-                                <option key={b.id} value={b.id}>{b.batchCode}</option>
-                            ))}
-                        </select>
-                        <span className="material-icons absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">expand_more</span>
-                    </div>
-                    {selectedBatch && (
-                        <div className="mt-3 flex gap-4 text-[10px] font-bold text-slate-500 px-1 uppercase tracking-tighter">
-                            <span>重量: {selectedBatch.totalWeight}kg</span>
-                            <span className="text-slate-700">|</span>
-                            <span>创建于: {new Date(selectedBatch.createdAt).toLocaleDateString()}</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Tabs */}
-                <div className="flex p-1 bg-slate-900 rounded-2xl border border-slate-800 shadow-inner">
-                    <button
-                        onClick={() => setActiveTab('billA')}
-                        className={`flex-1 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'billA' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        账单A (发货方 → 平台)
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('billB')}
-                        className={`flex-1 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'billB' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        账单B (平台 → 中转方)
-                    </button>
-                </div>
-
-                {/* Price List */}
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between px-4 mb-2">
-                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">CATEGORY / ITEM</span>
-                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">UNIT PRICE (VND)</span>
-                    </div>
-                    {mockPricingRules.map((rule) => {
-                        const price = activeTab === 'billA' ? rule.billA : rule.billB;
-                        return (
-                            <div key={rule.category} className="group flex items-center justify-between p-5 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-blue-500/30 transition-all">
-                                <div>
-                                    <h4 className="font-bold text-white mb-0.5">{rule.category}</h4>
-                                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Global Route Base</p>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-xl font-black text-white font-mono">{price.toLocaleString()}</span>
-                                    <span className="text-[10px] text-slate-500 font-bold uppercase">VND/KG</span>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+            {/* Content */}
+            <main className="flex-1 p-6 max-w-5xl mx-auto w-full space-y-6">
 
                 {/* Info Card */}
-                <div className="p-5 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex gap-4">
-                    <span className="material-icons text-blue-500">verified_user</span>
+                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex gap-4">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                        <span className="material-icons">info</span>
+                    </div>
                     <div>
-                        <h4 className="text-xs font-black uppercase text-blue-400 mb-1 tracking-wider">3-账单逻辑声明</h4>
-                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
-                            当前页面配置直接影响该批次的财务利润核算。系统将自动计算 账单A(营收) 与 账单B(支出的) 差额作为平台利润。
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
+                            批次定价说明
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            系统采用"单批次单价"策略。您可以为每个批次分别设置3份账单的单价。
+                            <br />
+                            修改单价后，对应批次的所有相关账单金额将自动重新计算。
                         </p>
                     </div>
                 </div>
+
+                {/* Batch List */}
+                <div className="space-y-4">
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <span className="material-icons animate-spin text-3xl text-primary">refresh</span>
+                        </div>
+                    ) : batches.length === 0 ? (
+                        <div className="text-center py-12 text-slate-500">
+                            暂无批次数据
+                        </div>
+                    ) : (
+                        batches.map(batch => (
+                            <div
+                                key={batch.id}
+                                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:shadow-md transition-all"
+                            >
+                                <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    {/* Batch Info */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold shrink-0">
+                                            {batch.batchCode.substring(batch.batchCode.length - 2)}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                                    {batch.batchCode}
+                                                </h3>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${getStatusColor(batch.status)}`}>
+                                                    {getStatusLabel(batch.status)}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                                                <span className="flex items-center gap-1">
+                                                    <span className="material-icons text-[14px]">scale</span>
+                                                    {batch.totalWeight} kg
+                                                </span>
+                                                <span className="text-slate-300 dark:text-slate-600">|</span>
+                                                <span className="flex items-center gap-1">
+                                                    <span className="material-icons text-[14px]">event</span>
+                                                    {formatDate(batch.createdAt)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Prices Grid */}
+                                    <div className="flex-1 grid grid-cols-3 gap-2 max-w-xl">
+                                        {/* Price A */}
+                                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700">
+                                            <div className="text-[10px] text-slate-400 uppercase font-bold mb-1">账单A (物流)</div>
+                                            <div className="font-mono font-bold text-slate-700 dark:text-slate-200">
+                                                {batch.unitPriceA?.toLocaleString()}
+                                                <span className="text-[10px] ml-1 font-normal text-slate-400">VND</span>
+                                            </div>
+                                        </div>
+                                        {/* Price B */}
+                                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700">
+                                            <div className="text-[10px] text-slate-400 uppercase font-bold mb-1">账单B (运输)</div>
+                                            <div className="font-mono font-bold text-slate-700 dark:text-slate-200">
+                                                {batch.unitPriceB?.toLocaleString()}
+                                                <span className="text-[10px] ml-1 font-normal text-slate-400">VND</span>
+                                            </div>
+                                        </div>
+                                        {/* Price C */}
+                                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700">
+                                            <div className="text-[10px] text-slate-400 uppercase font-bold mb-1">账单C (货款)</div>
+                                            <div className="font-mono font-bold text-slate-700 dark:text-slate-200">
+                                                {batch.unitPriceC?.toLocaleString()}
+                                                <span className="text-[10px] ml-1 font-normal text-slate-400">CNY</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action */}
+                                    <button
+                                        onClick={() => handleEditClick(batch.id)}
+                                        className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <span className="material-icons text-sm">edit</span>
+                                        <span>调价</span>
+                                    </button>
+                                </div>
+
+                                {/* Profit Bar */}
+                                <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-slate-500">平台毛利:</span>
+                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                            {((batch.unitPriceA || 0) - (batch.unitPriceB || 0)).toLocaleString()} VND/kg
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-slate-500">总毛利预估:</span>
+                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                            {(((batch.unitPriceA || 0) - (batch.unitPriceB || 0)) * batch.totalWeight).toLocaleString()} VND
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </main>
 
-            <footer className="p-6 border-t border-slate-800 bg-slate-900/50 sticky bottom-0 z-50 flex gap-4">
-                <button className="flex-1 py-4 rounded-2xl border-2 border-slate-800 font-black text-xs uppercase tracking-widest text-slate-500 hover:bg-slate-800 hover:text-white transition-all active:scale-95">
-                    重置默认
-                </button>
-                <button
-                    onClick={handleSave}
-                    disabled={!selectedBatchId}
-                    className="flex-[2] py-4 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all disabled:opacity-50"
-                >
-                    保存当前批次定价
-                </button>
-            </footer>
-
-            {/* Modals */}
-            <ExchangeRateModal
-                isOpen={isExchangeModalOpen}
-                onClose={() => setIsExchangeModalOpen(false)}
-                onConfirm={async (rate) => {
-                    await updateExchangeRate('CNY', 'VND', rate);
-                    setIsExchangeModalOpen(false);
-                    alert('核心汇率已同步至云端');
-                }}
-            />
+            {/* Edit Modal */}
+            {selectedBatch && (
+                <BatchUnitPriceModal
+                    isOpen={isModalOpen}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setSelectedBatchId(null);
+                    }}
+                    batchId={selectedBatch.id}
+                    batchNo={selectedBatch.batchCode}
+                    currentPrices={{
+                        unit_price_a: selectedBatch.unitPriceA || 0,
+                        unit_price_b: selectedBatch.unitPriceB || 0,
+                        unit_price_c: selectedBatch.unitPriceC || 0
+                    }}
+                    onSave={async (priceA, priceB, priceC) => {
+                        if (selectedBatch) {
+                            await useFinanceStore.getState().updateBatchUnitPrices(
+                                selectedBatch.id,
+                                priceA,
+                                priceB,
+                                priceC
+                            );
+                        }
+                    }}
+                />
+            )}
         </div>
     );
 };

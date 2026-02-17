@@ -3,6 +3,14 @@
 ## Database Operations
 1. **Always use MCP Supabase**: Any database structure changes, data seeding, or schema modifications MUST be performed using the `mcp_supabase-mcp-server` tools (e.g., `execute_sql`, `apply_migration`). verification.
 
-## Project Structure & File Ownership
-Refer to `PROJECT_STRUCTURE.md` for a comprehensive mapping of files to functional areas and ownership rules. When modifying files, ensure you are aware of their designated workflow phase and responsible area.
+## Full-Stack Implementation Workflow
+每当处理新需求时，必须严格执行以下闭环流程：
+1. **深度澄清**：提问并达成 100% 需求对齐。
+2. **能力检索**：使用 `find-skills` 搜索并安装匹配的 Skill。必须将规范总结传递给后续建模和实现阶段。
+3. **视觉建模 (Stitch)**：使用 Stitch 工具生成/修改 UI 设计，基于图片或描述产出美观的界面预览。
+4. **数据建模 (Supabase)**：使用 Supabase MCP 执行数据库迁移（DDL、RLS、Triggers）。
+5. **编码实现**：编写高质量业务逻辑与组件代码。
+6. **优化抛光**：处理空状态、加载动画与安全性检查。
 
+## Project Structure
+Refer to `PROJECT_STRUCTURE.md` for functional area ownership.

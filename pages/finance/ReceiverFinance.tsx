@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFinanceStore, BillStatus, Currency } from '../../store/finance.store';
-import { ArrowDownLeft, Clock, CheckCircle, Package, Receipt } from 'lucide-react';
+import { ArrowDownLeft, Clock, CheckCircle, Package, Receipt, Settings } from 'lucide-react';
 
 const ReceiverFinance = () => {
+    const navigate = useNavigate();
     const fetchBatches = useFinanceStore(state => state.fetchBatches);
     const getReceiverBatches = useFinanceStore(state => state.getReceiverBatches);
     const loading = useFinanceStore(state => state.loading);
@@ -28,9 +30,18 @@ const ReceiverFinance = () => {
                     <h1 className="text-2xl font-bold text-white tracking-tight">收款中心</h1>
                     <p className="text-slate-400 text-sm mt-1">接收方门户 • 应收货款结算</p>
                 </div>
-                <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider">币种</span>
-                    <div className="text-white font-mono">人民币 (CNY)</div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => navigate('/finance/admin/pricing')}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 border border-blue-500/50 rounded-lg text-blue-400 text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all"
+                    >
+                        <Settings size={16} />
+                        <span>价格策略</span>
+                    </button>
+                    <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
+                        <span className="text-xs text-slate-400 uppercase tracking-wider">币种</span>
+                        <div className="text-white font-mono">人民币 (CNY)</div>
+                    </div>
                 </div>
             </header>
 
@@ -94,9 +105,9 @@ const ReceiverFinance = () => {
                             </div>
 
                             {batch.billC.status === BillStatus.PENDING && (
-                                <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded transition-colors">
-                                    发送催款
-                                </button>
+                                <div className="text-slate-500 text-[10px]">
+                                    待平台确认收款
+                                </div>
                             )}
                         </div>
                     </div>

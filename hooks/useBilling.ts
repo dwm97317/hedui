@@ -120,3 +120,28 @@ export const useCancelBill = () => {
         },
     });
 };
+
+/**
+ * Add a payment to a bill
+ */
+export const useAddPayment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ billId, amount, method, reference }: { billId: string, amount: number, method?: string, reference?: string }) => {
+            const response = await BillingService.addPayment(billId, amount, method, reference);
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to add payment');
+            }
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['bills'] });
+            queryClient.invalidateQueries({ queryKey: ['bill'] });
+            toast.success('支付记录已添加');
+        },
+        onError: (error: Error) => {
+            toast.error('支付记录添加失败: ' + error.message);
+        },
+    });
+};
