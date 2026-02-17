@@ -1,0 +1,33 @@
+# Tasks
+
+- [x] Route A: Database & RLS Design [x]
+    - [x] Design PostgreSQL schema for `packages` and `merge_batches` [x]
+    - [x] Create RLS policies for role-based access control [x]
+    - [x] Design audit log mechanism [x]
+    - [x] Verify schema and policies [x]
+- [x] Route B: Frontend Structure & Flow [x]
+    - [x] Design UI layout for each role [x]
+    - [x] Define scan-to-input operation flow [x]
+- [x] Route C: Development Schedule [x]
+    - [x] Breakdown phases and milestones [x]
+
+# Implementation
+
+- [x] Phase 1: Infrastructure & Auth [x]
+    - [x] Create user initialization script (`initialize_users.sql`) [x]
+    - [x] Create RLS verification script (`test_rls.sql`) [x]
+    - [x] Document Supabase Auth configuration [x]
+    - [x] Successfully logged in via Supabase CLI (Phase 1 Auth Complete) [x]
+    - [x] Executing `schema.sql` via MCP [x]
+    - [x] Executing `initialize_users.sql` via MCP [x]
+    - [x] Verified database state (tables: profiles, packages, merge_batches, settings, audit_logs) [x]
+- [x] Phase 2: Core Page Implementation [x]
+    - [x] Scaffold mobile-first web app foundation [x]
+    - [x] Implement shared scan-to-input utility [x]
+    - [x] Implement Sender (发出方) View [x]
+    - [x] Implement Transit (中转方) View [x]
+    - [x] Implement Receiver (接收方) View [x]
+- [x] Phase 3: Verification & Polish [x]
+    - [x] E2E logic verification via SQL / MCP [x]
+    - [x] UI/UX polish and build finalization [x]
+    - [x] Cleanup of temporary deployment scripts [x]

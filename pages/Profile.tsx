@@ -2,10 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FinanceBottomNav } from '../components/FinanceLayout';
 import { useUserStore } from '../store/user.store';
+import BillingPreferenceModal from '../components/BillingPreferenceModal';
+import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { signOut } = useUserStore();
+  const [showBillingModal, setShowBillingModal] = React.useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -76,15 +79,17 @@ const Profile: React.FC = () => {
                 <span className="material-icons text-slate-300 dark:text-slate-600 text-lg">chevron_right</span>
               </div>
             </div>
-            <div className="group flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-700/50">
+            <div onClick={() => setShowBillingModal(true)} className="group flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-700/50">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                   <span className="material-icons-round text-lg">scale</span>
                 </div>
                 <span className="text-sm font-medium text-slate-800 dark:text-white">计费方式偏好</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-slate-500 dark:text-slate-400">按重量计费</span>
+              <div
+                className="flex items-center space-x-2"
+              >
+                <span className="text-xs text-slate-500 dark:text-slate-400">设置</span>
                 <span className="material-icons text-slate-300 dark:text-slate-600 text-lg">chevron_right</span>
               </div>
             </div>
@@ -142,6 +147,14 @@ const Profile: React.FC = () => {
         </div>
       </main>
 
+      <BillingPreferenceModal
+        isOpen={showBillingModal}
+        onClose={() => setShowBillingModal(false)}
+        onConfirm={(val) => {
+          toast.success(`已保存默认计费方式: ${val}`);
+          setShowBillingModal(false);
+        }}
+      />
     </div>
   );
 };

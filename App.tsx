@@ -32,6 +32,11 @@ import BillList from './pages/finance/BillList';
 import BillDetail from './pages/finance/BillDetail';
 import Reconciliation from './pages/finance/Reconciliation';
 import ExchangeRates from './pages/finance/ExchangeRates';
+import SenderFinance from './pages/finance/SenderFinance';
+import TransitFinance from './pages/finance/TransitFinance';
+import ReceiverFinance from './pages/finance/ReceiverFinance';
+import FundsFlow from './pages/finance/FundsFlow';
+import AdminPriceConfig from './pages/finance/AdminPriceConfig';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
 import BottomNav from './components/BottomNav';
@@ -161,7 +166,7 @@ const AppContent = () => {
     (location.pathname.startsWith('/transit/') && location.pathname !== '/transit') ||
     (location.pathname.startsWith('/receiver/') && location.pathname !== '/receiver') ||
     (location.pathname.startsWith('/sender/') && location.pathname !== '/sender') ||
-    (location.pathname.startsWith('/finance/') && location.pathname !== '/finance') ||
+    location.pathname.startsWith('/finance') ||
     (location.pathname.startsWith('/supervisor/') && location.pathname !== '/supervisor') ||
     location.pathname.startsWith('/batch/') ||
     location.pathname.startsWith('/batch-detail/');
@@ -221,11 +226,16 @@ const AppContent = () => {
 
           {/* Finance & Profile Routes */}
           <Route path="/finance" element={<ProtectedRoute><FinanceHome /></ProtectedRoute>} />
+          <Route path="/finance/sender" element={<ProtectedRoute><SenderFinance /></ProtectedRoute>} />
+          <Route path="/finance/transit" element={<ProtectedRoute><TransitFinance /></ProtectedRoute>} />
+          <Route path="/finance/receiver" element={<ProtectedRoute><ReceiverFinance /></ProtectedRoute>} />
+          <Route path="/finance/flow" element={<ProtectedRoute><FundsFlow /></ProtectedRoute>} />
           <Route path="/finance/bills" element={<ProtectedRoute><BillList /></ProtectedRoute>} />
           <Route path="/finance/bill/:id" element={<ProtectedRoute><BillDetail /></ProtectedRoute>} />
           <Route path="/finance/bill/completed" element={<ProtectedRoute><BillDetail /></ProtectedRoute>} />
           <Route path="/finance/reconciliation" element={<ProtectedRoute><Reconciliation /></ProtectedRoute>} />
           <Route path="/finance/rates" element={<ProtectedRoute><ExchangeRates /></ProtectedRoute>} />
+          <Route path="/finance/admin/pricing" element={<ProtectedRoute><AdminPriceConfig /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
       </div>

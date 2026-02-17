@@ -1,6 +1,6 @@
 {
     "version": "1.1.0",
-    "url": "http://hedui.itaoth.com/uploads/app.apk",
+    "url": "https://hedui.itaoth.com/uploads/app.apk",
     "changelog": "1. 迁移至自有服务器存储\n2. 优化国内下载速度\n3. 修复已知 UI 细节问题",
     "isCritical": false,
     "publishAt": "2026-02-16T19:20:00Z"

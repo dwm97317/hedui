@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FinanceBottomNav } from '../../components/FinanceLayout';
 import { useBills } from '../../hooks/useBilling';
+import { useFinanceStore } from '../../store/finance.store';
+import BillCPriceModal from '../../components/finance/BillCPriceModal';
+import BillTemplateModal from '../../components/finance/BillTemplateModal';
 
 const FinanceHome: React.FC = () => {
   const navigate = useNavigate();
   const { data: bills } = useBills();
+  const batches = useFinanceStore(state => state.batches);
+  const fetchBatches = useFinanceStore(state => state.fetchBatches);
+  const updateBillUnitPrice = useFinanceStore(state => state.updateBillUnitPrice);
+
+  const [isBillCModalOpen, setIsBillCModalOpen] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    fetchBatches();
+  }, [fetchBatches]);
+
+  const latestBatch = batches[0];
 
   const pendingBills = bills?.filter(b => b.status === 'pending') || [];
   const cnyTotal = pendingBills.filter(b => b.currency === 'CNY').reduce((sum, b) => sum + Number(b.total_amount), 0);
@@ -37,6 +52,26 @@ const FinanceHome: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto no-scrollbar pt-20 px-4 space-y-6 pb-24">
+        {/* Quick Access Roles (Dev/Demo) */}
+        <div className="grid grid-cols-4 gap-2">
+          <button onClick={() => navigate('/finance/sender')} className="flex flex-col items-center p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+            <span className="material-icons text-blue-500">local_shipping</span>
+            <span className="text-[10px] mt-1 text-slate-600 dark:text-slate-300">发货方</span>
+          </button>
+          <button onClick={() => navigate('/finance/transit')} className="flex flex-col items-center p-2 bg-orange-50 dark:bg-orange-900/10 rounded-lg">
+            <span className="material-icons text-orange-500">sync_alt</span>
+            <span className="text-[10px] mt-1 text-slate-600 dark:text-slate-300">中转方</span>
+          </button>
+          <button onClick={() => navigate('/finance/receiver')} className="flex flex-col items-center p-2 bg-green-50 dark:bg-green-900/10 rounded-lg">
+            <span className="material-icons text-green-500">inventory</span>
+            <span className="text-[10px] mt-1 text-slate-600 dark:text-slate-300">接收方</span>
+          </button>
+          <button onClick={() => navigate('/finance/flow')} className="flex flex-col items-center p-2 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
+            <span className="material-icons text-purple-500">hub</span>
+            <span className="text-[10px] mt-1 text-slate-600 dark:text-slate-300">资金流</span>
+          </button>
+        </div>
+
         {/* Currency Cards Swiper */}
         <div className="flex overflow-x-auto no-scrollbar space-x-4 pb-2 snap-x snap-mandatory">
           {/* CNY Card */}
@@ -122,6 +157,46 @@ const FinanceHome: React.FC = () => {
             <button onClick={() => navigate('/finance/bills')} className="w-full mt-3 py-2 px-3 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium rounded-lg transition-colors">
               立即处理
             </button>
+          </div>
+        </div>
+
+        {/* Specialized Tools / Config */}
+        <div>
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+            <span className="material-icons text-lg text-primary">admin_panel_settings</span>
+            配置与工具
+          </h3>
+          <div className="grid grid-cols-1 gap-3">
+            <button
+              onClick={() => navigate('/finance/admin/pricing')}
+              className="group flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-center gap-3 text-white">
+                <span className="material-icons text-2xl">architecture</span>
+                <div className="text-left">
+                  <div className="text-sm font-bold">平台价格策略</div>
+                  <div className="text-[10px] text-blue-100 opacity-80 uppercase tracking-widest font-mono">Batch-Centric Pricing</div>
+                </div>
+              </div>
+              <span className="material-icons text-white/50 group-hover:translate-x-1 transition-transform">chevron_right</span>
+            </button>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setIsBillCModalOpen(true)}
+                className="flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-[0.98]"
+              >
+                <span className="material-icons text-blue-500 mb-2">payments</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">账单C单价</span>
+              </button>
+              <button
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-[0.98]"
+              >
+                <span className="material-icons text-purple-500 mb-2">style</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">账单模板</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -252,6 +327,29 @@ const FinanceHome: React.FC = () => {
       </main>
 
       <FinanceBottomNav />
+
+      {/* Modals */}
+      <BillCPriceModal
+        isOpen={isBillCModalOpen}
+        onClose={() => setIsBillCModalOpen(false)}
+        onConfirm={async (prices) => {
+          if (latestBatch) {
+            // For demo purposes, we update the main bill unit price using the average of categories
+            const avg = Object.values(prices).reduce((a, b) => a + b, 0) / Object.values(prices).length;
+            await updateBillUnitPrice(latestBatch.billC.id, avg);
+            console.log('Updated Bill C Prices for batch:', latestBatch.batchCode);
+          }
+          setIsBillCModalOpen(false);
+        }}
+      />
+      <BillTemplateModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelect={(templateId) => {
+          console.log('Selected Template:', templateId);
+          setIsTemplateModalOpen(false);
+        }}
+      />
     </div>
   );
 };
