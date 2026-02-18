@@ -308,13 +308,13 @@ const CreateShipment: React.FC = () => {
             className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all text-lg disabled:opacity-50"
           >
             <span className="material-icons-round">print</span>
-            <span>{addShipment.isPending ? '正在建档...' : '打印并建档 (Print & Create)'}</span>
+            <span>{addShipment.isPending ? '正在建档...' : '打印并建档'}</span>
           </button>
           <button
             onClick={() => setShowConfirmModal(true)}
             className="w-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
           >
-            <span>确认发货 (Confirm Outbound)</span>
+            <span>确认发货</span>
           </button>
         </div>
       </footer>
@@ -344,7 +344,7 @@ const CreateShipment: React.FC = () => {
                 onClick={handleConfirmOutbound}
                 className="w-full bg-primary text-white font-bold py-3.5 rounded-xl"
               >
-                确认发出 (Confirm)
+                确认发出
               </button>
               <button
                 onClick={() => setShowConfirmModal(false)}

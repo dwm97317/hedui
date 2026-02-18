@@ -11,7 +11,9 @@ import '@fontsource/noto-sans-sc/500.css';
 import '@fontsource/noto-sans-sc/700.css';
 import './index.css';
 import 'material-icons/iconfont/material-icons.css';
+import 'material-icons/iconfont/outlined.css';
 import 'material-icons/iconfont/round.css';
+import 'material-icons/iconfont/sharp.css';
 import App from './App';
 
 // Only init vConsole in production/app environment if needed, 

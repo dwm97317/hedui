@@ -28,7 +28,15 @@ dist-ssr
 .env.production
 .env.local
 
-# Cursor
+# Agent Metadata
+.agent/
+.agents/
+
+# Temporary files
+tmp/
+
+# Android Build Assets
+android/app/src/main/assets/
 
 # Android Signing
 *.keystore

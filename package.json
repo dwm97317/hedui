@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:android": "vite build --emptyOutDir=false && mkdir -p android/app/src/main/assets && rm -rf android/app/src/main/assets/* && cp -r dist/* android/app/src/main/assets/",
+    "build": "export NODE_OPTIONS=--max-old-space-size=2048 && nice -n 19 ionice -c 3 vite build",
+    "build:android": "export NODE_OPTIONS=--max-old-space-size=2048 && nice -n 19 ionice -c 3 vite build --emptyOutDir=false && mkdir -p android/app/src/main/assets && rm -rf android/app/src/main/assets/* && cp -r dist/* android/app/src/main/assets/",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.4.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/noto-sans-sc": "^5.2.9",
     "@supabase/supabase-js": "^2.45.4",
@@ -24,6 +25,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hot-toast": "^2.6.0",
+    "react-is": "^19.2.4",
     "react-router-dom": "^7.13.0",
     "recharts": "^3.7.0",
     "vconsole": "^3.15.1",

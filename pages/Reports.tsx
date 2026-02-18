@@ -296,11 +296,18 @@ const Reports: React.FC = () => {
                 <div className="px-5 py-3 flex justify-between items-center">
                     <div>
                         <h1 className="text-xl font-bold leading-tight text-white">
-                            {activeBatch ? `当前批次: ${activeBatch.batch_no}` : '全系统报表中心'}
+                            {activeBatch ? `当前批次: ${activeBatch.batch_no}` : '审计报表中心'}
                         </h1>
-                        <p className="text-xs text-gray-400 mt-1 uppercase tracking-tighter font-semibold">越南时区审计逻辑 (UTC+7)</p>
+                        <p className="text-[10px] font-bold mt-0.5 text-gray-400 uppercase tracking-widest font-semibold">越南时区审计逻辑 (UTC+7)</p>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => navigate('/report-center')}
+                            className="flex flex-col items-center justify-center transition-all text-slate-400 hover:text-white px-2"
+                        >
+                            <span className="material-icons-round text-sm">bar_chart</span>
+                            <span className="text-[10px] font-bold mt-0.5 whitespace-nowrap">可视化趋势</span>
+                        </button>
                         <button onClick={handleExportPNG} className="p-2.5 bg-white/10 rounded-xl hover:bg-white/20 transition-all text-white border border-white/10 shadow-inner">
                             <span className="material-icons-round text-sm">image</span>
                         </button>
@@ -365,17 +372,17 @@ const Reports: React.FC = () => {
                     <div className="bg-surface-dark rounded-2xl p-6 mb-4 shadow-2xl border border-white/5 flex justify-between items-center gap-8 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16 transition-transform group-hover:scale-110"></div>
                         <div className="flex-1">
-                            <p className="text-[10px] text-gray-400 mb-1 font-black uppercase tracking-[0.2em]">当前批次 ID</p>
+                            <p className="text-[10px] font-bold mt-0.5 text-gray-400 uppercase tracking-wider">当前批次 ID</p>
                             <p className="text-xl font-bold text-white font-mono">{activeBatch?.batch_no || '未关联'}</p>
                         </div>
                         <div className="w-px h-12 bg-white/10"></div>
                         <div className="flex-1">
-                            <p className="text-[10px] text-gray-400 mb-1 font-black uppercase tracking-[0.2em]">包裹总数</p>
+                            <p className="text-[10px] font-bold mt-0.5 text-gray-400 uppercase tracking-wider">包裹总数</p>
                             <p className="text-3xl font-black text-white">{batchTotalCount}</p>
                         </div>
                         <div className="w-px h-12 bg-white/10"></div>
                         <div className="flex-1 text-right">
-                            <p className="text-[10px] text-gray-400 mb-1 font-black uppercase tracking-[0.2em]">总毛重 (KG)</p>
+                            <p className="text-[10px] font-bold mt-0.5 text-gray-400 uppercase tracking-wider">总毛重 (KG)</p>
                             <p className="text-4xl font-black text-red-500">{batchTotalWeight}</p>
                         </div>
                     </div>
@@ -413,7 +420,7 @@ const Reports: React.FC = () => {
 
                                     <div className="flex items-start justify-between mb-6">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 opacity-60">全链路审计追踪 (Audit Tracking)</span>
+                                            <span className="text-[10px] font-bold mt-0.5 text-gray-400 uppercase tracking-widest opacity-80">全链路审计追踪 (Audit Tracking)</span>
                                             <div className="flex items-center gap-2">
                                                 <span className={`text-2xl font-black tracking-tight font-mono break-all ${s.package_tag === 'merged_child' || s.package_tag === 'split_parent' ? 'text-gray-400 line-through opacity-50' : 'text-slate-900 dark:text-white'}`}>
                                                     {s.tracking_no}
@@ -434,7 +441,7 @@ const Reports: React.FC = () => {
                                         <div className="mb-4 bg-slate-50 dark:bg-black/20 rounded-xl p-3 border border-slate-100 dark:border-white/5">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <span className="material-icons-round text-sm text-slate-400">link</span>
-                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">包裹关联关系 (Traceability)</span>
+                                                <span className="text-[10px] font-bold mt-0.5 text-slate-500 uppercase tracking-wider">包裹关联关系 (Traceability)</span>
                                             </div>
                                             {myChildrenTracking && (
                                                 <div className="space-y-1">
@@ -459,14 +466,14 @@ const Reports: React.FC = () => {
                                         {/* Sender Column */}
                                         <div className="flex flex-col gap-2">
                                             <div className="p-3 bg-red-500/5 dark:bg-red-500/10 rounded-2xl border border-red-500/10 text-center min-h-[100px] flex flex-col justify-center">
-                                                <span className="block text-[10px] text-red-600/60 font-black uppercase mb-1">发出时刻</span>
+                                                <span className="block text-[10px] font-bold mt-0.5 text-red-600/60 uppercase mb-1">发出重量</span>
                                                 <span className={`block text-lg font-black font-mono italic ${(s.package_tag === 'split_child' || s.package_tag === 'merge_parent') ? 'text-gray-400 opacity-50' : 'text-red-600'}`}>
                                                     {(s.package_tag === 'split_child' || s.package_tag === 'merge_parent') ? '---' : `${parseFloat(s.weight as any)?.toFixed(2)}kg`}
                                                 </span>
                                                 <span className="block text-[10px] font-bold text-red-500/80 bg-red-500/10 rounded-full mt-2 py-0.5 font-mono">{senderTimeFormatted}</span>
                                             </div>
                                             <div className="px-2 py-1.5 bg-slate-50 dark:bg-black/20 rounded-lg text-center">
-                                                <span className="text-[9px] text-gray-400 block uppercase font-bold tracking-tighter">发出尺寸 (S. Size)</span>
+                                                <span className="text-[10px] font-bold mt-0.5 text-gray-400 block uppercase">发出尺寸</span>
                                                 <span className="text-[10px] font-black font-mono text-gray-600 dark:text-gray-400">
                                                     {s.length || 0}x{s.width || 0}x{s.height || 0}
                                                 </span>
@@ -476,14 +483,14 @@ const Reports: React.FC = () => {
                                         {/* Transit Column */}
                                         <div className="flex flex-col gap-2">
                                             <div className={`p-3 rounded-2xl border text-center min-h-[100px] flex flex-col justify-center ${(s.transit_at || insp?.transit_time) ? 'bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/10' : 'bg-gray-500/5 dark:bg-white/5 border-white/5 grayscale'}`}>
-                                                <span className="block text-[10px] text-blue-600/60 font-black uppercase mb-1">中转时刻</span>
+                                                <span className="block text-[10px] font-bold mt-0.5 text-blue-600/60 uppercase mb-1">中转重量</span>
                                                 <span className={`block text-lg font-black font-mono italic ${insp?.transit_weight ? 'text-blue-600' : 'text-gray-400'}`}>
                                                     {insp?.transit_weight ? `${insp.transit_weight.toFixed(2)}kg` : '---'}
                                                 </span>
                                                 {transitTimeFormatted && <span className="block text-[10px] font-bold text-blue-500/80 bg-blue-500/10 rounded-full mt-2 py-0.5 font-mono">{transitTimeFormatted}</span>}
                                             </div>
                                             <div className="px-2 py-1.5 bg-slate-50 dark:bg-black/20 rounded-lg text-center">
-                                                <span className="text-[9px] text-gray-400 block uppercase font-bold tracking-tighter">中转尺寸 (T. Size)</span>
+                                                <span className="text-[10px] font-bold mt-0.5 text-gray-400 block uppercase">中转尺寸</span>
                                                 <span className="text-[10px] font-black font-mono text-gray-600 dark:text-gray-400">
                                                     {(s.transit_at || insp?.transit_time) ? `${insp.transit_length || 0}x${insp.transit_width || 0}x${insp.transit_height || 0}` : '0x0x0'}
                                                 </span>
@@ -493,14 +500,14 @@ const Reports: React.FC = () => {
                                         {/* Receiver Column */}
                                         <div className="flex flex-col gap-2">
                                             <div className={`p-3 rounded-2xl border text-center min-h-[100px] flex flex-col justify-center ${(s.receiver_at || insp?.check_time) ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/10 shadow-lg shadow-emerald-500/5' : 'bg-gray-500/5 dark:bg-white/5 border-white/5 grayscale'}`}>
-                                                <span className="block text-[10px] text-emerald-600/60 font-black uppercase mb-1">接收时刻</span>
+                                                <span className="block text-[10px] font-bold mt-0.5 text-emerald-600/60 uppercase mb-1">接收重量</span>
                                                 <span className={`block text-lg font-black font-mono italic ${insp?.check_weight ? 'text-emerald-600' : 'text-gray-400'}`}>
                                                     {insp?.check_weight ? `${insp.check_weight.toFixed(2)}kg` : '---'}
                                                 </span>
                                                 {receiverTimeFormatted && <span className="block text-[10px] font-bold text-emerald-500/80 bg-emerald-500/10 rounded-full mt-2 py-0.5 font-mono">{receiverTimeFormatted}</span>}
                                             </div>
                                             <div className="px-2 py-1.5 bg-slate-50 dark:bg-black/20 rounded-lg text-center">
-                                                <span className="text-[9px] text-gray-400 block uppercase font-bold tracking-tighter">接收尺寸 (R. Size)</span>
+                                                <span className="text-[10px] font-bold mt-0.5 text-gray-400 block uppercase">接收尺寸</span>
                                                 <span className="text-[10px] font-black font-mono text-gray-600 dark:text-gray-400">
                                                     {(s.receiver_at || insp?.check_time) ? `${insp.check_length || 0}x${insp.check_width || 0}x${insp.check_height || 0}` : '0x0x0'}
                                                 </span>
@@ -519,7 +526,7 @@ const Reports: React.FC = () => {
                                                 <span className="text-[10px] font-black font-mono">TZ: Asia/Saigon</span>
                                             </div>
                                         </div>
-                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter italic">已验证的审计记录 (Verified Audit Record)</div>
+                                        <div className="text-[10px] font-bold mt-0.5 text-gray-400 uppercase tracking-tighter italic">已验证的审计记录</div>
                                     </div>
                                 </div>
                             );

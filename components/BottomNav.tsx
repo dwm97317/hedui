@@ -10,7 +10,7 @@ const BottomNav: React.FC = () => {
   const navItems = [
     { path: '/', icon: 'home', label: '首页' },
     { path: '/create', icon: 'qr_code_scanner', label: '扫码' },
-    { path: '/report-center', icon: 'bar_chart', label: '报表' },
+    { path: '/reports', icon: 'bar_chart', label: '报表' },
     { path: '/settings', icon: 'settings', label: '设置' },
   ];
 

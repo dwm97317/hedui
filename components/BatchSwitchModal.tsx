@@ -9,7 +9,7 @@ interface BatchSwitchModalProps {
     title?: string;
 }
 
-export const BatchSwitchModal: React.FC<BatchSwitchModalProps> = ({ isOpen, onClose, batches, title = "切换批次 (Switch Batch)" }) => {
+export const BatchSwitchModal: React.FC<BatchSwitchModalProps> = ({ isOpen, onClose, batches, title = "切换批次" }) => {
     const { activeBatchId, setActiveBatchId } = useBatchStore();
 
     if (!isOpen) return null;
