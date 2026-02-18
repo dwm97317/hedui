@@ -1,12 +1,13 @@
 {
   "name": "pda-logistics-pro",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "export NODE_OPTIONS=--max-old-space-size=2048 && nice -n 19 ionice -c 3 vite build",
     "build:android": "export NODE_OPTIONS=--max-old-space-size=2048 && nice -n 19 ionice -c 3 rm -rf dist/assets dist/index.html && vite build && mkdir -p android/app/src/main/assets && rm -rf android/app/src/main/assets/* && cp -r dist/* android/app/src/main/assets/",
+    "build:ci": "rm -rf dist && vite build && mkdir -p android/app/src/main/assets && rm -rf android/app/src/main/assets/* && cp -r dist/* android/app/src/main/assets/",
     "preview": "vite preview"
   },
   "dependencies": {

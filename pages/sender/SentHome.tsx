@@ -52,7 +52,7 @@ const SentHome: React.FC = () => {
             {/* Header Section */}
             <header className="bg-surface-dark/95 backdrop-blur shadow-md z-50">
                 <div className="px-4 py-2 flex justify-between items-center text-xs text-gray-400 border-b border-white/5">
-                    <span className="font-mono tracking-wider">角色: {user?.role === 'sender' ? '发货员' : (user?.role?.toUpperCase() || '发货员')}</span>
+                    <span className="font-mono tracking-wider">角色: {user?.role?.toLowerCase() === 'sender' ? '发货员' : (user?.role === 'admin' ? '管理员' : (user?.role || '发货员'))}</span>
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1">
                             <span className="material-icons text-[14px] text-primary">circle</span>
