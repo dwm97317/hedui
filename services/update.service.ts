@@ -29,7 +29,7 @@ export const updateService = {
                 success: true,
                 data: {
                     version_name: config.version,
-                    download_url: config.url,
+                    download_url: config.url.replace('http://', 'https://'),
                     changelog: config.changelog,
                     is_critical: config.isCritical || false,
                     publish_at: config.publishAt || ''
