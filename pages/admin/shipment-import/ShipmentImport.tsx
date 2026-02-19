@@ -125,7 +125,8 @@ const ShipmentImport: React.FC = () => {
             for (const chunk of chunks) {
                 const payload = chunk.map(item => ({
                     ...item,
-                    batch_id: selectedBatchId
+                    batch_id: selectedBatchId,
+                    package_tag: 'original'
                 }));
                 const res = await ShipmentService.createMany(payload);
                 if (res.success) {
@@ -188,10 +189,30 @@ const ShipmentImport: React.FC = () => {
 
                 {/* 2. Upload File */}
                 <section className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/50">
-                    <h2 className="text-base font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">2</span>
-                        上传Excel文件
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-base font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">2</span>
+                            上传Excel文件
+                        </h2>
+                        <button
+                            onClick={() => {
+                                const data = [
+                                    ['运单号', '重量', '长', '宽', '高', '发货人', '物品类别', '运输方式'],
+                                    ['SF123456789', 10.5, 50, 40, 30, '张三', '服装', '陆运'],
+                                    ['JD987654321', 5.2, 30, 20, 10, '李四', '电子产品', '海运'],
+                                    ['EMS456123789', 2.1, 15, 15, 10, '王五', '化妆品', '空运']
+                                ];
+                                const ws = XLSX.utils.aoa_to_sheet(data);
+                                const wb = XLSX.utils.book_new();
+                                XLSX.utils.book_append_sheet(wb, ws, "模板");
+                                XLSX.writeFile(wb, "发货单导入模板.xlsx");
+                            }}
+                            className="text-xs font-bold text-primary hover:text-blue-600 flex items-center gap-1 transition-colors"
+                        >
+                            <span className="material-icons text-sm">download</span>
+                            下载Excel模板
+                        </button>
+                    </div>
 
                     <div
                         className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -208,7 +229,12 @@ const ShipmentImport: React.FC = () => {
                         <p className="text-sm text-slate-500 font-medium">
                             {file ? file.name : '点击上传 .xlsx / .xls 文件'}
                         </p>
-                        <p className="text-xs text-slate-400 mt-2">支持格式: 单号, 重量, 长, 宽, 高, 发货人, 物品类别, 运输方式</p>
+                        <div className="mt-4 p-3 bg-blue-50/50 dark:bg-blue-500/5 rounded-lg border border-blue-100/50 dark:border-blue-500/10 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-md text-center">
+                            <p className="font-bold text-primary mb-1 uppercase tracking-wider">注意事项</p>
+                            <p>1. 第一行为表头，包含：单号、重量、长、宽、高、发货人、类别、方式</p>
+                            <p>2. 运输方式可选：陆运(1), 海运(2), 空运(3)</p>
+                            <p>3. 每次导入建议不超过 200 条数据以保证处理速度</p>
+                        </div>
                     </div>
                 </section>
 
@@ -279,7 +305,6 @@ const ShipmentImport: React.FC = () => {
                         </div>
                     </section>
                 )}
-
             </main>
         </div>
     );
