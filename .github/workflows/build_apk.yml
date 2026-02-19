@@ -2,7 +2,7 @@ name: Shipment APK (Production)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feat/admin-import-excel" ]
   workflow_dispatch:
 
 jobs:
