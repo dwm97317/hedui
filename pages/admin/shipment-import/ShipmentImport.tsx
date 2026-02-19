@@ -73,7 +73,7 @@ const ShipmentImport: React.FC = () => {
                 const parsed: ImportedShipment[] = rows
                     .filter((row: any) => row[idxTracking]) // Must have tracking no
                     .map((row: any) => ({
-                        tracking_no: String(row[idxTracking]),
+                        tracking_no: String(row[idxTracking]).trim(),
                         weight: parseFloat(row[idxWeight]) || 0,
                         length: idxLength > -1 ? parseFloat(row[idxLength]) || 0 : undefined,
                         width: idxWidth > -1 ? parseFloat(row[idxWidth]) || 0 : undefined,
@@ -84,8 +84,14 @@ const ShipmentImport: React.FC = () => {
                         status: 'pending'
                     }));
 
-                setPreviewData(parsed);
-                toast.success(`解析成功，共 ${parsed.length} 条数据`);
+                // Deduplicate within the file itself
+                const uniqueData = Array.from(new Map(parsed.map(item => [item.tracking_no, item])).values());
+
+                setPreviewData(uniqueData);
+                if (uniqueData.length < parsed.length) {
+                    toast(`${parsed.length - uniqueData.length} 条重复单号已被自动过滤`);
+                }
+                toast.success(`解析成功，共 ${uniqueData.length} 条数据`);
             } catch (err) {
                 console.error(err);
                 toast.error('解析Excel失败');
@@ -95,10 +101,12 @@ const ShipmentImport: React.FC = () => {
     };
 
     const parseTransportMode = (val: any): number => {
-        if (typeof val === 'number') return val;
+        if (val === null || val === undefined) return 1;
+        if (typeof val === 'number') return [1, 2, 3].includes(val) ? val : 1;
         const s = String(val).trim();
-        if (s.includes('海')) return 2;
-        if (s.includes('空')) return 3;
+        if (s === '1' || s.includes('陆')) return 1;
+        if (s === '2' || s.includes('海')) return 2;
+        if (s === '3' || s.includes('空')) return 3;
         return 1; // Default Land
     };
 
@@ -114,11 +122,28 @@ const ShipmentImport: React.FC = () => {
 
         setIsProcessing(true);
         try {
-            // Chunk insertion to avoid payload limits
+            // Fetch existing shipments in this batch to avoid UNIQUE constraint violation
+            const existingRes = await ShipmentService.listByBatch(selectedBatchId, true);
+            const existingTrackingNos = new Set((existingRes.data || []).map(s => s.tracking_no));
+
+            // Filter out those that already exist
+            const toImport = previewData.filter(item => !existingTrackingNos.has(item.tracking_no));
+
+            if (toImport.length === 0) {
+                toast.error('所选数据在批次中已全部存在');
+                setIsProcessing(false);
+                return;
+            }
+
+            if (toImport.length < previewData.length) {
+                toast(`${previewData.length - toImport.length} 条已存在的单号将被跳过`);
+            }
+
+            // Chunk insertion
             const chunkSize = 50;
             const chunks = [];
-            for (let i = 0; i < previewData.length; i += chunkSize) {
-                chunks.push(previewData.slice(i, i + chunkSize));
+            for (let i = 0; i < toImport.length; i += chunkSize) {
+                chunks.push(toImport.slice(i, i + chunkSize));
             }
 
             let successCount = 0;
@@ -131,8 +156,6 @@ const ShipmentImport: React.FC = () => {
                 const res = await ShipmentService.createMany(payload);
                 if (res.success) {
                     successCount += (res.data || []).length;
-                } else {
-                    console.error('Batch import error', res.error);
                 }
             }
 
