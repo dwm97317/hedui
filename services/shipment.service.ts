@@ -19,6 +19,14 @@ export interface Shipment {
     receiver_at?: string;
     transport_mode?: number; // 1: Land, 2: Sea, 3: Air
     item_category?: string;
+    transit_weight?: number;
+    transit_length?: number;
+    transit_width?: number;
+    transit_height?: number;
+    receiver_weight?: number;
+    receiver_length?: number;
+    receiver_width?: number;
+    receiver_height?: number;
 }
 
 export const ShipmentService = {

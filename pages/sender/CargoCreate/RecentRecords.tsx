@@ -1,5 +1,6 @@
 import React from 'react';
 import { Shipment } from '../../../services/shipment.service';
+import { useScannerStore } from '../../../store/scanner.store';
 
 interface RecentRecordsProps {
     shipments: Shipment[] | undefined;
@@ -14,6 +15,20 @@ const RecentRecords: React.FC<RecentRecordsProps> = ({
     setIsArchivedOpen,
     handleDelete
 }) => {
+    const { weightAuditAbs, weightAuditPercent } = useScannerStore();
+
+    const checkAnomaly = (s: Shipment) => {
+        if (!s.weight) return false;
+
+        const check = (otherW?: number) => {
+            if (otherW === undefined || otherW === null) return false;
+            const diff = Math.abs(s.weight - otherW);
+            const percent = (diff / s.weight) * 100;
+            return diff > weightAuditAbs || percent > weightAuditPercent;
+        };
+
+        return check(s.transit_weight) || check(s.receiver_weight);
+    };
     return (
         <section className="space-y-2">
             <div
@@ -27,11 +42,24 @@ const RecentRecords: React.FC<RecentRecordsProps> = ({
                 <div className="space-y-2 max-h-36 overflow-y-auto no-scrollbar py-1">
                     {shipments && shipments.length > 0 ? (
                         shipments.slice(0, 3).map(s => (
-                            <div key={s.id} className="flex items-center justify-between p-3.5 bg-white dark:bg-surface-dark border border-slate-100 dark:border-white/5 rounded-2xl shadow-sm hover:border-primary/30 transition-all">
+                            <div key={s.id} className={`flex items-center justify-between p-3.5 bg-white dark:bg-surface-dark border rounded-2xl shadow-sm hover:border-primary/30 transition-all ${checkAnomaly(s) ? 'border-red-500 bg-red-500/5' : 'border-slate-100 dark:border-white/5'}`}>
                                 <div className="flex flex-col gap-1">
-                                    <span className="font-mono text-xs font-black text-slate-800 dark:text-gray-200 tracking-wider uppercase">{s.tracking_no}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`font-mono text-xs font-black tracking-wider uppercase ${checkAnomaly(s) ? 'text-red-600' : 'text-slate-800 dark:text-gray-200'}`}>
+                                            {s.tracking_no}
+                                        </span>
+                                        {checkAnomaly(s) && (
+                                            <span className="material-icons text-red-500 text-sm animate-pulse">warning</span>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-[10px] font-black text-primary uppercase tracking-widest">{s.weight} kg</span>
+                                        {checkAnomaly(s) && (
+                                            <div className="flex items-center gap-1.5 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded text-[8px] font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50">
+                                                {s.transit_weight && <span>T: {s.transit_weight}</span>}
+                                                {s.receiver_weight && <span>R: {s.receiver_weight}</span>}
+                                            </div>
+                                        )}
                                         <span className="text-[10px] font-medium text-slate-400">@ {new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         {(s.length || s.width || s.height) && (
                                             <span className="text-[10px] text-gray-500 font-medium">

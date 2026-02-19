@@ -7,6 +7,7 @@ import { useShipments, useAddShipment, useRemoveShipment, useUpdateShipment } fr
 import { toast } from 'react-hot-toast';
 import { Shipment } from '../../../services/shipment.service';
 import { useLabelPrint } from '../../../hooks/useLabelPrint';
+import { useScannerStore } from '../../../store/scanner.store';
 
 // Sub-components
 // mini-app ui is extracted to components for better maintainability.
@@ -58,6 +59,9 @@ const CargoCreate: React.FC = () => {
 
     // Bluetooth label printing
     const { printShipmentLabel, isPrinting: isLabelPrinting, printerConnected } = useLabelPrint({ silent: false });
+
+    // Settings
+    const { reprintMode } = useScannerStore();
 
     // Auto-select first active batch if none selected
     useEffect(() => {
@@ -140,6 +144,62 @@ const CargoCreate: React.FC = () => {
 
         // Print label via Bluetooth
         await printShipmentLabel(printData);
+    };
+
+    const duplicateShipment = waybillNo ? shipments?.find(s => s.tracking_no === waybillNo) : null;
+    const isReprintMode = !!waybillNo && !!duplicateShipment;
+
+    const handleReprint = async () => {
+        if (!duplicateShipment) return;
+
+        try {
+            if (reprintMode === 'update') {
+                // Update mode: User wants to re-weigh/re-measure after adding packaging
+                const updates: Partial<Shipment> = {
+                    weight: parseFloat(weight) || (duplicateShipment.weight || 0),
+                    length: length ? parseFloat(length) : (duplicateShipment.length || undefined),
+                    width: width ? parseFloat(width) : (duplicateShipment.width || undefined),
+                    height: height ? parseFloat(height) : (duplicateShipment.height || undefined),
+                    shipper_name: shipperName || (duplicateShipment.shipper_name || undefined),
+                    transport_mode: transportMode,
+                    item_category: itemCategory || (duplicateShipment.item_category || ''),
+                };
+
+                await updateShipment.mutateAsync({
+                    id: duplicateShipment.id,
+                    updates
+                });
+
+                // Print label with NEW data
+                await printShipmentLabel({
+                    tracking_no: duplicateShipment.tracking_no,
+                    weight: updates.weight || 0,
+                    length: updates.length,
+                    width: updates.width,
+                    height: updates.height,
+                    shipper_name: updates.shipper_name,
+                    batch_no: activeBatch?.batch_no,
+                });
+                toast.success(`数据已更新并重印: ${duplicateShipment.tracking_no}`);
+            } else {
+                // Copy mode: Fast reprint using existing data
+                await printShipmentLabel({
+                    tracking_no: duplicateShipment.tracking_no,
+                    weight: duplicateShipment.weight || 0,
+                    length: duplicateShipment.length || undefined,
+                    width: duplicateShipment.width || undefined,
+                    height: duplicateShipment.height || undefined,
+                    shipper_name: duplicateShipment.shipper_name || undefined,
+                    batch_no: activeBatch?.batch_no,
+                });
+                toast.success(`重印指令已发出: ${duplicateShipment.tracking_no}`);
+            }
+
+            // Clear only waybill after re-printing to allow next scan
+            setWaybillNo('');
+        } catch (err: any) {
+            toast.error('重印失败: ' + err.message);
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -253,14 +313,19 @@ const CargoCreate: React.FC = () => {
                     setItemCategory={setItemCategory}
                     volumetricWeight={volumetricWeight}
                     chargeableWeight={chargeableWeight}
+                    isReprintMode={isReprintMode}
+                    archiveShipment={duplicateShipment}
                 />
             </main>
 
             <CargoCreateFooter
                 handleCreate={handleCreate}
                 handlePrint={handlePrint}
+                handleReprint={handleReprint}
                 isCreating={addShipment.isPending}
                 isPrinting={isLabelPrinting}
+                isReprintMode={isReprintMode}
+                duplicateTrackingNo={duplicateShipment?.tracking_no}
                 openConfirmModal={() => setIsConfirmModalOpen(true)}
             />
 

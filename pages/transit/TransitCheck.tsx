@@ -217,7 +217,13 @@ const TransitCheck: React.FC = () => {
 
             await updateShipment.mutateAsync({
                 id: activeShipment.id,
-                updates: { transit_at: new Date().toISOString() } as any
+                updates: {
+                    transit_at: new Date().toISOString(),
+                    transit_weight: parseFloat(measuredWeight),
+                    transit_length: parseFloat(dimL) || 0,
+                    transit_width: parseFloat(dimW) || 0,
+                    transit_height: parseFloat(dimH) || 0,
+                } as any
             });
 
             if (batch?.status === 'sender_sealed' || batch?.status === 'sealed') {

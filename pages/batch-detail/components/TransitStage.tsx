@@ -4,6 +4,7 @@ import { Batch } from '../../../services/batch.service';
 import { Inspection } from '../../../services/inspection.service';
 import { useUserStore } from '../../../store/user.store';
 import { useUpdateInspection } from '../../../hooks/useInspections';
+import { useScannerStore } from '../../../store/scanner.store';
 import { useMergeShipments, useSplitShipment } from '../../../hooks/useShipments';
 import { ShipmentEditModal } from './ShipmentEditModal';
 import { MergeModal } from './MergeModal';
@@ -27,6 +28,7 @@ export const TransitStage: React.FC<TransitStageProps> = ({ batch, shipments: ra
     const updateInspection = useUpdateInspection();
     const mergeMutation = useMergeShipments();
     const splitMutation = useSplitShipment();
+    const { weightAuditAbs, weightAuditPercent } = useScannerStore();
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -48,9 +50,12 @@ export const TransitStage: React.FC<TransitStageProps> = ({ batch, shipments: ra
         return map;
     }, [inspections]);
 
-    const totalTransitWeight = Object.values(parsedInspections).reduce((sum, i) => sum + (parseFloat(i.transit_weight as any) || 0), 0);
+    const totalTransitWeight = shipments.reduce((sum, s) => sum + (s.transit_weight || 0), 0);
     const totalSenderWeight = shipments.reduce((sum, s) => sum + (parseFloat(s.weight as any) || 0), 0);
     const diff = totalTransitWeight - totalSenderWeight;
+    const totalDiffAbs = Math.abs(diff);
+    const totalDiffPercent = totalSenderWeight > 0 ? (totalDiffAbs / totalSenderWeight) * 100 : 0;
+    const hasGlobalDiff = totalDiffAbs > weightAuditAbs || totalDiffPercent > weightAuditPercent;
 
     const toggleSelection = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -119,8 +124,8 @@ export const TransitStage: React.FC<TransitStageProps> = ({ batch, shipments: ra
                             <span className="material-icons text-primary text-base">account_balance_wallet</span>
                             中转计费看板
                         </h2>
-                        <span className={`text-xs ${Math.abs(diff) > 0.5 ? 'text-amber-500 bg-amber-500/10' : 'text-emerald-500 bg-emerald-500/10'} px-2 py-1 rounded-full font-medium border border-current/20`}>
-                            {Math.abs(diff) > 0.5 ? `差异: ${diff.toFixed(2)}kg` : '账目平衡'}
+                        <span className={`text-xs ${hasGlobalDiff ? 'text-orange-500 bg-orange-500/10' : 'text-emerald-500 bg-emerald-500/10'} px-2 py-1 rounded-full font-medium border border-current/20`}>
+                            {hasGlobalDiff ? `差异: ${diff.toFixed(2)}kg` : '账目平衡'}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -225,11 +230,14 @@ export const TransitStage: React.FC<TransitStageProps> = ({ batch, shipments: ra
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className={`text-lg font-black font-mono ${insp ? 'text-emerald-500' : 'text-slate-300'}`}>
-                                        {insp?.transit_weight ? insp.transit_weight.toFixed(2) : '--'}
+                                    <p className={`text-lg font-black font-mono ${insp || s.transit_weight ? 'text-emerald-500' : 'text-slate-300'}`}>
+                                        {s.transit_weight ? s.transit_weight.toFixed(2) : (insp?.transit_weight ? (insp.transit_weight as any).toFixed(2) : '--')}
                                         <span className="text-[10px] text-slate-400 ml-1">kg</span>
                                     </p>
                                     <p className="text-[10px] text-slate-400 font-bold italic">Sender: {s.weight} kg</p>
+                                    {s.transit_weight && (Math.abs(s.transit_weight - (s.weight || 0)) > weightAuditAbs || (s.weight && (Math.abs(s.transit_weight - s.weight) / s.weight) * 100 > weightAuditPercent)) && (
+                                        <p className="text-[9px] text-orange-500 font-black animate-pulse">⚠️ 重量异常</p>
+                                    )}
                                 </div>
                             </div>
 

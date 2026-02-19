@@ -12,7 +12,13 @@ import { useBluetoothStore } from '../../store/bluetooth.store';
 const Settings: React.FC = () => {
     const navigate = useNavigate();
     const { user, signOut } = useUserStore();
-    const { model: pdaModel, setModel, scanAction, scanExtra, setConfig } = useScannerStore();
+    const {
+        model: pdaModel, setModel, scanAction, scanExtra, setConfig,
+        reprintMode, setReprintMode,
+        weightAuditAbs, setWeightAuditAbs,
+        weightAuditPercent, setWeightAuditPercent,
+        exportMode, setExportMode
+    } = useScannerStore();
     const btState = useBluetoothStore();
     const [showPrinterModal, setShowPrinterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -1062,6 +1068,78 @@ const Settings: React.FC = () => {
                                 <button className="flex-1 py-2 rounded text-sm font-medium bg-surface-hover text-white shadow text-center transition-all">广播模式</button>
                                 <button className="flex-1 py-2 rounded text-sm font-medium text-gray-500 hover:text-gray-300 text-center transition-all">键盘输入</button>
                             </div>
+                        </div>
+                        <div className="flex flex-col p-4 border-b border-white/5">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                                        <span className="material-icons">print</span>
+                                    </div>
+                                    <span className="text-base font-medium text-gray-200">Re-print 模式</span>
+                                </div>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">扫描已存在单号时</span>
+                            </div>
+                            <div className="flex bg-background-dark p-1 rounded-lg">
+                                <button
+                                    onClick={() => setReprintMode('copy')}
+                                    className={`flex-1 py-2 rounded text-sm font-medium transition-all ${reprintMode === 'copy' ? 'bg-surface-hover text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    快速复制
+                                </button>
+                                <button
+                                    onClick={() => setReprintMode('update')}
+                                    className={`flex-1 py-2 rounded text-sm font-medium transition-all ${reprintMode === 'update' ? 'bg-surface-hover text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    称重更新
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col p-4 border-b border-white/5">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                                        <span className="material-icons">balance</span>
+                                    </div>
+                                    <span className="text-base font-medium text-gray-200">重量差异预警 (Audit)</span>
+                                </div>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">三方重量审计</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                <div className="bg-background-dark p-3 rounded-xl border border-white/5">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase block mb-1">绝对值 (KG)</label>
+                                    <input
+                                        type="number"
+                                        value={weightAuditAbs}
+                                        onChange={(e) => setWeightAuditAbs(parseFloat(e.target.value) || 0)}
+                                        className="w-full bg-transparent text-white font-bold outline-none"
+                                    />
+                                </div>
+                                <div className="bg-background-dark p-3 rounded-xl border border-white/5">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase block mb-1">百分比 (%)</label>
+                                    <input
+                                        type="number"
+                                        value={weightAuditPercent}
+                                        onChange={(e) => setWeightAuditPercent(parseFloat(e.target.value) || 0)}
+                                        className="w-full bg-transparent text-white font-bold outline-none"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex bg-background-dark p-1 rounded-lg">
+                                <button
+                                    onClick={() => setExportMode('anomaly')}
+                                    className={`flex-1 py-2 rounded text-sm font-medium transition-all ${exportMode === 'anomaly' ? 'bg-orange-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    仅导出异常单
+                                </button>
+                                <button
+                                    onClick={() => setExportMode('all')}
+                                    className={`flex-1 py-2 rounded text-sm font-medium transition-all ${exportMode === 'all' ? 'bg-orange-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    全量数据标记
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-gray-600 mt-2 px-1">满足任一阈值即触发报警。红色单号代表差异异常。</p>
                         </div>
                         <div className="flex items-center justify-between p-4 border-b border-white/5">
                             <div className="flex items-center gap-3">

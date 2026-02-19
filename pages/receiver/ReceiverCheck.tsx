@@ -187,7 +187,11 @@ const ReceiverCheck: React.FC = () => {
         id: activeShipmentId,
         updates: {
           status: 'received',
-          receiver_at: new Date().toISOString()
+          receiver_at: new Date().toISOString(),
+          receiver_weight: parseFloat(checkWeight) || 0,
+          receiver_length: parseFloat(checkL) || 0,
+          receiver_width: parseFloat(checkW) || 0,
+          receiver_height: parseFloat(checkH) || 0,
         } as any
       });
 

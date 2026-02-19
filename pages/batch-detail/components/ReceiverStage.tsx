@@ -4,6 +4,7 @@ import { Batch } from '../../../services/batch.service';
 import { Inspection } from '../../../services/inspection.service';
 import { useUserStore } from '../../../store/user.store';
 import { useUpdateInspection } from '../../../hooks/useInspections';
+import { useScannerStore } from '../../../store/scanner.store';
 import { ShipmentEditModal } from './ShipmentEditModal';
 
 interface ReceiverStageProps {
@@ -20,6 +21,7 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: 
     const { user } = useUserStore();
     const isReceiver = user?.role === 'receiver';
     const updateInspection = useUpdateInspection();
+    const { weightAuditAbs, weightAuditPercent } = useScannerStore();
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
     const parsedData = useMemo(() => {
@@ -41,16 +43,20 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: 
     }, [inspections]);
 
     const totalSenderWeight = shipments.reduce((sum, s) => sum + (parseFloat(s.weight as any) || 0), 0);
-    const totalTransitWeight = Object.values(parsedData.transitMap).reduce((sum, i) => sum + (parseFloat(i.transit_weight as any) || 0), 0);
-    const totalCheckWeight = Object.values(parsedData.checkMap).reduce((sum, i) => sum + (parseFloat(i.check_weight as any) || 0), 0);
+    const totalTransitWeight = shipments.reduce((sum, s) => sum + (s.transit_weight || 0), 0);
+    const totalCheckWeight = shipments.reduce((sum, s) => sum + (s.receiver_weight || 0), 0);
 
     const receivedCount = shipments.filter(s => s.status === 'received').length;
     const totalCount = shipments.length;
-    const anomalies = shipments.filter(s => {
-        const check = parsedData.checkMap[s.id];
-        if (!check) return false;
-        return Math.abs((check.check_weight || 0) - (s.weight || 0)) > 0.1;
-    }).length;
+
+    const isAnom = (s: Shipment, val?: number) => {
+        if (val === undefined || val === null || !s.weight) return false;
+        const diff = Math.abs(s.weight - val);
+        const percent = (diff / s.weight) * 100;
+        return diff > weightAuditAbs || percent > weightAuditPercent;
+    };
+
+    const anomalies = shipments.filter(s => isAnom(s, s.receiver_weight)).length;
 
     const diff = totalCheckWeight - totalSenderWeight;
 
@@ -83,8 +89,8 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: 
                             <span className="material-icons text-primary text-base">fact_check</span>
                             派送计费看板
                         </h2>
-                        <span className={`text-xs ${diff < -0.5 ? 'text-red-500 bg-red-500/10' : 'text-emerald-500 bg-emerald-500/10'} px-2 py-1 rounded-full font-medium border border-current/20`}>
-                            {diff < -0.5 ? `缺失: ${diff.toFixed(2)}kg` : '到货正常'}
+                        <span className={`text-xs ${anomalies > 0 ? 'text-red-500 bg-red-500/10' : 'text-emerald-500 bg-emerald-500/10'} px-2 py-1 rounded-full font-medium border border-current/20`}>
+                            {anomalies > 0 ? `发现 ${anomalies} 个异常` : '到货正常'}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -167,10 +173,13 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: 
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className={`text-xl font-black font-mono ${check ? 'text-emerald-600' : 'text-slate-300'}`}>
-                                            {check ? check.check_weight?.toFixed(2) : '--'} <span className="text-xs text-slate-400">kg</span>
+                                        <p className={`text-xl font-black font-mono ${parent.receiver_weight ? 'text-emerald-600' : 'text-slate-300'}`}>
+                                            {parent.receiver_weight ? parent.receiver_weight.toFixed(2) : '--'} <span className="text-xs text-slate-400">kg</span>
                                         </p>
-                                        <p className="text-[10px] text-slate-400">Transit Ref: {transit?.transit_weight?.toFixed(2) || '--'} kg</p>
+                                        <p className="text-[10px] text-slate-400">Sender: {parent.weight?.toFixed(2) || '--'} kg</p>
+                                        {parent.receiver_weight && isAnom(parent, parent.receiver_weight) && (
+                                            <p className="text-[9px] text-red-500 font-bold animate-pulse">⚠️ 终端异常</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -236,10 +245,13 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: 
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className={`text-lg font-black font-mono ${check ? 'text-primary' : 'text-slate-300'}`}>
-                                        {check ? check.check_weight?.toFixed(2) : '--'} <span className="text-[10px] text-slate-400">kg</span>
+                                    <p className={`text-lg font-black font-mono ${s.receiver_weight ? 'text-primary' : 'text-slate-300'}`}>
+                                        {s.receiver_weight ? s.receiver_weight.toFixed(2) : '--'} <span className="text-[10px] text-slate-400">kg</span>
                                     </p>
-                                    <p className="text-[10px] text-slate-400">Transit: {transit?.transit_weight?.toFixed(2) || '--'} kg</p>
+                                    <p className="text-[10px] text-slate-400">Sender: {s.weight?.toFixed(2) || '--'} kg</p>
+                                    {s.receiver_weight && isAnom(s, s.receiver_weight) && (
+                                        <p className="text-[9px] text-red-500 font-bold animate-pulse">⚠️ 终端异常</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

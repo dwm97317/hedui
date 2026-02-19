@@ -4,9 +4,13 @@ import { useBatchDetail } from '../../hooks/useBatches';
 import { useShipments } from '../../hooks/useShipments';
 import { useInspections } from '../../hooks/useInspections';
 import { useUserStore } from '../../store/user.store';
+import { toast } from 'react-hot-toast';
 import { SenderStage } from './components/SenderStage';
 import { TransitStage } from './components/TransitStage';
 import { ReceiverStage } from './components/ReceiverStage';
+import * as XLSX from 'xlsx';
+import { useScannerStore } from '../../store/scanner.store';
+import { Shipment } from '../../services/shipment.service';
 
 type Stage = 'sender' | 'transit' | 'receiver';
 
@@ -65,6 +69,56 @@ const BatchDetailPage: React.FC = () => {
     const currentShipments = shipments || [];
     const currentInspections = inspections || [];
 
+    const handleExportAudit = () => {
+        const { weightAuditAbs, weightAuditPercent, exportMode } = useScannerStore.getState();
+
+        const checkAnomaly = (s: Shipment) => {
+            const check = (otherW?: number) => {
+                if (!otherW || !s.weight) return false;
+                const diff = Math.abs(s.weight - otherW);
+                const percent = (diff / s.weight) * 100;
+                return diff > weightAuditAbs || percent > weightAuditPercent;
+            };
+            return check(s.transit_weight) || check(s.receiver_weight);
+        };
+
+        let dataToExport = shipments || [];
+        if (exportMode === 'anomaly') {
+            dataToExport = dataToExport.filter(checkAnomaly);
+        }
+
+        const rows = dataToExport.map(s => {
+            const isAnomaly = checkAnomaly(s);
+            const transitDiff = s.transit_weight ? Math.abs((s.weight || 0) - s.transit_weight) : 0;
+            const receiverDiff = s.receiver_weight ? Math.abs((s.weight || 0) - s.receiver_weight) : 0;
+
+            return {
+                '运单号': s.tracking_no,
+                '品类': s.item_category || '-',
+                '发件人': s.shipper_name || '-',
+                '发件重(kg)': s.weight,
+                '发件尺寸': `${s.length || 0}*${s.width || 0}*${s.height || 0}`,
+                '中转重(kg)': s.transit_weight || '-',
+                '中转尺寸': s.transit_weight ? `${s.transit_length || 0}*${s.transit_width || 0}*${s.transit_height || 0}` : '-',
+                '接收重(kg)': s.receiver_weight || '-',
+                '接收尺寸': s.receiver_weight ? `${s.receiver_length || 0}*${s.receiver_width || 0}*${s.receiver_height || 0}` : '-',
+                '状态': isAnomaly ? '⚠️ 异常' : '正常',
+                '最大偏差(kg)': Math.max(transitDiff, receiverDiff).toFixed(2),
+                '异常详情': isAnomaly ? (
+                    (transitDiff > weightAuditAbs || (s.weight && (transitDiff / s.weight) * 100 > weightAuditPercent))
+                        ? '中转差异过大'
+                        : '接收差异过大'
+                ) : '-'
+            };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "审计报告");
+        XLSX.writeFile(wb, `审计报告_${batch.batch_no}_${new Date().toLocaleDateString()}.xlsx`);
+        toast.success('报表导出成功');
+    };
+
     return (
         <div className="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 font-display antialiased h-screen flex flex-col overflow-hidden">
             {/* Header */}
@@ -88,8 +142,12 @@ const BatchDetailPage: React.FC = () => {
                             {batch.batch_no}
                         </span>
                     </div>
-                    <button className="p-2 -mr-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-500 dark:text-slate-400">
-                        <span className="material-icons">more_horiz</span>
+                    <button
+                        onClick={handleExportAudit}
+                        className="p-2 -mr-2 rounded-full hover:bg-orange-50 dark:hover:bg-orange-950/20 text-orange-500 transition-colors"
+                        title="导出审计报表"
+                    >
+                        <span className="material-icons">file_download</span>
                     </button>
                 </div>
 

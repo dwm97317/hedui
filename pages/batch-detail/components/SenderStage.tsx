@@ -5,6 +5,8 @@ import { Inspection } from '../../../services/inspection.service';
 import { ShipmentEditModal } from './ShipmentEditModal';
 import { useUpdateShipment } from '../../../hooks/useShipments';
 import { useUserStore } from '../../../store/user.store';
+import { useScannerStore } from '../../../store/scanner.store';
+import { toast } from 'react-hot-toast';
 
 interface SenderStageProps {
     batch: Batch;
@@ -24,6 +26,7 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments: rawS
     const { user } = useUserStore();
     const isSender = user?.role === 'sender';
     const updateShipment = useUpdateShipment();
+    const { weightAuditAbs, weightAuditPercent } = useScannerStore();
     const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
     const [showAudit, setShowAudit] = useState(false);
 
@@ -64,13 +67,20 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments: rawS
     // Calculate Discrepancies (On Active Shipments Only)
     const discrepancyCount = useMemo(() => {
         return activeShipments.filter(s => {
-            const insp = shipmentInspectionMap[s.id];
             const senderW = parseFloat(s.weight as any) || 0;
-            const transitW = insp?.transit_weight || senderW;
-            const checkW = insp?.check_weight || transitW;
-            return Math.abs(senderW - transitW) > 0.1 || Math.abs(transitW - checkW) > 0.1;
+            const transitW = s.transit_weight;
+            const receiverW = s.receiver_weight;
+
+            const isAnom = (val?: number) => {
+                if (val === undefined || val === null) return false;
+                const diff = Math.abs(senderW - val);
+                const percent = (diff / senderW) * 100;
+                return diff > weightAuditAbs || percent > weightAuditPercent;
+            };
+
+            return isAnom(transitW) || isAnom(receiverW);
         }).length;
-    }, [shipments, shipmentInspectionMap]);
+    }, [activeShipments, weightAuditAbs, weightAuditPercent]);
 
     const handleSave = async (data: any) => {
         if (!selectedShipment) return;
@@ -146,16 +156,19 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments: rawS
             {/* Parcel List */}
             <div className="px-4 space-y-3 pb-24">
                 {shipments.map((s) => {
-                    const insp = shipmentInspectionMap[s.id];
                     const senderW = parseFloat(s.weight as any) || 0;
-                    const transitW = insp?.transit_weight;
-                    const checkW = insp?.check_weight;
+                    const transitW = s.transit_weight;
+                    const receiverW = s.receiver_weight;
 
-                    const transitDiff = transitW ? transitW - senderW : 0;
-                    const checkDiff = checkW && transitW ? checkW - transitW : (checkW ? checkW - senderW : 0);
+                    const isAnom = (val?: number) => {
+                        if (val === undefined || val === null) return false;
+                        const diff = Math.abs(senderW - val);
+                        const percent = (diff / senderW) * 100;
+                        return diff > weightAuditAbs || percent > weightAuditPercent;
+                    };
 
-                    const hasTransitDiff = Math.abs(transitDiff) > 0.1;
-                    const hasCheckDiff = Math.abs(checkDiff) > 0.1;
+                    const hasTransitDiff = isAnom(transitW);
+                    const hasCheckDiff = isAnom(receiverW);
 
                     const isInvalid = ['merged_child', 'split_parent'].includes(s.package_tag || '');
 
@@ -220,19 +233,19 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments: rawS
                                         <span className="text-[9px] text-slate-400 uppercase tracking-wider">Sender</span>
                                         <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">{senderW.toFixed(2)}</span>
                                     </div>
-                                    <div className={`flex flex-col gap-1 rounded bg-slate-50 dark:bg-slate-800/50 py-1 ${hasTransitDiff ? 'bg-amber-50 dark:bg-amber-500/10' : ''}`}>
+                                    <div className={`flex flex-col gap-1 rounded bg-slate-50 dark:bg-slate-800/50 py-1 ${hasTransitDiff ? 'bg-orange-50 dark:bg-orange-500/10' : ''}`}>
                                         <span className="text-[9px] text-slate-400 uppercase tracking-wider">Transit</span>
-                                        <span className={`text-xs font-mono font-bold ${hasTransitDiff ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                                        <span className={`text-xs font-mono font-bold ${hasTransitDiff ? 'text-orange-600 dark:text-orange-400' : 'text-slate-700 dark:text-slate-300'}`}>
                                             {transitW ? transitW.toFixed(2) : '--'}
                                         </span>
-                                        {hasTransitDiff && <span className="text-[8px] text-amber-500 font-bold">{transitDiff > 0 ? '+' : ''}{transitDiff.toFixed(2)}</span>}
+                                        {hasTransitDiff && <span className="text-[8px] text-orange-500 font-bold">{(transitW! - senderW).toFixed(2)}</span>}
                                     </div>
                                     <div className={`flex flex-col gap-1 rounded bg-slate-50 dark:bg-slate-800/50 py-1 ${hasCheckDiff ? 'bg-red-50 dark:bg-red-500/10' : ''}`}>
                                         <span className="text-[9px] text-slate-400 uppercase tracking-wider">Receiver</span>
                                         <span className={`text-xs font-mono font-bold ${hasCheckDiff ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                                            {checkW ? checkW.toFixed(2) : '--'}
+                                            {receiverW ? receiverW.toFixed(2) : '--'}
                                         </span>
-                                        {hasCheckDiff && <span className="text-[8px] text-red-500 font-bold">{checkDiff > 0 ? '+' : ''}{checkDiff.toFixed(2)}</span>}
+                                        {hasCheckDiff && <span className="text-[8px] text-red-500 font-bold">{(receiverW! - senderW).toFixed(2)}</span>}
                                     </div>
                                 </div>
                             )}

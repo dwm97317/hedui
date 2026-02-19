@@ -20,6 +20,8 @@ interface CargoCreateFormProps {
     setTransportMode: (val: number) => void;
     itemCategory: string;
     setItemCategory: (val: string) => void;
+    isReprintMode?: boolean;
+    archiveShipment?: any;
 }
 
 const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
@@ -32,22 +34,43 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
     volumetricWeight,
     chargeableWeight,
     transportMode, setTransportMode,
-    itemCategory, setItemCategory
+    itemCategory, setItemCategory,
+    isReprintMode = false,
+    archiveShipment
 }) => {
     return (
         <div className="flex flex-col gap-5">
             {/* Waybill Input */}
             <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-1 uppercase tracking-widest text-[10px]">运单号</label>
+                <div className="flex justify-between items-center px-1">
+                    <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest text-[10px]">运单号</label>
+                    {isReprintMode && (
+                        <span className="flex items-center gap-1 text-[10px] text-purple-500 font-black uppercase tracking-widest animate-pulse">
+                            <span className="material-icons text-[12px]">print</span>
+                            运单已存在 - 重印模式
+                        </span>
+                    )}
+                </div>
                 <div className="relative group">
                     <input
                         value={waybillNo}
                         onChange={(e) => setWaybillNo(e.target.value)}
-                        className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-xl px-4 py-4 pr-12 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg font-mono font-bold tracking-wide shadow-sm transition-all"
+                        className={`w-full border rounded-xl px-4 py-4 pr-12 text-lg font-mono font-bold tracking-wide shadow-sm transition-all outline-none ${isReprintMode
+                            ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 ring-2 ring-purple-500/20 text-purple-700 dark:text-purple-300'
+                            : 'bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:ring-2 focus:ring-primary focus:border-transparent'
+                            }`}
                         placeholder="扫描或输入单号"
                         type="text"
                     />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        {waybillNo && (
+                            <button
+                                onClick={() => setWaybillNo('')}
+                                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                                <span className="material-icons text-[20px]">close</span>
+                            </button>
+                        )}
                         <CameraScanButton onScan={(code) => setWaybillNo(code)} />
                     </div>
                 </div>
@@ -71,7 +94,20 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
                     />
                     <span className="absolute right-5 bottom-3 text-slate-400 dark:text-gray-600 text-[10px] font-black uppercase tracking-widest">kg</span>
                 </div>
-                <div className="mt-3 flex justify-center">
+                <div className="mt-3 flex flex-col items-center gap-2">
+                    {isReprintMode && archiveShipment && (
+                        <div className="flex items-center gap-2 text-[10px] font-bold">
+                            <span className="text-gray-500 uppercase">存档重量:</span>
+                            <span className="text-slate-800 dark:text-slate-200">{archiveShipment.weight} kg</span>
+                            {archiveShipment.transit_weight && (
+                                <>
+                                    <span className="text-gray-400 mx-1">|</span>
+                                    <span className="text-orange-500 uppercase">中转重:</span>
+                                    <span className="text-orange-600 font-black">{archiveShipment.transit_weight} kg</span>
+                                </>
+                            )}
+                        </div>
+                    )}
                     <button
                         className="text-xs text-gray-500 underline decoration-gray-600 hover:text-primary hover:decoration-primary transition-colors font-medium"
                     >

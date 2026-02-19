@@ -7,8 +7,16 @@ interface ScannerState {
     model: PDAModel;
     scanAction: string;
     scanExtra: string;
+    reprintMode: 'copy' | 'update';
+    weightAuditAbs: number;
+    weightAuditPercent: number;
+    exportMode: 'anomaly' | 'all';
     setModel: (model: PDAModel) => void;
     setConfig: (action: string, extra: string) => void;
+    setReprintMode: (mode: 'copy' | 'update') => void;
+    setWeightAuditAbs: (val: number) => void;
+    setWeightAuditPercent: (val: number) => void;
+    setExportMode: (mode: 'anomaly' | 'all') => void;
     syncWithNative: () => void;
 }
 
@@ -18,6 +26,10 @@ export const useScannerStore = create<ScannerState>()(
             model: 'None',
             scanAction: 'android.intent.action.RECEIVE_SCANDATA_BROADCAST',
             scanExtra: 'android.intent.extra.SCAN_BROADCAST_DATA',
+            reprintMode: 'copy',
+            weightAuditAbs: 0.5,
+            weightAuditPercent: 5,
+            exportMode: 'all',
 
             setModel: (model) => {
                 let action = get().scanAction;
@@ -46,6 +58,14 @@ export const useScannerStore = create<ScannerState>()(
                 set({ scanAction: action, scanExtra: extra, model: 'Custom' });
                 get().syncWithNative();
             },
+
+            setReprintMode: (mode) => {
+                set({ reprintMode: mode });
+            },
+
+            setWeightAuditAbs: (val) => set({ weightAuditAbs: val }),
+            setWeightAuditPercent: (val) => set({ weightAuditPercent: val }),
+            setExportMode: (mode) => set({ exportMode: mode }),
 
             syncWithNative: () => {
                 const { scanAction, scanExtra } = get();
