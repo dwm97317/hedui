@@ -197,58 +197,60 @@ const Settings: React.FC = () => {
                             )}
                         </div>
                     </main>
-                    <footer className="p-6 pt-2 space-y-3">
-                        {hasNewVersion ? (
-                            <button
-                                onClick={() => {
-                                    if ((window as any).Android?.startDownload) {
-                                        setIsUpdating(true);
-                                        setDownloadProgress(0);
-                                        const apkName = `hedui_v${latestVersion.version_name.replace('v', '')}.apk`;
-                                        (window as any).Android.startDownload(latestVersion.download_url, apkName);
-                                        toast.success('开始下载新版本...');
-                                    } else {
-                                        setIsUpdating(true);
-                                        window.open(latestVersion.download_url, '_blank');
-                                        toast.success('正在打开浏览器下载...');
-                                        setTimeout(() => {
-                                            setIsUpdating(false);
-                                            setShowUpdateModal(false);
-                                        }, 3000);
-                                    }
-                                }}
-                                disabled={isUpdating}
-                                className="w-full bg-primary hover:bg-primary-dark active:scale-95 transition-all text-white font-bold rounded-lg py-3.5 shadow-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-                            >
-                                {isUpdating ? (
-                                    <div className="w-full px-2">
-                                        <div className="flex justify-between text-[10px] text-white/70 font-bold mb-1.5 uppercase tracking-wider">
-                                            <span>正在同步数据包...</span>
-                                            <span>{downloadProgress}%</span>
+                    <footer className="p-6 pt-2">
+                        <div className="min-h-[56px] flex items-center justify-center">
+                            {hasNewVersion ? (
+                                <button
+                                    onClick={() => {
+                                        if ((window as any).Android?.startDownload) {
+                                            setIsUpdating(true);
+                                            setDownloadProgress(0);
+                                            const apkName = `hedui_v${latestVersion.version_name.replace('v', '')}.apk`;
+                                            (window as any).Android.startDownload(latestVersion.download_url, apkName);
+                                            toast.success('开始下载新版本...');
+                                        } else {
+                                            setIsUpdating(true);
+                                            window.open(latestVersion.download_url, '_blank');
+                                            toast.success('正在打开浏览器下载...');
+                                            setTimeout(() => {
+                                                setIsUpdating(false);
+                                                setShowUpdateModal(false);
+                                            }, 3000);
+                                        }
+                                    }}
+                                    disabled={isUpdating}
+                                    className="w-full bg-primary hover:bg-primary-dark active:scale-[0.98] transition-all text-white font-bold rounded-lg py-3.5 shadow-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+                                >
+                                    {isUpdating ? (
+                                        <div className="w-full px-4">
+                                            <div className="flex justify-between text-[10px] text-white/70 font-bold mb-1.5 uppercase tracking-wider">
+                                                <span>正在同步数据包...</span>
+                                                <span className="font-mono">{downloadProgress}%</span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-white transition-all duration-300 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                                                    style={{ width: `${downloadProgress}%` }}
+                                                ></div>
+                                            </div>
                                         </div>
-                                        <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-white transition-all duration-300 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-                                                style={{ width: `${downloadProgress}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    "立即更新"
-                                )}
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => setShowUpdateModal(false)}
-                                className="w-full bg-surface-hover hover:bg-white/10 text-white font-bold rounded-lg py-3.5 border border-white/10"
-                            >
-                                我知道了
-                            </button>
-                        )}
+                                    ) : (
+                                        "立即更新"
+                                    )}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setShowUpdateModal(false)}
+                                    className="w-full bg-surface-hover hover:bg-white/10 text-white font-bold rounded-lg py-3.5 border border-white/10 active:scale-[0.98] transition-all"
+                                >
+                                    我知道了
+                                </button>
+                            )}
+                        </div>
                         {hasNewVersion && !isUpdating && (
                             <button
                                 onClick={() => setShowUpdateModal(false)}
-                                className="w-full text-gray-400 hover:text-white transition-colors py-3 text-sm font-medium"
+                                className="w-full text-gray-400 hover:text-white transition-colors py-3 text-sm font-medium mt-2"
                             >
                                 稍后再说
                             </button>
