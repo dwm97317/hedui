@@ -94,49 +94,57 @@ const SentHome: React.FC = () => {
             {/* Main Content */}
             <main className="flex-1 p-4 overflow-y-auto flex flex-col gap-4 no-scrollbar pb-20">
                 {/* Current Batch Info Card */}
-                <div className="p-4 rounded-xl bg-gradient-to-r from-surface-dark to-surface-hover border border-white/5 flex justify-between items-start shadow-lg">
-                    <div className="flex-1 cursor-pointer" onClick={() => activeBatch && navigate(`/batch/${activeBatch.id}`)}>
-                        <span className="text-xs text-gray-400 block mb-1">当前进行中批次</span>
-                        <div className="text-lg font-mono text-white font-semibold tracking-wide mb-3">
-                            {activeBatch ? activeBatch.batch_no : '无活跃批次'}
+                <div className="p-4 rounded-xl bg-gradient-to-r from-surface-dark to-surface-hover border border-white/5 flex flex-col gap-4 shadow-lg overflow-hidden">
+                    <div className="flex justify-between items-start">
+                        <div className="flex-1 cursor-pointer" onClick={() => activeBatch && navigate(`/batch/${activeBatch.id}`)}>
+                            <div className="flex items-center gap-1.5 mb-1 text-gray-400">
+                                <span className="material-icons text-[14px]">inventory_2</span>
+                                <span className="text-[10px] uppercase tracking-wider font-bold">当前进行中批次</span>
+                            </div>
+                            <div className="text-lg font-mono text-white font-bold tracking-wider">
+                                {activeBatch ? activeBatch.batch_no : '无活跃批次'}
+                            </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 mt-2">
-                            {activeBatch && (
-                                <>
-                                    <SenderStageStats batch={activeBatch as any} shipments={shipments} isCompact className="bg-white/5 border-white/5" />
-                                    <TransitStageStats batch={activeBatch as any} isCompact className="bg-white/5 border-white/5" />
-                                    <ReceiverStageStats batch={activeBatch as any} isCompact className="bg-white/5 border-white/5" />
-                                </>
-                            )}
-                        </div>
+                        <button
+                            onClick={() => navigate('/batch-list')}
+                            className="bg-white/5 text-gray-400 hover:text-white px-2 py-1 rounded text-[10px] font-medium border border-white/5 transition-colors flex items-center gap-1"
+                        >
+                            <span className="material-icons text-[12px]">list_alt</span>
+                            批次列表
+                        </button>
                     </div>
-                    <div className="flex items-center gap-2 mt-1 shrink-0">
+
+                    <div className="grid grid-cols-3 gap-2">
+                        {activeBatch && (
+                            <>
+                                <SenderStageStats batch={activeBatch as any} shipments={shipments} isCompact className="bg-white/5 border-white/5" />
+                                <TransitStageStats batch={activeBatch as any} isCompact className="bg-white/5 border-white/5" />
+                                <ReceiverStageStats batch={activeBatch as any} isCompact className="bg-white/5 border-white/5" />
+                            </>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 mt-1">
                         <button
                             onClick={() => setIsSwitchModalOpen(true)}
-                            className="flex items-center gap-1 text-primary bg-primary/10 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary/20 transition-colors border border-primary/20"
+                            className="flex flex-col items-center justify-center gap-1 text-primary bg-primary/10 p-2 rounded-xl text-[10px] font-bold hover:bg-primary/20 transition-all border border-primary/20 active:scale-95"
                         >
-                            <span className="material-icons text-[14px]">swap_horiz</span>
+                            <span className="material-icons text-[18px]">swap_horiz</span>
                             <span>切换</span>
                         </button>
                         <button
                             onClick={() => navigate('/create-batch')}
-                            className="flex items-center gap-1 text-white bg-primary px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-600 transition-colors shadow-sm"
+                            className="flex flex-col items-center justify-center gap-1 text-white bg-primary p-2 rounded-xl text-[10px] font-bold hover:bg-blue-600 transition-all shadow-md shadow-blue-900/10 active:scale-95"
                         >
-                            <span className="material-icons text-[14px]">add</span>
+                            <span className="material-icons text-[18px]">add</span>
                             <span>新建</span>
                         </button>
                         <button
                             onClick={() => navigate('/admin/import-shipments')}
-                            className="bg-green-600/20 text-green-500 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-600/30 transition-colors border border-green-600/20 flex items-center gap-1"
+                            className="flex flex-col items-center justify-center gap-1 bg-green-600/10 text-green-500 p-2 rounded-xl text-[10px] font-bold hover:bg-green-600/20 transition-all border border-green-600/20 active:scale-95"
                         >
-                            <span className="material-icons text-[14px]">upload_file</span>
+                            <span className="material-icons text-[18px]">upload_file</span>
                             <span>Excel 导入</span>
-                        </button>
-                        <button
-                            onClick={() => navigate('/batch-list')}
-                            className="bg-white/10 text-gray-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-white/20 transition-colors"
-                        >
-                            批次列表
                         </button>
                     </div>
                 </div>
