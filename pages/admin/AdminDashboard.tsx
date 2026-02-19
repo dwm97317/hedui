@@ -127,6 +127,13 @@ const AdminDashboard: React.FC = () => {
                         <span className="material-icons text-3xl mb-2 text-blue-500 group-hover:scale-110 transition-transform">bar_chart</span>
                         <span className="text-sm font-medium">报表中心</span>
                     </button>
+                    <button
+                        onClick={() => navigate('/admin/import-shipments')}
+                        className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/30 hover:bg-primary/5 transition-colors group shadow-sm"
+                    >
+                        <span className="material-icons text-3xl mb-2 text-green-500 group-hover:scale-110 transition-transform">upload_file</span>
+                        <span className="text-sm font-medium">导入运单</span>
+                    </button>
                 </div>
             </section>
 

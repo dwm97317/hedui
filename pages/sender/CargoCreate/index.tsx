@@ -31,6 +31,8 @@ const CargoCreate: React.FC = () => {
     const [width, setWidth] = useState('');
     const [height, setHeight] = useState('');
     const [shipperName, setShipperName] = useState('');
+    const [transportMode, setTransportMode] = useState<number>(1);
+    const [itemCategory, setItemCategory] = useState('');
     const [isArchivedOpen, setIsArchivedOpen] = useState(true);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [editingShipment, setEditingShipment] = useState<Shipment | null>(null);
@@ -44,6 +46,8 @@ const CargoCreate: React.FC = () => {
     const [editWidth, setEditWidth] = useState('');
     const [editHeight, setEditHeight] = useState('');
     const [editShipperName, setEditShipperName] = useState('');
+    const [editTransportMode, setEditTransportMode] = useState<number>(1);
+    const [editItemCategory, setEditItemCategory] = useState('');
 
     // Fetch shipments for the current batch
     const { data: shipments, isLoading: shipmentsLoading } = useShipments(activeBatchId || '');
@@ -102,6 +106,8 @@ const CargoCreate: React.FC = () => {
                 width: width ? parseFloat(width) : null,
                 height: height ? parseFloat(height) : null,
                 shipper_name: shipperName || null,
+                transport_mode: transportMode,
+                item_category: itemCategory || null,
             });
 
             // Clear form
@@ -110,6 +116,8 @@ const CargoCreate: React.FC = () => {
             setWidth('');
             setHeight('');
             setShipperName('');
+            setItemCategory('');
+            setTransportMode(1);
             toast.success('建档成功');
         } catch (err: any) {
             toast.error('创建失败: ' + err.message);
@@ -145,7 +153,10 @@ const CargoCreate: React.FC = () => {
         setEditLength((shipment.length || 0).toString());
         setEditWidth((shipment.width || 0).toString());
         setEditHeight((shipment.height || 0).toString());
+        setEditHeight((shipment.height || 0).toString());
         setEditShipperName(shipment.shipper_name || '');
+        setEditTransportMode(shipment.transport_mode || 1);
+        setEditItemCategory(shipment.item_category || '');
     };
 
     const handleUpdateShipment = async () => {
@@ -159,7 +170,9 @@ const CargoCreate: React.FC = () => {
                     length: editLength ? parseFloat(editLength) : null,
                     width: editWidth ? parseFloat(editWidth) : null,
                     height: editHeight ? parseFloat(editHeight) : null,
-                    shipper_name: editShipperName || null
+                    shipper_name: editShipperName || null,
+                    transport_mode: editTransportMode,
+                    item_category: editItemCategory || null
                 }
             });
             setEditingShipment(null);
@@ -234,6 +247,10 @@ const CargoCreate: React.FC = () => {
                     setHeight={setHeight}
                     shipperName={shipperName}
                     setShipperName={setShipperName}
+                    transportMode={transportMode}
+                    setTransportMode={setTransportMode}
+                    itemCategory={itemCategory}
+                    setItemCategory={setItemCategory}
                     volumetricWeight={volumetricWeight}
                     chargeableWeight={chargeableWeight}
                 />
@@ -275,6 +292,10 @@ const CargoCreate: React.FC = () => {
                 setHeight={setEditHeight}
                 shipperName={editShipperName}
                 setShipperName={setEditShipperName}
+                transportMode={editTransportMode}
+                setTransportMode={setEditTransportMode}
+                itemCategory={editItemCategory}
+                setItemCategory={setEditItemCategory}
                 handleUpdateShipment={handleUpdateShipment}
             />
 

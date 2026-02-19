@@ -17,6 +17,8 @@ export interface Shipment {
     sender_at?: string;
     transit_at?: string;
     receiver_at?: string;
+    transport_mode?: number; // 1: Land, 2: Sea, 3: Air
+    item_category?: string;
 }
 
 export const ShipmentService = {
@@ -24,11 +26,11 @@ export const ShipmentService = {
      * Create (Add) a Shipment to a Batch
      * Trigger: update_batch_totals will auto-recalculate batch weight
      */
-    async create(data: Pick<Shipment, 'tracking_no' | 'batch_id' | 'weight' | 'volume' | 'length' | 'width' | 'height' | 'shipper_name'>): Promise<ServiceResponse<Shipment>> {
+    async create(data: Pick<Shipment, 'tracking_no' | 'batch_id' | 'weight' | 'volume' | 'length' | 'width' | 'height' | 'shipper_name' | 'transport_mode' | 'item_category'>): Promise<ServiceResponse<Shipment>> {
         return handleServiceCall(
             supabase.from('shipments')
                 .insert({ ...data, status: 'pending' })
-                .select('id, tracking_no, batch_id, weight, volume, status, length, width, height, shipper_name, sender_at, transit_at, receiver_at, package_tag, created_at')
+                .select('*')
                 .single()
         );
     },
@@ -40,7 +42,7 @@ export const ShipmentService = {
         return handleServiceCall(
             supabase.from('shipments')
                 .insert(data)
-                .select('id, tracking_no, batch_id, weight, volume, status, length, width, height, shipper_name, sender_at, transit_at, receiver_at, package_tag, created_at')
+                .select('*')
         );
     },
 
@@ -49,7 +51,7 @@ export const ShipmentService = {
      */
     async listByBatch(batchId: string, includeAll: boolean = false): Promise<ServiceResponse<Shipment[]>> {
         let query = supabase.from('shipments')
-            .select('id, tracking_no, batch_id, weight, volume, status, length, width, height, shipper_name, sender_at, transit_at, receiver_at, package_tag, created_at')
+            .select('*')
             .eq('batch_id', batchId)
             .order('created_at', { ascending: false });
 
@@ -90,7 +92,7 @@ export const ShipmentService = {
     async listAll(): Promise<ServiceResponse<Shipment[]>> {
         return handleServiceCall(
             supabase.from('shipments')
-                .select('id, tracking_no, batch_id, weight, volume, status, length, width, height, shipper_name, sender_at, transit_at, receiver_at, package_tag, created_at')
+                .select('*')
                 .order('created_at', { ascending: false })
         );
     },
@@ -102,7 +104,7 @@ export const ShipmentService = {
     async findByTracking(trackingNo: string): Promise<ServiceResponse<Shipment>> {
         return handleServiceCall(
             supabase.from('shipments')
-                .select('id, tracking_no, batch_id, weight, volume, status, length, width, height, shipper_name, sender_at, transit_at, receiver_at, package_tag, created_at')
+                .select('*')
                 .eq('tracking_no', trackingNo)
                 .single()
         );

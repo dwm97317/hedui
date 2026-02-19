@@ -16,6 +16,10 @@ interface CargoCreateFormProps {
     setShipperName: (val: string) => void;
     volumetricWeight: number;
     chargeableWeight: number;
+    transportMode: number;
+    setTransportMode: (val: number) => void;
+    itemCategory: string;
+    setItemCategory: (val: string) => void;
 }
 
 const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
@@ -26,7 +30,9 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
     height, setHeight,
     shipperName, setShipperName,
     volumetricWeight,
-    chargeableWeight
+    chargeableWeight,
+    transportMode, setTransportMode,
+    itemCategory, setItemCategory
 }) => {
     return (
         <div className="flex flex-col gap-5">
@@ -128,6 +134,41 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
                     <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-primary transition-all active:scale-90">
                         <span className="material-icons text-[20px]">history</span>
                     </button>
+                </div>
+            </div>
+
+            {/* Additional Info: Transport Mode & Category */}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-1 uppercase tracking-widest text-[10px]">物品类别 (可选)</label>
+                    <input
+                        value={itemCategory}
+                        onChange={(e) => setItemCategory(e.target.value)}
+                        className="w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 rounded-xl px-4 py-4 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-base font-bold shadow-sm transition-all"
+                        placeholder="例如: 电子产品"
+                        type="text"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-500 dark:text-gray-400 pl-1 uppercase tracking-widest text-[10px]">运输方式</label>
+                    <div className="flex bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-white/10 p-1">
+                        {[
+                            { value: 1, label: '陆运' },
+                            { value: 2, label: '海运' },
+                            { value: 3, label: '空运' }
+                        ].map((mode) => (
+                            <button
+                                key={mode.value}
+                                onClick={() => setTransportMode(mode.value)}
+                                className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${transportMode === mode.value
+                                    ? 'bg-primary text-white shadow-md'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'
+                                    }`}
+                            >
+                                {mode.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

@@ -55,6 +55,7 @@ import AdminBillManagement from './pages/admin/AdminBillManagement';
 import SystemSettings from './pages/admin/SystemSettings';
 import AdminProfile from './pages/admin/AdminProfile';
 import { BatchBillingSettings } from './pages/finance/BatchBillingSettings';
+import ShipmentImport from './pages/admin/shipment-import/ShipmentImport';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { toast, Toaster } from 'react-hot-toast';
@@ -248,6 +249,7 @@ const AppContent = () => {
           <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagement /></ProtectedRoute>} />
           <Route path="/admin/companies" element={<ProtectedRoute allowedRoles={['admin']}><CompanyManagement /></ProtectedRoute>} />
           <Route path="/admin/batches" element={<ProtectedRoute allowedRoles={['admin']}><BatchManagement /></ProtectedRoute>} />
+          <Route path="/admin/import-shipments" element={<ProtectedRoute allowedRoles={['admin']}><ShipmentImport /></ProtectedRoute>} />
           <Route path="/admin/bills" element={<ProtectedRoute allowedRoles={['admin']}><AdminBillManagement /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin']}><SystemSettings /></ProtectedRoute>} />
           <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminProfile /></ProtectedRoute>} />

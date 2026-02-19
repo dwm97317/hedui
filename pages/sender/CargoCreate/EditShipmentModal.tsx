@@ -16,6 +16,10 @@ interface EditShipmentModalProps {
     setHeight: (val: string) => void;
     shipperName: string;
     setShipperName: (val: string) => void;
+    transportMode: number;
+    setTransportMode: (val: number) => void;
+    itemCategory: string;
+    setItemCategory: (val: string) => void;
     handleUpdateShipment: () => void;
 }
 
@@ -28,6 +32,8 @@ const EditShipmentModal: React.FC<EditShipmentModalProps> = ({
     width, setWidth,
     height, setHeight,
     shipperName, setShipperName,
+    transportMode, setTransportMode,
+    itemCategory, setItemCategory,
     handleUpdateShipment
 }) => {
     if (!editingShipment) return null;
@@ -115,6 +121,39 @@ const EditShipmentModal: React.FC<EditShipmentModalProps> = ({
                                 className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-bold"
                                 placeholder="输入发货人姓名"
                             />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">物品类别 (可选)</label>
+                            <input
+                                value={itemCategory}
+                                onChange={(e) => setItemCategory(e.target.value)}
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-bold text-sm"
+                                placeholder="例如: 电子产品"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">运输方式</label>
+                            <div className="flex bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
+                                {[
+                                    { value: 1, label: '陆运' },
+                                    { value: 2, label: '海运' },
+                                    { value: 3, label: '空运' }
+                                ].map((mode) => (
+                                    <button
+                                        key={mode.value}
+                                        onClick={() => setTransportMode(mode.value)}
+                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${transportMode === mode.value
+                                                ? 'bg-primary text-white shadow-md'
+                                                : 'text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                            }`}
+                                    >
+                                        {mode.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
