@@ -8,7 +8,7 @@ interface ShipmentEditModalProps {
     shipment: Shipment;
     inspection?: Inspection;
     role: 'sender' | 'transit' | 'receiver';
-    onSave: (data: { weight: number; length: number; width: number; height: number }) => Promise<void>;
+    onSave: (data: { weight: number; length: number; width: number; height: number; shipper_name?: string; transport_mode?: number }) => Promise<void>;
 }
 
 export const ShipmentEditModal: React.FC<ShipmentEditModalProps> = ({
@@ -23,6 +23,8 @@ export const ShipmentEditModal: React.FC<ShipmentEditModalProps> = ({
     const [length, setLength] = useState('');
     const [width, setWidth] = useState('');
     const [height, setHeight] = useState('');
+    const [shipperName, setShipperName] = useState('');
+    const [transportMode, setTransportMode] = useState<number>(1);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -32,6 +34,8 @@ export const ShipmentEditModal: React.FC<ShipmentEditModalProps> = ({
                 setLength(shipment.length?.toString() || '');
                 setWidth(shipment.width?.toString() || '');
                 setHeight(shipment.height?.toString() || '');
+                setShipperName(shipment.shipper_name || '');
+                setTransportMode(shipment.transport_mode || 1);
             } else if (role === 'transit') {
                 setWeight(inspection?.transit_weight?.toString() || '');
                 setLength(inspection?.transit_length?.toString() || '');
@@ -55,7 +59,9 @@ export const ShipmentEditModal: React.FC<ShipmentEditModalProps> = ({
                 weight: parseFloat(weight) || 0,
                 length: parseFloat(length) || 0,
                 width: parseFloat(width) || 0,
-                height: parseFloat(height) || 0
+                height: parseFloat(height) || 0,
+                shipper_name: role === 'sender' ? shipperName : undefined,
+                transport_mode: role === 'sender' ? transportMode : undefined
             });
             onClose();
         } finally {
@@ -121,6 +127,44 @@ export const ShipmentEditModal: React.FC<ShipmentEditModalProps> = ({
                             </div>
                         ))}
                     </div>
+
+                    {role === 'sender' && (
+                        <>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500 uppercase">发货人</label>
+                                <input
+                                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary rounded-xl font-bold transition-all outline-none"
+                                    type="text"
+                                    placeholder="请输入发货人"
+                                    value={shipperName}
+                                    onChange={(e) => setShipperName(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500 uppercase">运输方式</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { id: 1, label: '陆运', icon: 'local_shipping' },
+                                        { id: 2, label: '海运', icon: 'directions_boat' },
+                                        { id: 3, label: '空运', icon: 'flight' }
+                                    ].map((mode) => (
+                                        <button
+                                            key={mode.id}
+                                            onClick={() => setTransportMode(mode.id)}
+                                            className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${transportMode === mode.id
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-slate-100 dark:border-slate-800 text-slate-400 hover:border-slate-200 dark:hover:border-slate-700'
+                                                }`}
+                                        >
+                                            <span className="material-icons text-xl">{mode.icon}</span>
+                                            <span className="text-[10px] font-bold">{mode.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-2 mt-4">

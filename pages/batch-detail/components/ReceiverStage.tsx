@@ -158,6 +158,11 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: 
                                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${isParentScanned ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
                                                     {isParentScanned ? 'Fully Received' : (isPartialBreak ? 'Partial / Error' : 'Pending Scan')}
                                                 </span>
+                                                <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                                <span className="text-[10px] text-slate-500 truncate max-w-[60px]">{parent.shipper_name || '未填'}</span>
+                                                <span className={`text-[9px] font-bold px-1 rounded ${parent.transport_mode === 1 ? 'bg-amber-50 text-amber-600' : parent.transport_mode === 2 ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                                                    {parent.transport_mode === 1 ? '陆' : parent.transport_mode === 2 ? '海' : '空'}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -220,7 +225,14 @@ export const ReceiverStage: React.FC<ReceiverStageProps> = ({ batch, shipments: 
                                     </div>
                                     <div>
                                         <p className="text-sm font-black font-mono text-slate-800 dark:text-slate-200">{s.tracking_no}</p>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Standard Package</p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase">Standard</span>
+                                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                            <span className="text-[10px] text-slate-500 truncate max-w-[80px]">{s.shipper_name || '未填'}</span>
+                                            <span className={`text-[9px] font-bold px-1.5 rounded ${s.transport_mode === 1 ? 'bg-amber-50 text-amber-600' : s.transport_mode === 2 ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                                                {s.transport_mode === 1 ? '陆' : s.transport_mode === 2 ? '海' : '空'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="text-right">

@@ -195,6 +195,24 @@ export const SenderStage: React.FC<SenderStageProps> = ({ batch, shipments: rawS
                                 </div>
                             </div>
 
+                            <div className="flex items-center gap-4 py-2 border-t border-slate-50 dark:border-slate-800/30">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="material-icons text-[14px] text-slate-400">person</span>
+                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate font-medium">
+                                        {s.shipper_name || '未填'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="material-icons text-[14px] text-slate-400">
+                                        {s.transport_mode === 1 ? 'local_shipping' : s.transport_mode === 2 ? 'directions_boat' : 'flight'}
+                                    </span>
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.transport_mode === 1 ? 'bg-amber-50 text-amber-600' : s.transport_mode === 2 ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                                        }`}>
+                                        {s.transport_mode === 1 ? '陆运' : s.transport_mode === 2 ? '海运' : '空运'}
+                                    </span>
+                                </div>
+                            </div>
+
                             {/* Audit / Reconciliation View */}
                             {showAudit && (
                                 <div className="mt-2 pt-3 border-t border-slate-100 dark:border-slate-700/50 grid grid-cols-3 gap-2 text-center">

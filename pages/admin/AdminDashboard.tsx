@@ -34,10 +34,19 @@ const AdminDashboard: React.FC = () => {
                             <p className="text-sm text-slate-400">{currentDate}</p>
                         </div>
                     </div>
-                    <button className="relative p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                        <span className="material-icons text-slate-600 dark:text-slate-300">notifications</span>
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-background-dark"></span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => navigate('/admin/import-shipments')}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-all shadow-lg shadow-green-600/20 active:scale-95"
+                        >
+                            <span className="material-icons text-sm">upload_file</span>
+                            <span>Excel 导入</span>
+                        </button>
+                        <button className="relative p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                            <span className="material-icons text-slate-600 dark:text-slate-300">notifications</span>
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-background-dark"></span>
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -126,13 +135,6 @@ const AdminDashboard: React.FC = () => {
                     >
                         <span className="material-icons text-3xl mb-2 text-blue-500 group-hover:scale-110 transition-transform">bar_chart</span>
                         <span className="text-sm font-medium">报表中心</span>
-                    </button>
-                    <button
-                        onClick={() => navigate('/admin/import-shipments')}
-                        className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/30 hover:bg-primary/5 transition-colors group shadow-sm"
-                    >
-                        <span className="material-icons text-3xl mb-2 text-green-500 group-hover:scale-110 transition-transform">upload_file</span>
-                        <span className="text-sm font-medium">导入运单</span>
                     </button>
                 </div>
             </section>

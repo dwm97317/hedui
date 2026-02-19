@@ -254,11 +254,20 @@ export const ShipmentService = {
         return { data: children, error: null, success: true };
     },
 
-    /**
-     * Delete (Remove from Batch)
-     */
     async remove(id: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase.from('shipments').delete().eq('id', id);
+        if (error) return { data: null, error: error.message, success: false };
+        return { data: null, error: null, success: true };
+    },
+
+    /**
+     * Remove Multiple Shipments by Batch and Tracking Numbers
+     */
+    async removeInBatch(batchId: string, trackingNos: string[]): Promise<ServiceResponse<null>> {
+        const { error } = await supabase.from('shipments')
+            .delete()
+            .eq('batch_id', batchId)
+            .in('tracking_no', trackingNos);
         if (error) return { data: null, error: error.message, success: false };
         return { data: null, error: null, success: true };
     }

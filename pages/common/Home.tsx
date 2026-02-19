@@ -31,6 +31,8 @@ const Home: React.FC = () => {
       return <TransitHome />;
     case 'receiver':
       return <ReceiverHome />;
+    case 'admin':
+      return <Navigate to="/admin/dashboard" replace />;
     default:
       return (
         <div className="flex flex-col items-center justify-center h-screen bg-background-dark text-white gap-4">

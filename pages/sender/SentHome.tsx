@@ -126,6 +126,13 @@ const SentHome: React.FC = () => {
                             <span>新建</span>
                         </button>
                         <button
+                            onClick={() => navigate('/admin/import-shipments')}
+                            className="bg-green-600/20 text-green-500 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-600/30 transition-colors border border-green-600/20 flex items-center gap-1"
+                        >
+                            <span className="material-icons text-[14px]">upload_file</span>
+                            <span>Excel 导入</span>
+                        </button>
+                        <button
                             onClick={() => navigate('/batch-list')}
                             className="bg-white/10 text-gray-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-white/20 transition-colors"
                         >

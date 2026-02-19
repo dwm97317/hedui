@@ -122,6 +122,13 @@ const BatchManagement: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                     <button
+                        onClick={() => navigate('/admin/import-shipments')}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-green-400 hover:bg-white/10 transition-colors"
+                        title="Excel 导入"
+                    >
+                        <span className="material-icons">upload_file</span>
+                    </button>
+                    <button
                         onClick={() => {
                             setIsSelectionMode(!isSelectionMode);
                             setSelectedBatchIds([]);

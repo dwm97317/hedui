@@ -18,7 +18,7 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, allowedRoles
         }
     }, [isLoading, isAuthenticated, navigate]);
 
-    if (isLoading) {
+    if (isLoading && !isAuthenticated) {
         return (
             <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>

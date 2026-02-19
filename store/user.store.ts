@@ -33,7 +33,11 @@ export const useUserStore = create<UserState>((set, get) => ({
         }
 
         console.log('[UserStore] 🔄 fetchUser: Starting...');
-        set({ isLoading: true });
+
+        // Only set global loading for initial auth or if we don't have a user
+        if (!get().isAuthenticated || !get().user) {
+            set({ isLoading: true });
+        }
 
         fetchUserLock.promise = (async () => {
             try {
