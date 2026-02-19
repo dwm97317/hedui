@@ -28,6 +28,30 @@ const Settings: React.FC = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [latestVersion, setLatestVersion] = useState<AppVersion | null>(null);
     const [checking, setChecking] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
+
+    React.useEffect(() => {
+        (window as any).onUpdateProgress = (progress: number) => {
+            if (progress === -1) {
+                setIsUpdating(false);
+                setDownloadProgress(null);
+                toast.error('下载失败，请重试');
+                return;
+            }
+            setDownloadProgress(progress);
+            if (progress === 100) {
+                // Keep modal open briefly or close it as Android will pop up installer
+                setTimeout(() => {
+                    setIsUpdating(false);
+                    setDownloadProgress(null);
+                    setShowUpdateModal(false);
+                }, 1000);
+            }
+        };
+        return () => {
+            delete (window as any).onUpdateProgress;
+        };
+    }, []);
 
     const currentVersion = pkg.version;
 
@@ -177,22 +201,38 @@ const Settings: React.FC = () => {
                         {hasNewVersion ? (
                             <button
                                 onClick={() => {
-                                    setIsUpdating(true);
-                                    window.open(latestVersion.download_url, '_blank');
-                                    toast.success('正在从服务器下载...');
-                                    setTimeout(() => {
-                                        setIsUpdating(false);
-                                        setShowUpdateModal(false);
-                                    }, 2000);
+                                    if ((window as any).Android?.startDownload) {
+                                        setIsUpdating(true);
+                                        setDownloadProgress(0);
+                                        const apkName = `hedui_v${latestVersion.version_name.replace('v', '')}.apk`;
+                                        (window as any).Android.startDownload(latestVersion.download_url, apkName);
+                                        toast.success('开始下载新版本...');
+                                    } else {
+                                        setIsUpdating(true);
+                                        window.open(latestVersion.download_url, '_blank');
+                                        toast.success('正在打开浏览器下载...');
+                                        setTimeout(() => {
+                                            setIsUpdating(false);
+                                            setShowUpdateModal(false);
+                                        }, 3000);
+                                    }
                                 }}
                                 disabled={isUpdating}
                                 className="w-full bg-primary hover:bg-primary-dark active:scale-95 transition-all text-white font-bold rounded-lg py-3.5 shadow-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {isUpdating ? (
-                                    <>
-                                        <span className="material-icons animate-spin text-sm mr-2">sync</span>
-                                        正在准备下载...
-                                    </>
+                                    <div className="w-full px-2">
+                                        <div className="flex justify-between text-[10px] text-white/70 font-bold mb-1.5 uppercase tracking-wider">
+                                            <span>正在同步数据包...</span>
+                                            <span>{downloadProgress}%</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-white transition-all duration-300 ease-out shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                                                style={{ width: `${downloadProgress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
                                 ) : (
                                     "立即更新"
                                 )}
