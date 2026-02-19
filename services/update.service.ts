@@ -1,3 +1,16 @@
+declare global {
+    interface Window {
+        onUpdateProgress?: (progress: number) => void;
+        Android?: {
+            startDownload: (url: string, fileName: string) => void;
+            saveFile: (base64: string, fileName: string, mime: string) => void;
+            toast: (msg: string) => void;
+            updateScannerConfig: (action: string, extra: string) => void;
+            getScannerConfig: () => string;
+        };
+    }
+}
+
 export interface AppVersion {
     version_name: string;
     download_url: string;
