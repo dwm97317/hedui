@@ -14,6 +14,15 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.core.content.FileProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import android.net.Uri
 
 class MainActivity : AppCompatActivity() {
 
@@ -141,14 +150,13 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun saveFile(base64Data: String, fileName: String, mimeType: String) {
             try {
-                // Remove base64 header if present
                 val pureBase64 = if (base64Data.contains(",")) base64Data.split(",")[1] else base64Data
                 val bytes = android.util.Base64.decode(pureBase64, android.util.Base64.DEFAULT)
                 
                 val resolver = contentResolver
                 val contentValues = android.content.ContentValues().apply {
                     put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(android.provider.MediaStore.MIME_TYPE, mimeType)
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                         put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
                     }
@@ -157,7 +165,6 @@ class MainActivity : AppCompatActivity() {
                 val collection = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                     android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI
                 } else {
-                    // Fallback for older versions if needed, but MediaStore.Files is safer
                     android.provider.MediaStore.Files.getContentUri("external")
                 }
 
@@ -176,6 +183,111 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     android.widget.Toast.makeText(this@MainActivity, "保存失败: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                 }
+            }
+        }
+
+        @JavascriptInterface
+        fun startDownload(downloadUrl: String, fileName: String) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val url = URL(downloadUrl)
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.connectTimeout = 15000
+                    connection.readTimeout = 15000
+                    connection.connect()
+
+                    if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                        runOnUiThread {
+                            android.widget.Toast.makeText(this@MainActivity, "服务器返回错误: ${connection.responseCode}", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
+                    }
+
+                    val fileLength = connection.contentLength
+                    val input = connection.inputStream
+                    
+                    // Save to internal cache for installation (safer for FileProvider)
+                    val apkFile = File(cacheDir, fileName)
+                    val output = FileOutputStream(apkFile)
+
+                    val data = ByteArray(8192)
+                    var total: Long = 0
+                    var count: Int
+                    var lastProgress = -1
+
+                    while (input.read(data).also { count = it } != -1) {
+                        total += count
+                        if (fileLength > 0) {
+                            val progress = (total * 100 / fileLength).toInt()
+                            if (progress != lastProgress) {
+                                lastProgress = progress
+                                runOnUiThread {
+                                    webView.evaluateJavascript("if(window.onUpdateProgress) window.onUpdateProgress($progress)", null)
+                                }
+                            }
+                        }
+                        output.write(data, 0, count)
+                    }
+
+                    output.flush()
+                    output.close()
+                    input.close()
+
+                    // Also save a copy to public downloads as requested
+                    saveToPublicDownloads(apkFile, fileName)
+
+                    runOnUiThread {
+                        installApk(apkFile)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("WebView", "Download failed", e)
+                    runOnUiThread {
+                        android.widget.Toast.makeText(this@MainActivity, "下载异常: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                        webView.evaluateJavascript("if(window.onUpdateProgress) window.onUpdateProgress(-1)", null)
+                    }
+                }
+            }
+        }
+
+        private fun saveToPublicDownloads(sourceFile: File, fileName: String) {
+             try {
+                val resolver = contentResolver
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive")
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+                    }
+                }
+                val collection = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI
+                } else {
+                    android.provider.MediaStore.Files.getContentUri("external")
+                }
+                val uri = resolver.insert(collection, contentValues)
+                uri?.let {
+                    resolver.openOutputStream(it)?.use { outputStream ->
+                        sourceFile.inputStream().use { input ->
+                            input.copyTo(outputStream)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("WebView", "Secondary save failed", e)
+            }
+        }
+
+        private fun installApk(file: File) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW)
+                val apkUri = FileProvider.getUriForFile(this@MainActivity, "${packageName}.fileprovider", file)
+                intent.setDataAndType(apkUri, "application/vnd.android.package-archive")
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            } catch (e: Exception) {
+                android.util.Log.e("WebView", "Installation failed", e)
+                android.widget.Toast.makeText(this@MainActivity, "无法启动安装程序: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
             }
         }
     }
