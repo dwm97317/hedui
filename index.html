@@ -7,7 +7,24 @@
   <title>PDA Logistics Pro</title>
 
   <script>
-    // Theme config moved to tailwind.config.js
+    // Robust Error Handling for Android WebView
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.error("Global Error: " + message + " at " + source + ":" + lineno);
+      // Optional: Inject into DOM to see error on phone screen if dev tools unavailable
+      /*
+      var errDiv = document.createElement('div');
+      errDiv.style.position = 'fixed';
+      errDiv.style.top = '0';
+      errDiv.style.left = '0';
+      errDiv.style.width = '100%';
+      errDiv.style.background = 'red';
+      errDiv.style.color = 'white';
+      errDiv.style.zIndex = '99999';
+      errDiv.style.padding = '10px';
+      errDiv.innerText = "Error: " + message;
+      document.body.appendChild(errDiv);
+      */
+    };
   </script>
 
   <style>

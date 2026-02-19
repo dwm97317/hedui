@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: './',
+    base: './', // Ensure relative paths for file:// protocol
     server: {
       port: 3000,
       host: '0.0.0.0',
@@ -26,11 +26,14 @@ export default defineConfig(({ mode }) => {
       exclude: ['vconsole'],
     },
     build: {
-      emptyOutDir: false,
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: true,
+      emptyOutDir: false, // Prevent deleting root-owned .well-known folder
       minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: false,
+          drop_console: false, // Keep logs for debugging black screen
           drop_debugger: true,
         },
       },
@@ -38,6 +41,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             'vconsole': ['vconsole'],
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           },
         },
       },
