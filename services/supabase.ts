@@ -50,7 +50,14 @@ export async function handleServiceCall<T>(
                     await delay(1000 * (attempt + 1)); // Exponential backoff
                     continue;
                 }
-                console.error('Supabase Error:', error);
+                console.error('Supabase Error Detailed:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code,
+                    status: error.status
+                });
+                console.trace('Error Originating from:');
                 return { data: null, error: error.message, success: false };
             }
             return { data, error: null, success: true };

@@ -3,7 +3,10 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useBillDetail, useBillById, useMarkBillPaid, useCancelBill, useAddPayment } from '../../hooks/useBilling';
 import { useBatchDetail } from '../../hooks/useBatches';
 import { useUserStore } from '../../store/user.store';
+import { SenderStageStats, TransitStageStats, ReceiverStageStats } from '@/components/batch/BatchStageStats';
 import { toast } from 'react-hot-toast';
+
+import { Bill } from '../../services/billing.service';
 
 const BillDetail: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +24,7 @@ const BillDetail: React.FC = () => {
   const addPayment = useAddPayment();
   const isAdmin = useUserStore(state => state.checkRole(['admin']));
 
-  const bill = billById || billByBatch;
+  const bill = (billById || billByBatch) as Bill | undefined;
   const isLoading = loadingBillById || loadingBillByBatch;
 
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
@@ -78,8 +81,8 @@ const BillDetail: React.FC = () => {
         </div>
         <div className="flex items-center gap-2">
           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${bill.status === 'paid' ? 'bg-success text-white' :
-              bill.status === 'partially_paid' ? 'bg-blue-500 text-white' :
-                'bg-yellow-500/20 text-yellow-500'
+            bill.status === 'partially_paid' ? 'bg-blue-500 text-white' :
+              'bg-yellow-500/20 text-yellow-500'
             }`}>
             {bill.status}
           </span>
@@ -102,6 +105,16 @@ const BillDetail: React.FC = () => {
               </div>
             </div>
           </div>
+          {/* Stage Specific SRT & CBM */}
+          <div className="mb-4">
+            {batch && (
+              <>
+                {bill.bill_type === 'SENDER_TO_ADMIN' && <SenderStageStats batch={batch as any} className="dark:bg-slate-800/50" />}
+                {bill.bill_type === 'ADMIN_TO_TRANSIT' && <TransitStageStats batch={batch as any} className="dark:bg-slate-800/50" />}
+                {bill.bill_type === 'SENDER_TO_RECEIVER' && <ReceiverStageStats batch={batch as any} className="dark:bg-slate-800/50" />}
+              </>
+            )}
+          </div>
           {/* Summary Dashboard */}
           <div className="bg-background-light dark:bg-slate-800 rounded-lg p-3 grid grid-cols-2 gap-2 text-center divide-x divide-slate-200 dark:divide-slate-700">
             <div>
@@ -113,8 +126,8 @@ const BillDetail: React.FC = () => {
             <div>
               <p className="text-[10px] text-slate-500 uppercase font-semibold">状态 (Status)</p>
               <p className={`text-sm font-bold flex items-center justify-center gap-1 ${bill.status === 'paid' ? 'text-success' :
-                  bill.status === 'partially_paid' ? 'text-blue-500' :
-                    'text-yellow-500'
+                bill.status === 'partially_paid' ? 'text-blue-500' :
+                  'text-yellow-500'
                 }`}>
                 <span className="material-icons text-sm">{bill.status === 'paid' ? 'check_circle' : (bill.status === 'partially_paid' ? 'payments' : 'schedule')}</span>
                 {bill.status === 'paid' ? '已收全款' : (bill.status === 'partially_paid' ? '部分支付' : '等待支付')}

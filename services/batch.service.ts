@@ -3,7 +3,7 @@ import { supabase, ServiceResponse, handleServiceCall } from './supabase';
 export interface Batch {
     id: string;
     batch_no: string;
-    status: 'draft' | 'sealed' | 'in_transit' | 'inspected' | 'received' | 'completed' | 'cancelled' | 'sender_processing' | 'sender_sealed' | 'transit_processing' | 'transit_sealed' | 'receiver_processing';
+    status: 'draft' | 'sealed' | 'in_transit' | 'inspected' | 'received' | 'completed' | 'cancelled' | 'sender_processing' | 'sender_sealed' | 'transit_processing' | 'transit_sealed' | 'receiver_processing' | 'created';
     sender_company_id: string;
     transit_company_id?: string;
     receiver_company_id: string;
@@ -23,7 +23,10 @@ export const BatchService = {
      */
     async create(data: Pick<Batch, 'batch_no' | 'sender_company_id' | 'receiver_company_id' | 'transit_company_id' | 'currency'>): Promise<ServiceResponse<Batch>> {
         return handleServiceCall(
-            supabase.from('batches').insert({ ...data, status: 'sender_processing' }).select().single()
+            supabase.from('batches')
+                .insert({ ...data, status: 'sender_processing' })
+                .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+                .single()
         );
     },
 
@@ -31,14 +34,25 @@ export const BatchService = {
      * Get Batch by ID or Number
      */
     async getById(id: string): Promise<ServiceResponse<Batch>> {
+        console.log('[BatchService] getById called with ID:', id, 'Type:', typeof id);
+        if (!id) {
+            console.error('[BatchService] getById called with null/empty ID');
+            return { data: null, error: 'ID is required', success: false };
+        }
         return handleServiceCall(
-            supabase.from('batches').select('*').eq('id', id).single()
+            supabase.from('batches')
+                .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+                .eq('id', id)
+                .single()
         );
     },
 
     async getByCode(code: string): Promise<ServiceResponse<Batch>> {
         return handleServiceCall(
-            supabase.from('batches').select('*').eq('batch_no', code).single()
+            supabase.from('batches')
+                .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+                .eq('batch_no', code)
+                .single()
         );
     },
 
@@ -46,7 +60,9 @@ export const BatchService = {
      * List Batches (Filtered by active user's company via RLS)
      */
     async list(status?: string): Promise<ServiceResponse<Batch[]>> {
-        let query = supabase.from('batches').select('*').order('created_at', { ascending: false });
+        let query = supabase.from('batches')
+            .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+            .order('created_at', { ascending: false });
         if (status) query = query.eq('status', status);
         return handleServiceCall(query);
     },
@@ -68,7 +84,11 @@ export const BatchService = {
         }
 
         return handleServiceCall(
-            supabase.from('batches').update(updateData).eq('id', id).select().single()
+            supabase.from('batches')
+                .update(updateData)
+                .eq('id', id)
+                .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+                .single()
         );
     },
 
@@ -104,7 +124,11 @@ export const BatchService = {
         }
 
         return handleServiceCall(
-            supabase.from('batches').update(updateData).eq('id', id).select().single()
+            supabase.from('batches')
+                .update(updateData)
+                .eq('id', id)
+                .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+                .single()
         );
     },
 
@@ -119,18 +143,19 @@ export const BatchService = {
 
     getStatusLabel(status: Batch['status']): string {
         const labels: Record<string, string> = {
-            'draft': '发出方：处理中',
-            'sender_processing': '发出方：处理中',
-            'sender_sealed': '发出方已封批次',
-            'sealed': '发出方已封批次',
-            'transit_processing': '中转方处理中',
-            'transit_sealed': '中转方已封批次',
-            'inspected': '中转方已封批次',
-            'receiver_processing': '接收方处理中',
-            'received': '接收方处理中',
-            'completed': '已完成该批次',
-            'in_transit': '待中转',
-            'cancelled': '已取消'
+            'draft': '发出方：待查验',
+            'sender_processing': '发出方：查验中',
+            'sender_sealed': '发出方：已封存',
+            'sealed': '发出方：已封存',
+            'transit_processing': '中转方：处理中',
+            'transit_sealed': '中转方：已发出',
+            'inspected': '中转方：已封存待领',
+            'receiver_processing': '接收方：处理中',
+            'received': '接收方：已收到',
+            'completed': '已完成',
+            'in_transit': '转运中',
+            'cancelled': '已取消',
+            'created': '待查验'
         };
         return labels[status] || status;
     }

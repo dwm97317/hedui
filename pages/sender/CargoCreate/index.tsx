@@ -6,6 +6,7 @@ import { useBatchStore } from '../../../store/batch.store';
 import { useShipments, useAddShipment, useRemoveShipment, useUpdateShipment } from '../../../hooks/useShipments';
 import { toast } from 'react-hot-toast';
 import { Shipment } from '../../../services/shipment.service';
+import { useLabelPrint } from '../../../hooks/useLabelPrint';
 
 // Sub-components
 // mini-app ui is extracted to components for better maintainability.
@@ -50,6 +51,9 @@ const CargoCreate: React.FC = () => {
     const removeShipment = useRemoveShipment();
     const updateShipment = useUpdateShipment();
     const updateBatchStatus = useUpdateBatchStatus();
+
+    // Bluetooth label printing
+    const { printShipmentLabel, isPrinting: isLabelPrinting, printerConnected } = useLabelPrint({ silent: false });
 
     // Auto-select first active batch if none selected
     useEffect(() => {
@@ -113,9 +117,21 @@ const CargoCreate: React.FC = () => {
     };
 
     const handlePrint = async () => {
+        // Save current form data before handleCreate clears it
+        const printData = {
+            tracking_no: waybillNo,
+            weight: parseFloat(weight) || 0,
+            length: length ? parseFloat(length) : undefined,
+            width: width ? parseFloat(width) : undefined,
+            height: height ? parseFloat(height) : undefined,
+            shipper_name: shipperName || undefined,
+            batch_no: activeBatch?.batch_no,
+        };
+
         await handleCreate();
-        // Simulate printing
-        toast.success('正在发送打印任务...', { icon: '🖨️' });
+
+        // Print label via Bluetooth
+        await printShipmentLabel(printData);
     };
 
     const handleDelete = async (id: string) => {
@@ -227,7 +243,7 @@ const CargoCreate: React.FC = () => {
                 handleCreate={handleCreate}
                 handlePrint={handlePrint}
                 isCreating={addShipment.isPending}
-                isPrinting={false} // Would be tied to print hook if available
+                isPrinting={isLabelPrinting}
                 openConfirmModal={() => setIsConfirmModalOpen(true)}
             />
 

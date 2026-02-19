@@ -39,7 +39,10 @@ export const TransitStage: React.FC<TransitStageProps> = ({ batch, shipments: ra
         inspections.forEach(i => {
             if (i.notes?.includes('ShipmentID:')) {
                 const id = i.notes.split('ShipmentID:')[1].split(' ')[0];
-                map[id] = i;
+                // Prioritize inspection that has transit_weight for this stage
+                if (!map[id] || i.transit_weight) {
+                    map[id] = i;
+                }
             }
         });
         return map;

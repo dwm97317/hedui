@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../services/supabase';
+import { supabase } from '../../services/supabase';
 import { toast } from 'react-hot-toast';
 
 const Register: React.FC = () => {

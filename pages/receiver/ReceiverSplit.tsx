@@ -4,6 +4,7 @@ import { useBatchStore } from '../../store/batch.store';
 import { useSplitShipment } from '../../hooks/useShipments';
 import { toast } from 'react-hot-toast';
 import { Shipment, ShipmentService } from '../../services/shipment.service';
+import { CameraScanButton } from '../../components/CameraScanner';
 
 const ReceiverSplit: React.FC = () => {
   const navigate = useNavigate();
@@ -32,12 +33,13 @@ const ReceiverSplit: React.FC = () => {
     setChildData(newChildren);
   }, [splitCount, parentShipment]);
 
-  const handleParentScan = async (e?: React.FormEvent) => {
+  const handleParentScan = async (e?: React.FormEvent, code?: string) => {
     if (e) e.preventDefault();
-    if (!parentInput) return;
+    const trackingNo = code || parentInput;
+    if (!trackingNo) return;
 
     try {
-      const response = await ShipmentService.findByTracking(parentInput);
+      const response = await ShipmentService.findByTracking(trackingNo);
       if (response.success) {
         setParentShipment(response.data);
         toast.success('Parent Parcel Scanned');
@@ -121,10 +123,13 @@ const ReceiverSplit: React.FC = () => {
               autoFocus
               value={parentInput}
               onChange={(e) => setParentInput(e.target.value)}
-              className="block w-full pl-12 pr-12 py-4 bg-white dark:bg-surface-dark border-2 border-primary focus:border-primary focus:ring-0 rounded-2xl text-lg font-medium placeholder-slate-400 dark:text-white transition-all shadow-sm"
+              className="block w-full pl-12 pr-16 py-4 bg-white dark:bg-surface-dark border-2 border-primary focus:border-primary focus:ring-0 rounded-2xl text-lg font-medium placeholder-slate-400 dark:text-white transition-all shadow-sm"
               placeholder="扫描母单号进行拆分..."
               type="text"
             />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <CameraScanButton onScan={(code) => handleParentScan(undefined, code)} size="md" />
+            </div>
           </form>
         </div>
 

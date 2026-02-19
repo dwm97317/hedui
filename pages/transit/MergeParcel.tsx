@@ -4,6 +4,7 @@ import { useBatchStore } from '../../store/batch.store';
 import { useShipmentByNo, useMergeShipments } from '../../hooks/useShipments';
 import { toast } from 'react-hot-toast';
 import { Shipment } from '../../services/shipment.service';
+import { CameraScanButton } from '../../components/CameraScanner';
 
 const MergeParcel: React.FC = () => {
   const navigate = useNavigate();
@@ -32,10 +33,10 @@ const MergeParcel: React.FC = () => {
   // Handle Scan Submit
   const handleScan = async (e?: React.FormEvent, code?: string) => {
     if (e) e.preventDefault();
-    const trackingNo = code || scanInput;
+    const trackingNo = (code || scanInput).trim().toUpperCase();
     if (!trackingNo) return;
 
-    if (scannedShipments.some(s => s.tracking_no === trackingNo)) {
+    if (scannedShipments.some(s => s.tracking_no?.trim().toUpperCase() === trackingNo)) {
       toast.error('Parcel already in list');
       setScanInput('');
       return;
@@ -126,10 +127,13 @@ const MergeParcel: React.FC = () => {
             autoFocus
             value={scanInput}
             onChange={(e) => setScanInput(e.target.value)}
-            className="block w-full pl-12 pr-12 py-4 bg-background-light dark:bg-black/20 border-2 border-primary focus:border-primary focus:ring-0 rounded-2xl text-lg font-medium placeholder-slate-400 dark:text-white transition-all shadow-sm"
+            className="block w-full pl-12 pr-16 py-4 bg-background-light dark:bg-black/20 border-2 border-primary focus:border-primary focus:ring-0 rounded-2xl text-lg font-medium placeholder-slate-400 dark:text-white transition-all shadow-sm"
             placeholder="请扫描原始单号..."
             type="text"
           />
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <CameraScanButton onScan={(code) => handleScan(undefined, code)} size="md" />
+          </div>
         </form>
 
         <div className="mt-4 flex gap-3">

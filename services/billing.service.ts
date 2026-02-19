@@ -12,6 +12,7 @@ export interface Bill {
     paid_amount: number;
     created_at: string;
     updated_at: string;
+    bill_type?: 'SENDER_TO_ADMIN' | 'ADMIN_TO_TRANSIT' | 'SENDER_TO_RECEIVER';
     bill_items?: BillItem[];
     bill_payments?: BillPayment[];
     batch?: {

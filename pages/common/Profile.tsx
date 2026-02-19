@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FinanceBottomNav } from '../components/FinanceLayout';
-import { useUserStore } from '../store/user.store';
-import BillingPreferenceModal from '../components/BillingPreferenceModal';
+import { FinanceBottomNav } from '../../components/FinanceLayout';
+import { useUserStore } from '../../store/user.store';
+import BillingPreferenceModal from '../../components/BillingPreferenceModal';
 import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {

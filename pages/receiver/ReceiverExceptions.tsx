@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CameraScanButton } from '../../components/CameraScanner';
 
 const ReceiverExceptions: React.FC = () => {
   const navigate = useNavigate();
@@ -26,10 +27,10 @@ const ReceiverExceptions: React.FC = () => {
         <div className="px-4 pb-3">
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 material-icons text-xl">search</span>
-            <input className="w-full bg-gray-50 dark:bg-black/20 border-0 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-black/40 transition-all placeholder-gray-400 text-slate-800 dark:text-white" placeholder="扫描或输入运单号" type="text"/>
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400">
-              <span className="material-icons text-xl">qr_code_scanner</span>
-            </button>
+            <input className="w-full bg-gray-50 dark:bg-black/20 border-0 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-black/40 transition-all placeholder-gray-400 text-slate-800 dark:text-white" placeholder="扫描或输入运单号" type="text" />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <CameraScanButton onScan={(code) => { /* TODO: wire scan handler */ }} size="sm" />
+            </div>
           </div>
         </div>
         <div className="flex px-4 gap-6 overflow-x-auto hide-scrollbar border-b border-gray-100 dark:border-white/5 text-sm">

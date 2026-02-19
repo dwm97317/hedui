@@ -94,3 +94,59 @@
 .animate-drawer-up {
     animation: drawer-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Camera Scanner Scan Line Animation */
+@keyframes scan-line {
+    0% {
+        top: 10%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 90%;
+        opacity: 0;
+    }
+}
+
+.animate-scan-line {
+    animation: scan-line 2s ease-in-out infinite;
+}
+
+/* Border width 3 utility */
+.border-t-3 {
+    border-top-width: 3px;
+}
+
+.border-b-3 {
+    border-bottom-width: 3px;
+}
+
+.border-l-3 {
+    border-left-width: 3px;
+}
+
+.border-r-3 {
+    border-right-width: 3px;
+}
+
+/* html5-qrcode overrides for cleaner look */
+#camera-scanner-region video {
+    border-radius: 0 !important;
+    object-fit: cover !important;
+}
+
+#camera-scanner-region img {
+    display: none !important;
+}
+
+#qr-shaded-region {
+    border-color: rgba(19, 91, 236, 0.3) !important;
+}

@@ -7,6 +7,7 @@ import { useBatchStore } from '../../store/batch.store';
 import { toast } from 'react-hot-toast';
 import { MergeModal } from '../batch-detail/components/MergeModal';
 import { SplitModal } from '../batch-detail/components/SplitModal';
+import { CameraScanButton } from '../../components/CameraScanner';
 
 const ReceiverCheck: React.FC = () => {
   const navigate = useNavigate();
@@ -104,9 +105,10 @@ const ReceiverCheck: React.FC = () => {
     return () => window.removeEventListener('pda-scan', handleScanEvent);
   }, [shipments]);
 
-  const processScan = async (trackingNo: string) => {
+  const processScan = async (trackingNoInput: string) => {
+    const trackingNo = trackingNoInput.trim().toUpperCase();
     // 1. Check local valid list first
-    const shipment = shipments.find(s => s.tracking_no === trackingNo);
+    const shipment = shipments.find(s => s.tracking_no?.trim().toUpperCase() === trackingNo);
 
     if (shipment) {
       const isDone = processedShipmentIds.has(shipment.id);
@@ -285,11 +287,14 @@ const ReceiverCheck: React.FC = () => {
               autoFocus
               value={scanValue}
               onChange={(e) => setScanValue(e.target.value)}
-              className={`w-full h-16 pl-14 pr-4 rounded-2xl border-2 text-xl font-bold placeholder:text-gray-500 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none bg-white dark:bg-surface-dark shadow-lg
+              className={`w-full h-16 pl-14 pr-16 rounded-2xl border-2 text-xl font-bold placeholder:text-gray-500 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none bg-white dark:bg-surface-dark shadow-lg
                 ${isSelectionMode ? 'border-amber-500' : 'border-primary'}`}
               placeholder={isSelectionMode ? "扫描单号以加入合并..." : "请扫描单号或手动输入..."}
               type="text"
             />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <CameraScanButton onScan={(code) => { processScan(code); }} size="md" />
+            </div>
           </form>
 
           <div className="flex gap-2">

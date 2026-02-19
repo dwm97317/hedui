@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFinanceStore, FinanceBatch } from '../../store/finance.store';
 import { useAdminCompanies } from '../../hooks/useAdmin';
+import { SenderStageStats, TransitStageStats, ReceiverStageStats } from '../../components/batch/BatchStageStats';
 import toast from 'react-hot-toast';
 
 const BatchManagement: React.FC = () => {
@@ -77,8 +78,9 @@ const BatchManagement: React.FC = () => {
     const getStatusStyle = (status: string) => {
         const s = status.toLowerCase();
         if (s === 'completed' || s === 'received') return 'bg-green-500/10 text-green-500 border-green-500/20';
-        if (s === 'in_transit' || s === 'sealed') return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-        if (s === 'inspected') return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        if (s === 'in_transit' || s === 'sealed' || s === 'sender_sealed' || s === 'transit_processing') return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+        if (s === 'inspected' || s === 'transit_sealed') return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        if (s === 'completed' || s === 'received') return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
         if (s === 'cancelled') return 'bg-red-500/10 text-red-500 border-red-500/20';
         return 'bg-slate-500/10 text-slate-500 border-slate-500/20';
     };
@@ -86,11 +88,17 @@ const BatchManagement: React.FC = () => {
     const getStatusText = (status: string) => {
         const s = status.toLowerCase();
         switch (s) {
-            case 'created': return '待发货';
-            case 'sealed': return '已封箱';
-            case 'in_transit': return '转运中';
+            case 'created':
+            case 'draft':
+            case 'sender_processing': return '发出方处理中';
+            case 'sender_sealed':
+            case 'sealed': return '待发货';
+            case 'in_transit':
+            case 'transit_processing': return '中转查验中';
+            case 'transit_sealed': return '中转已查验';
             case 'inspected': return '已查验';
-            case 'received': return '已收货';
+            case 'receiver_processing':
+            case 'received': return '已签收';
             case 'completed': return '已完成';
             case 'cancelled': return '已取消';
             default: return status;
@@ -242,22 +250,10 @@ const BatchManagement: React.FC = () => {
                                 <span className="text-[11px] font-black text-slate-800 dark:text-slate-200 truncate">{batch.receiverName}</span>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 p-3 bg-slate-50 dark:bg-slate-900/30 rounded-2xl mb-4">
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] font-black text-primary uppercase tracking-tighter mb-1">发货 (S)</span>
-                                    <span className="text-xs font-black">{batch.senderWeight || 0}<small className="ml-0.5 font-medium opacity-60">kg</small></span>
-                                    <span className="text-[10px] font-bold text-slate-400">{batch.senderVolume?.toFixed(3) || '0.000'}<small className="ml-0.5 font-normal opacity-50 text-[8px]">m³</small></span>
-                                </div>
-                                <div className="flex flex-col border-x border-slate-200 dark:border-slate-800 px-2">
-                                    <span className="text-[9px] font-black text-accent-yellow uppercase tracking-tighter mb-1 text-center">中转 (T)</span>
-                                    <span className="text-xs font-black text-center">{batch.transitWeight || 0}<small className="ml-0.5 font-medium opacity-60">kg</small></span>
-                                    <span className="text-[10px] font-bold text-slate-400 text-center">{batch.transitVolume?.toFixed(3) || '0.000'}<small className="ml-0.5 font-normal opacity-50 text-[8px]">m³</small></span>
-                                </div>
-                                <div className="flex flex-col text-right">
-                                    <span className="text-[9px] font-black text-accent-green uppercase tracking-tighter mb-1">收货 (R)</span>
-                                    <span className="text-xs font-black">{batch.receiverWeight || 0}<small className="ml-0.5 font-medium opacity-60">kg</small></span>
-                                    <span className="text-[10px] font-bold text-slate-400">{batch.receiverVolume?.toFixed(3) || '0.000'}<small className="ml-0.5 font-normal opacity-50 text-[8px]">m³</small></span>
-                                </div>
+                            <div className="grid grid-cols-3 gap-2 mb-4">
+                                <SenderStageStats batch={batch} isCompact />
+                                <TransitStageStats batch={batch} isCompact />
+                                <ReceiverStageStats batch={batch} isCompact />
                             </div>
 
                             <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-slate-700/50">

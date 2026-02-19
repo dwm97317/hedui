@@ -7,6 +7,8 @@ import { useBatchStore } from '../../store/batch.store';
 import { toast } from 'react-hot-toast';
 import { MergeModal } from '../batch-detail/components/MergeModal';
 import { SplitModal } from '../batch-detail/components/SplitModal';
+import { CameraScanButton } from '../../components/CameraScanner';
+import { useLabelPrint } from '../../hooks/useLabelPrint';
 
 const TransitCheck: React.FC = () => {
     const navigate = useNavigate();
@@ -28,6 +30,9 @@ const TransitCheck: React.FC = () => {
     const updateShipment = useUpdateShipment();
     const mergeMutation = useMergeShipments();
     const splitMutation = useSplitShipment();
+
+    // Bluetooth label printing
+    const { printShipmentLabel, isPrinting: isLabelPrinting } = useLabelPrint({ silent: true });
 
     const [scanInput, setScanInput] = useState('');
     const [activeShipmentId, setActiveShipmentId] = useState<string | null>(null);
@@ -95,8 +100,9 @@ const TransitCheck: React.FC = () => {
         return () => window.removeEventListener('pda-scan', handleScan);
     }, [shipments]);
 
-    const processScan = async (code: string) => {
-        const found = shipments.find(s => s.tracking_no === code);
+    const processScan = async (code_raw: string) => {
+        const code = code_raw.trim().toUpperCase();
+        const found = shipments.find(s => s.tracking_no?.trim().toUpperCase() === code);
 
         if (found) {
             // Check if already processed (Manual inspection or Auto-restructuring)
@@ -218,6 +224,18 @@ const TransitCheck: React.FC = () => {
                 await updateStatus.mutateAsync({ id: batchId!, status: 'transit_processing' });
             }
 
+            /* 
+            // Commented out: Print label via Bluetooth after successful verification
+            await printShipmentLabel({
+                tracking_no: activeShipment.tracking_no,
+                weight: parseFloat(measuredWeight),
+                length: parseFloat(dimL) || undefined,
+                width: parseFloat(dimW) || undefined,
+                height: parseFloat(dimH) || undefined,
+                batch_no: batch?.batch_no,
+            });
+            */
+
             setActiveShipmentId(null);
             setMeasuredWeight('');
             setDimL('');
@@ -269,11 +287,14 @@ const TransitCheck: React.FC = () => {
                             autoFocus
                             value={scanInput}
                             onChange={(e) => setScanInput(e.target.value)}
-                            className={`block w-full pl-12 pr-4 py-6 bg-white dark:bg-surface-dark border-2 focus:ring-0 rounded-2xl text-xl font-bold placeholder-gray-500 shadow-lg active:scale-[0.99] transition-all
+                            className={`block w-full pl-12 pr-16 py-6 bg-white dark:bg-surface-dark border-2 focus:ring-0 rounded-2xl text-xl font-bold placeholder-gray-500 shadow-lg active:scale-[0.99] transition-all
                                 ${isSelectionMode ? 'border-amber-500' : 'border-primary focus:border-blue-600'}`}
                             placeholder={isSelectionMode ? "扫描单号以加入合并..." : "请扫描单号或手动输入..."}
                             type="text"
                         />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <CameraScanButton onScan={(code) => { processScan(code); }} size="md" />
+                        </div>
                     </form>
 
                     <div className="flex gap-2">
@@ -509,9 +530,9 @@ const TransitCheck: React.FC = () => {
                 <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 p-4 pb-8 z-30 shadow-[0_-4px_15px_-1px_rgba(0,0,0,0.1)]">
                     <div className="flex gap-3 h-14">
                         <button onClick={() => setActiveShipmentId(null)} className="w-1/3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-xl font-bold active:scale-95 transition-transform">取消</button>
-                        <button disabled={!measuredWeight} onClick={handleConfirm} className="flex-1 bg-primary hover:bg-blue-600 text-white rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-3">
-                            <span>完成核验</span>
-                            <span className="material-icons-round">check</span>
+                        <button disabled={!measuredWeight || isLabelPrinting} onClick={handleConfirm} className="flex-1 bg-primary hover:bg-blue-600 text-white rounded-xl font-bold text-lg active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-3">
+                            <span>{isLabelPrinting ? '正在打印...' : '完成核验'}</span>
+                            <span className="material-icons-round">{isLabelPrinting ? 'hourglass_top' : 'check'}</span>
                         </button>
                     </div>
                 </div>

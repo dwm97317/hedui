@@ -14,7 +14,7 @@ export const useBatches = (status?: string, options: { includeInspections?: bool
         queryFn: async () => {
             let query = supabase
                 .from('batches')
-                .select(includeInspections ? '*, inspections(*)' : '*')
+                .select(includeInspections ? 'id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at, sender_weight, transit_weight, receiver_weight, sender_volume, transit_volume, receiver_volume, inspections(*)' : 'id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at, sender_weight, transit_weight, receiver_weight, sender_volume, transit_volume, receiver_volume')
                 .order('created_at', { ascending: false });
 
             if (status) query = query.eq('status', status);

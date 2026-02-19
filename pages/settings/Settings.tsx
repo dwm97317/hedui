@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useScannerStore } from '../store/scanner.store';
-import { useUserStore } from '../store/user.store';
-import { updateService, AppVersion } from '../services/update.service';
+import { useScannerStore } from '../../store/scanner.store';
+import { useUserStore } from '../../store/user.store';
+import { updateService, AppVersion } from '../../services/update.service';
 import toast from 'react-hot-toast';
-import pkg from '../package.json';
-import { StaffService, StaffProfile } from '../services/staff.service';
-import { supabase } from '../services/supabase';
+import pkg from '../../package.json';
+import { StaffService, StaffProfile } from '../../services/staff.service';
+import { supabase } from '../../services/supabase';
+import { useBluetoothStore } from '../../store/bluetooth.store';
 
 const Settings: React.FC = () => {
     const navigate = useNavigate();
     const { user, signOut } = useUserStore();
     const { model: pdaModel, setModel, scanAction, scanExtra, setConfig } = useScannerStore();
+    const btState = useBluetoothStore();
     const [showPrinterModal, setShowPrinterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showPdaModal, setShowPdaModal] = useState(false);
@@ -852,36 +854,105 @@ const Settings: React.FC = () => {
                     </section>
                 )}
 
+                {/* ─── Wallet Section ─── */}
+                <section>
+                    <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">财务钱包</h2>
+                    <div className="bg-surface-dark rounded-xl border border-white/5 overflow-hidden">
+                        <button
+                            onClick={() => navigate('/wallet')}
+                            className="w-full flex items-center justify-between p-4 active:bg-surface-hover transition-colors group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 text-primary border border-primary/10 group-hover:shadow-lg group-hover:shadow-primary/10 transition-all">
+                                    <span className="material-icons text-xl">account_balance_wallet</span>
+                                </div>
+                                <div className="text-left">
+                                    <span className="text-base font-bold text-gray-200 block">我的钱包</span>
+                                    <span className="text-[10px] font-medium text-gray-500">查看批次账单、余额与流水</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 uppercase">
+                                    {user?.role === 'sender' ? 'Bill A+C' : user?.role === 'transit' ? 'Bill B' : user?.role === 'receiver' ? 'Bill C' : 'ALL'}
+                                </span>
+                                <span className="material-icons text-gray-500 text-sm group-hover:text-primary transition-colors">chevron_right</span>
+                            </div>
+                        </button>
+                    </div>
+                </section>
+
                 <section>
                     <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">连接设置</h2>
                     <div className="bg-surface-dark rounded-xl border border-white/5 overflow-hidden">
-                        <div className="flex items-center justify-between p-4 border-b border-white/5 active:bg-surface-hover transition-colors">
+                        <button
+                            onClick={() => navigate('/settings/bluetooth')}
+                            className="w-full flex items-center justify-between p-4 border-b border-white/5 active:bg-surface-hover transition-colors"
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="p-2 rounded-lg bg-blue-500/10 text-primary">
-                                    <span className="material-icons">bluetooth_connected</span>
+                                    <span className="material-icons">monitor_weight</span>
                                 </div>
-                                <span className="text-base font-medium text-gray-200">蓝牙秤</span>
+                                <div>
+                                    <span className="text-base font-medium text-gray-200 block">蓝牙电子秤</span>
+                                    {btState.scaleDevice && (
+                                        <span className="text-[10px] text-gray-500">{btState.scaleDevice.name}</span>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-green-500">已连接</span>
+                                {btState.scaleDevice ? (
+                                    <span className="text-sm font-medium text-green-500 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                        已连接
+                                    </span>
+                                ) : (
+                                    <span className="text-sm text-gray-500">未连接</span>
+                                )}
                                 <span className="material-icons text-gray-500 text-sm">chevron_right</span>
                             </div>
-                        </div>
-                        <div className="flex items-center justify-between p-4 border-b border-white/5 active:bg-surface-hover transition-colors">
+                        </button>
+                        <button
+                            onClick={() => navigate('/settings/bluetooth')}
+                            className="w-full flex items-center justify-between p-4 border-b border-white/5 active:bg-surface-hover transition-colors"
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
                                     <span className="material-icons">print</span>
                                 </div>
-                                <span className="text-base font-medium text-gray-200">本地打印机</span>
+                                <div>
+                                    <span className="text-base font-medium text-gray-200 block">蓝牙标签打印机</span>
+                                    {btState.printerDevice && (
+                                        <span className="text-[10px] text-gray-500">{btState.printerDevice.name}</span>
+                                    )}
+                                </div>
                             </div>
-                            <button
-                                onClick={() => setShowPrinterModal(true)}
-                                className="flex items-center gap-2"
-                            >
-                                <span className="text-sm text-gray-400">配置</span>
+                            <div className="flex items-center gap-2">
+                                {btState.printerDevice ? (
+                                    <span className="text-sm font-medium text-green-500 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                        已连接
+                                    </span>
+                                ) : (
+                                    <span className="text-sm text-gray-500">未连接</span>
+                                )}
                                 <span className="material-icons text-gray-500 text-sm">chevron_right</span>
-                            </button>
-                        </div>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => navigate('/settings/label-templates')}
+                            className="w-full flex items-center justify-between p-4 border-b border-white/5 active:bg-surface-hover transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                                    <span className="material-icons">label</span>
+                                </div>
+                                <span className="text-base font-medium text-gray-200">标签模板管理</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-400">可视化编辑</span>
+                                <span className="material-icons text-gray-500 text-sm">chevron_right</span>
+                            </div>
+                        </button>
                         <button
                             onClick={() => navigate('/settings/bartender')}
                             className="w-full flex items-center justify-between p-4 active:bg-surface-hover transition-colors"

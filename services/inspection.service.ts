@@ -43,7 +43,10 @@ export const InspectionService = {
      */
     async getByBatch(batchId: string): Promise<ServiceResponse<Inspection[]>> {
         return handleServiceCall(
-            supabase.from('inspections').select('*').eq('batch_id', batchId).order('created_at', { ascending: false })
+            supabase.from('inspections')
+                .select('id, batch_id, inspector_id, result, photos, notes, transit_weight, transit_length, transit_width, transit_height, check_weight, check_length, check_width, check_height, created_at')
+                .eq('batch_id', batchId)
+                .order('created_at', { ascending: false })
         );
     },
 

@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBatches, useUpdateBatchStatus } from '../hooks/useBatches';
-import { useShipments, useAddShipment, useUpdateShipment, useRemoveShipment } from '../hooks/useShipments';
-import { useBatchStore } from '../store/batch.store';
+import { useBatches, useUpdateBatchStatus } from '../../hooks/useBatches';
+import { useShipments, useAddShipment, useUpdateShipment, useRemoveShipment } from '../../hooks/useShipments';
+import { useBatchStore } from '../../store/batch.store';
 import { toast } from 'react-hot-toast';
-import { Shipment } from '../services/shipment.service';
-import { BatchSwitchModal } from '../components/BatchSwitchModal';
+import { Shipment } from '../../services/shipment.service';
+import { BatchSwitchModal } from '../../components/BatchSwitchModal';
+import { CameraScanButton } from '../../components/CameraScanner';
+import { useLabelPrint } from '../../hooks/useLabelPrint';
 
 const CreateShipment: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +21,9 @@ const CreateShipment: React.FC = () => {
   const updateShipment = useUpdateShipment();
   const removeShipment = useRemoveShipment();
   const updateBatchStatus = useUpdateBatchStatus();
+
+  // Bluetooth label printing
+  const { printShipmentLabel, isPrinting: isLabelPrinting } = useLabelPrint({ silent: false });
 
   // UI State
   const [isArchivedOpen, setIsArchivedOpen] = useState(true);
@@ -78,6 +83,17 @@ const CreateShipment: React.FC = () => {
       setHeight('');
 
       toast.success('建档成功');
+
+      // Print label via Bluetooth
+      await printShipmentLabel({
+        tracking_no: trackingNo,
+        weight: parseFloat(weight),
+        length: parseFloat(length) || undefined,
+        width: parseFloat(width) || undefined,
+        height: parseFloat(height) || undefined,
+        batch_no: activeBatch?.batch_no,
+      });
+
     } catch (e: any) {
       toast.error('建档失败: ' + e.message);
     }
@@ -218,11 +234,9 @@ const CreateShipment: React.FC = () => {
               value={trackingNo}
               onChange={(e) => setTrackingNo(e.target.value)}
             />
-            <button className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <div className="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-lg transition-colors">
-                <span className="material-icons-round">center_focus_weak</span>
-              </div>
-            </button>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <CameraScanButton onScan={(code) => setTrackingNo(code)} size="md" />
+            </div>
           </div>
         </section>
 
@@ -304,11 +318,11 @@ const CreateShipment: React.FC = () => {
         <div className="flex flex-col gap-3">
           <button
             onClick={handlePrintAndCreate}
-            disabled={addShipment.isPending}
+            disabled={addShipment.isPending || isLabelPrinting}
             className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all text-lg disabled:opacity-50"
           >
-            <span className="material-icons-round">print</span>
-            <span>{addShipment.isPending ? '正在建档...' : '打印并建档'}</span>
+            <span className="material-icons-round">{isLabelPrinting ? 'hourglass_top' : 'print'}</span>
+            <span>{addShipment.isPending ? '正在建档...' : isLabelPrinting ? '正在打印...' : '打印并建档'}</span>
           </button>
           <button
             onClick={() => setShowConfirmModal(true)}

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useUserStore } from '../store/user.store';
-import TransitHome from './transit/TransitHome';
-import ReceiverHome from './receiver/ReceiverHome';
+import { useUserStore } from '../../store/user.store';
+import TransitHome from '../transit/TransitHome';
+import ReceiverHome from '../receiver/ReceiverHome';
 
 const Home: React.FC = () => {
   const { user, isLoading } = useUserStore();

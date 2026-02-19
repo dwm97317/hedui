@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../../store/user.store';
 import { useBatches } from '../../hooks/useBatches';
 import { useBatchStore } from '../../store/batch.store';
+import { useShipments } from '../../hooks/useShipments';
 import { BatchSwitchModal } from '../../components/BatchSwitchModal';
+import { SenderStageStats, TransitStageStats, ReceiverStageStats } from '@/components/batch/BatchStageStats';
 
 const SentHome: React.FC = () => {
     const navigate = useNavigate();
@@ -23,6 +25,9 @@ const SentHome: React.FC = () => {
     // Find the selected batch or fallback to first relevant one
     const activeBatch = batches?.find(b => b.id === activeBatchId) ||
         batches?.find(b => b.status === 'sender_processing' || b.status === 'draft' || b.status === 'sender_sealed' || b.status === 'sealed');
+
+    // Fetch live shipments for the active batch to calculate stats (Must include ALL for Sender stats: merged_child/split_parent)
+    const { data: shipments } = useShipments(activeBatch?.id || '', { includeAll: true });
 
     const todayCount = batches?.filter(b => {
         const today = new Date().toISOString().split('T')[0];
@@ -95,15 +100,14 @@ const SentHome: React.FC = () => {
                         <div className="text-lg font-mono text-white font-semibold tracking-wide mb-3">
                             {activeBatch ? activeBatch.batch_no : '无活跃批次'}
                         </div>
-                        <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-sm text-gray-300">
-                                <span className="material-icons text-[16px] text-gray-500">layers</span>
-                                <span>当前批次总件数: <span className="text-white font-medium">{activeBatch?.item_count || 0}件</span></span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-300">
-                                <span className="material-icons text-[16px] text-gray-500">scale</span>
-                                <span>总重量: <span className="text-white font-medium">{(activeBatch?.total_weight || 0).toFixed(2)} kg</span></span>
-                            </div>
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                            {activeBatch && (
+                                <>
+                                    <SenderStageStats batch={activeBatch as any} shipments={shipments} isCompact className="bg-white/5 border-white/5" />
+                                    <TransitStageStats batch={activeBatch as any} isCompact className="bg-white/5 border-white/5" />
+                                    <ReceiverStageStats batch={activeBatch as any} isCompact className="bg-white/5 border-white/5" />
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center gap-2 mt-1 shrink-0">

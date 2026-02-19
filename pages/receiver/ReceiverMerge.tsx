@@ -4,6 +4,7 @@ import { useBatchStore } from '../../store/batch.store';
 import { useShipmentByNo, useMergeShipments } from '../../hooks/useShipments';
 import { toast } from 'react-hot-toast';
 import { Shipment, ShipmentService } from '../../services/shipment.service';
+import { CameraScanButton } from '../../components/CameraScanner';
 
 const ReceiverMerge: React.FC = () => {
   const navigate = useNavigate();
@@ -19,20 +20,21 @@ const ReceiverMerge: React.FC = () => {
   const mergeMutation = useMergeShipments();
 
   // Handle Scan Submit
-  const handleScan = async (e?: React.FormEvent) => {
+  const handleScan = async (e?: React.FormEvent, code?: string) => {
     if (e) e.preventDefault();
-    if (!scanInput) return;
+    const trackingNo = (code || scanInput).trim().toUpperCase();
+    if (!trackingNo) return;
 
-    if (scannedShipments.some(s => s.tracking_no === scanInput)) {
+    if (scannedShipments.some(s => s.tracking_no.toUpperCase() === trackingNo)) {
       toast.error('Parcel already in list');
       setScanInput('');
       return;
     }
 
     try {
-      const response = await ShipmentService.findByTracking(scanInput);
+      const response = await ShipmentService.findByTracking(trackingNo);
       if (!response.success) {
-        toast.error('Shipment not found: ' + scanInput);
+        toast.error('Shipment not found: ' + trackingNo);
       } else {
         const shipment = response.data!;
         if (activeBatchId && shipment.batch_id !== activeBatchId) {
@@ -110,11 +112,14 @@ const ReceiverMerge: React.FC = () => {
           <input
             value={scanInput}
             onChange={(e) => setScanInput(e.target.value)}
-            className="block w-full pl-12 pr-12 py-4 bg-[#f8faff] dark:bg-slate-900 border-2 border-primary focus:border-primary focus:ring-0 rounded-2xl text-lg font-medium placeholder-slate-400 dark:text-white transition-all shadow-sm"
+            className="block w-full pl-12 pr-16 py-4 bg-[#f8faff] dark:bg-slate-900 border-2 border-primary focus:border-primary focus:ring-0 rounded-2xl text-lg font-medium placeholder-slate-400 dark:text-white transition-all shadow-sm"
             placeholder="请扫描单号进行合并..."
             type="text"
             autoFocus
           />
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <CameraScanButton onScan={(code) => handleScan(undefined, code)} size="md" />
+          </div>
         </form>
         <div className="mt-4 flex gap-3">
           <div className="flex-1 bg-blue-50 dark:bg-primary/10 rounded-2xl p-4 border border-blue-100 dark:border-primary/10 flex items-center justify-between">

@@ -67,9 +67,11 @@ export interface FinanceBatch {
 interface FinanceState {
     batches: FinanceBatch[];
     loading: boolean;
+    exchangeRates: { CNY_VND: number };
 
     // Actions
     fetchBatches: () => Promise<void>;
+    fetchExchangeRates: () => Promise<void>;
     markBillAsPaid: (billId: string) => Promise<void>;
     updateBillUnitPrice: (billId: string, unitPrice: number) => Promise<void>;
     updateBillStatus: (billId: string, status: BillStatus) => Promise<void>;
@@ -96,8 +98,14 @@ interface FinanceState {
 export const useFinanceStore = create<FinanceState>((set, get) => ({
     batches: [],
     loading: false,
+    exchangeRates: { CNY_VND: 3750 }, // Default fallback
 
     fetchBatches: async () => {
+        // Also fetch exchange rates if needed or just do it once
+        if (get().exchangeRates.CNY_VND === 3750) {
+            await get().fetchExchangeRates();
+        }
+
         set({ loading: true });
         try {
             console.log('Fetching finance batches...');
@@ -126,6 +134,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
                         id,
                         bill_type,
                         total_amount,
+                        paid_amount,
                         currency,
                         status,
                         created_at,
@@ -373,8 +382,31 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
             if (error) throw error;
             console.log(`Exchange rate updated: ${base} -> ${target} = ${rate}`);
+            await get().fetchExchangeRates(); // Refresh local state
         } catch (error) {
             console.error('Failed to update exchange rate:', error);
+        }
+    },
+
+    fetchExchangeRates: async () => {
+        try {
+            const { data, error } = await supabase
+                .from('exchange_rates')
+                .select('base_currency, target_currency, rate')
+                .eq('is_active', true);
+
+            if (error) throw error;
+
+            const rates = { CNY_VND: 3750 };
+            data.forEach((r: any) => {
+                if (r.base_currency === 'CNY' && r.target_currency === 'VND') {
+                    rates.CNY_VND = Number(r.rate);
+                }
+            });
+
+            set({ exchangeRates: rates });
+        } catch (error) {
+            console.error('Failed to fetch exchange rates:', error);
         }
     },
 

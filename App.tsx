@@ -4,10 +4,10 @@ import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-route
 import { supabase } from './services/supabase';
 import { useUserStore } from './store/user.store';
 import { useScannerStore } from './store/scanner.store';
-import Home from './pages/Home';
-import CreateShipment from './pages/CreateShipment';
-import BatchList from './pages/BatchList';
-import Settings from './pages/Settings';
+import Home from './pages/common/Home';
+import CreateShipment from './pages/common/CreateShipment';
+import BatchList from './pages/batch/BatchList';
+import Settings from './pages/settings/Settings';
 import TransitHome from './pages/transit/TransitHome';
 import TransitCheck from './pages/transit/TransitCheck';
 import MergeParcel from './pages/transit/MergeParcel';
@@ -22,12 +22,15 @@ import ReceiverMerge from './pages/receiver/ReceiverMerge';
 import ReceiverSplit from './pages/receiver/ReceiverSplit';
 import ReceiverExceptions from './pages/receiver/ReceiverExceptions';
 import ReceiverArchive from './pages/receiver/ReceiverArchive';
-import BartenderConfig from './pages/BartenderConfig';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import CreateBatch from './pages/CreateBatch';
+import BartenderConfig from './pages/settings/BartenderConfig';
+import BluetoothConnection from './pages/settings/BluetoothConnection';
+import LabelTemplateManager from './pages/settings/LabelTemplateManager';
+import LabelTemplateEditor from './pages/settings/LabelTemplateEditor';
+import Login from './pages/common/Login';
+import Register from './pages/common/Register';
+import CreateBatch from './pages/batch/CreateBatch';
 import RiskMonitor from './pages/supervisor/RiskMonitor';
-import BatchManager from './pages/BatchManager';
+import BatchManager from './pages/batch/BatchManager';
 import FinanceHome from './pages/finance/FinanceHome';
 import BillList from './pages/finance/BillList';
 import BillDetail from './pages/finance/BillDetail';
@@ -38,9 +41,10 @@ import TransitFinance from './pages/finance/TransitFinance';
 import ReceiverFinance from './pages/finance/ReceiverFinance';
 import FundsFlow from './pages/finance/FundsFlow';
 import AdminPriceConfig from './pages/finance/AdminPriceConfig';
-import Profile from './pages/Profile';
-import Reports from './pages/Reports';
-import ReportCenter from './pages/ReportCenter';
+import Profile from './pages/common/Profile';
+import WalletPage from './pages/common/WalletPage';
+import Reports from './pages/common/Reports';
+import ReportCenter from './pages/common/ReportCenter';
 import BottomNav from './components/BottomNav';
 import BatchDetailPage from './pages/batch-detail';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -198,6 +202,9 @@ const AppContent = () => {
           <Route path="/report-center" element={<ProtectedRoute><ReportCenter /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/settings/bartender" element={<ProtectedRoute><BartenderConfig /></ProtectedRoute>} />
+          <Route path="/settings/bluetooth" element={<ProtectedRoute><BluetoothConnection /></ProtectedRoute>} />
+          <Route path="/settings/label-templates" element={<ProtectedRoute><LabelTemplateManager /></ProtectedRoute>} />
+          <Route path="/settings/label-editor/:id" element={<ProtectedRoute><LabelTemplateEditor /></ProtectedRoute>} />
 
           <Route
             path="/batch/:id"
@@ -259,6 +266,7 @@ const AppContent = () => {
           <Route path="/finance/rates" element={<ProtectedRoute><ExchangeRates /></ProtectedRoute>} />
           <Route path="/finance/admin/pricing" element={<ProtectedRoute><AdminPriceConfig /></ProtectedRoute>} />
           <Route path="/finance/batch-settings/:batchId" element={<ProtectedRoute><BatchBillingSettings /></ProtectedRoute>} />
+          <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
         </Routes>

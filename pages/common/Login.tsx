@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabase';
-import { useUserStore } from '../store/user.store';
+import { supabase } from '../../services/supabase';
+import { useUserStore } from '../../store/user.store';
 import { toast } from 'react-hot-toast';
 
 const Login: React.FC = () => {

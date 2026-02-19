@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFinanceStore } from '../store/finance.store';
-import { useUserStore } from '../store/user.store';
+import { useFinanceStore } from '../../store/finance.store';
+import { useUserStore } from '../../store/user.store';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, Legend

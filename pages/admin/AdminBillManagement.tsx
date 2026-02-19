@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFinanceStore, FinanceBatch, FinanceBill, BillStatus, Currency, FinancePayment } from '../../store/finance.store';
 import { useFinanceStats } from '../../hooks/useFinanceStats';
 import { useAdminCompanies } from '../../hooks/useAdmin';
+import { SenderStageStats, TransitStageStats, ReceiverStageStats } from '../../components/batch/BatchStageStats';
 import toast from 'react-hot-toast';
 
 const AdminBillManagement: React.FC = () => {
@@ -136,24 +137,30 @@ const AdminBillManagement: React.FC = () => {
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-3 pt-3 border-t border-slate-50 dark:border-slate-700/50">
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">重量</span>
-                                    <span className="text-sm font-bold">{batch.totalWeight} KG</span>
-                                </div>
-                                <div className="flex flex-col gap-0.5 text-right">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">账单进度</span>
-                                    <div className="flex gap-1 justify-end">
-                                        {['A', 'B', 'C'].map(type => {
-                                            const bill = type === 'A' ? batch.billA : type === 'B' ? batch.billB : batch.billC;
-                                            const exists = bill && !bill.id.startsWith('missing-');
-                                            const isPaid = bill?.status === BillStatus.PAID;
-                                            return (
-                                                <div key={type} className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${isPaid ? 'bg-green-500 text-white shadow-sm' : exists ? 'bg-yellow-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
-                                                    {type}
-                                                </div>
-                                            )
-                                        })}
+                            <div className="grid grid-cols-1 gap-3 mb-3 pt-3 border-t border-slate-50 dark:border-slate-700/50">
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex justify-between items-center mb-0.5">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">计费重量 breakdown (KG)</span>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">账单进度</span>
+                                            <div className="flex gap-1">
+                                                {['A', 'B', 'C'].map(type => {
+                                                    const bill = type === 'A' ? batch.billA : type === 'B' ? batch.billB : batch.billC;
+                                                    const exists = bill && !bill.id.startsWith('missing-');
+                                                    const isPaid = bill?.status === BillStatus.PAID;
+                                                    return (
+                                                        <div key={type} className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-black transition-all ${isPaid ? 'bg-green-500 text-white shadow-sm' : exists ? 'bg-yellow-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+                                                            {type}
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <SenderStageStats batch={batch} isCompact />
+                                        <TransitStageStats batch={batch} isCompact />
+                                        <ReceiverStageStats batch={batch} isCompact />
                                     </div>
                                 </div>
                             </div>
@@ -177,7 +184,7 @@ const AdminBillManagement: React.FC = () => {
                 <BatchBillsDrawer
                     isOpen={isDrawerOpen}
                     onClose={() => setIsDrawerOpen(false)}
-                    batch={selectedBatch}
+                    batch={batches.find(b => b.id === selectedBatch.id) || selectedBatch}
                 />
             )}
 
@@ -221,6 +228,8 @@ const BatchBillsDrawer: React.FC<BatchBillsDrawerProps> = ({ isOpen, onClose, ba
     // UI Local State
     const [expandedBill, setExpandedBill] = useState<string | null>(null);
     const [paymentAmounts, setPaymentAmounts] = useState<Record<string, string>>({});
+    const [paymentCurrencies, setPaymentCurrencies] = useState<Record<string, 'VND' | 'CNY'>>({});
+    const exchangeRates = useFinanceStore(state => state.exchangeRates);
 
     if (!isOpen) return null;
 
@@ -235,17 +244,30 @@ const BatchBillsDrawer: React.FC<BatchBillsDrawerProps> = ({ isOpen, onClose, ba
         }
     };
 
-    const handleAddPayment = async (billId: string) => {
+    const handleAddPayment = async (billId: string, item: FinanceBill) => {
         const amountStr = paymentAmounts[billId];
-        const amount = parseFloat(amountStr);
+        const inputAmount = parseFloat(amountStr);
+        const selectedCurrency = paymentCurrencies[billId] || item.currency;
 
-        if (!amount || amount <= 0) {
+        if (!inputAmount || inputAmount <= 0) {
             toast.error('请输入有效的付款金额');
             return;
         }
 
+        let finalAmount = inputAmount;
+        let method = 'Partial';
+
+        // Dual currency logic for Bill A (VND bill paid in CNY)
+        if (item.currency === 'VND' && selectedCurrency === 'CNY') {
+            finalAmount = Math.round(inputAmount * exchangeRates.CNY_VND);
+            method = `CNY_PAY (Ref Rate: ${exchangeRates.CNY_VND})`;
+            if (!window.confirm(`即将按汇率 ${exchangeRates.CNY_VND} 将 ¥${inputAmount} 转换为 ₫${finalAmount.toLocaleString()} 录入，确定吗？`)) {
+                return;
+            }
+        }
+
         try {
-            await addBillPayment(billId, amount, 'Partial');
+            await addBillPayment(billId, finalAmount, method);
             setPaymentAmounts(prev => ({ ...prev, [billId]: '' }));
             toast.success('付款记录已添加');
         } catch (error) {
@@ -339,30 +361,54 @@ const BatchBillsDrawer: React.FC<BatchBillsDrawerProps> = ({ isOpen, onClose, ba
                             <div className="flex justify-between items-baseline">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">应付总额</span>
-                                    <span className="text-xl font-mono font-black text-slate-900 dark:text-white leading-none">
-                                        {bill.currency} {bill.amount.toLocaleString()}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xl font-mono font-black text-slate-900 dark:text-white leading-none">
+                                            {bill.currency} {bill.amount.toLocaleString()}
+                                        </span>
+                                        {bill.currency === 'VND' && (
+                                            <span className="text-[10px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded-md border border-primary/20">
+                                                约 ¥{(bill.amount / exchangeRates.CNY_VND).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">单价</span>
-                                    <span className="text-sm font-bold opacity-80">{bill.unitPrice}</span>
+                                <div className="flex gap-4 text-right">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">计费重量</span>
+                                        <span className="text-sm font-black opacity-90">{(bill.totalWeight || 0).toFixed(2)} <span className="text-[10px]">KG</span></span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">单价</span>
+                                        <span className="text-sm font-black opacity-90">{bill.unitPrice}</span>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Payment Progress */}
                             {!isMissing && (
-                                <div className="space-y-1.5">
-                                    <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div className="space-y-2 py-1">
+                                    <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner border border-slate-300/10 dark:border-white/5">
                                         <div
-                                            className={`h-full transition-all duration-1000 ${progress === 100 ? 'bg-green-500' : 'bg-primary'}`}
+                                            className={`h-full transition-all duration-1000 ease-out shadow-sm ${progress === 100 ? 'bg-green-500 shadow-green-500/20' : 'bg-primary shadow-primary/20'}`}
                                             style={{ width: `${progress}%` }}
                                         ></div>
                                     </div>
+
                                     <div className="flex justify-between text-[10px] font-bold text-slate-400">
-                                        <span>已付: {paid_amount.toLocaleString()}</span>
-                                        <span className={remaining > 0 ? 'text-orange-500' : 'text-green-500'}>
-                                            {remaining > 0 ? `待付: ${remaining.toLocaleString()}` : '已结清'}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="flex items-center gap-1">已付: <span className="text-slate-700 dark:text-slate-300">{paid_amount.toLocaleString()}</span></span>
+                                            {bill.currency === 'VND' && paid_amount > 0 && (
+                                                <span className="text-[9px] opacity-60 font-medium">≈ ¥{(paid_amount / exchangeRates.CNY_VND).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col items-end text-right">
+                                            <span className={remaining > 0 ? 'text-orange-500' : 'text-green-500'}>
+                                                {remaining > 0 ? `待付: ${remaining.toLocaleString()}` : '已结清'}
+                                            </span>
+                                            {bill.currency === 'VND' && remaining > 0 && (
+                                                <span className="text-[9px] opacity-60 font-medium">≈ ¥{(remaining / exchangeRates.CNY_VND).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -408,24 +454,58 @@ const BatchBillsDrawer: React.FC<BatchBillsDrawerProps> = ({ isOpen, onClose, ba
 
                         {/* Add Partial Payment */}
                         <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
-                            <h5 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">录入新付款</h5>
-                            <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold text-xs">{bill.currency}</span>
-                                    <input
-                                        type="number"
-                                        placeholder="金额"
-                                        value={paymentAmounts[bill.id] || ''}
-                                        onChange={(e) => setPaymentAmounts(prev => ({ ...prev, [bill.id]: e.target.value }))}
-                                        className="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:ring-1 focus:ring-primary shadow-sm"
-                                    />
+                            <div className="flex items-center justify-between mb-3">
+                                <h5 className="text-[10px] font-bold text-primary uppercase tracking-widest">录入新付款</h5>
+                                {/* Bill A Dual Currency Toggle */}
+                                {type === 'A' && (
+                                    <div className="flex bg-white dark:bg-slate-900 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                                        {(['VND', 'CNY'] as const).map(curr => (
+                                            <button
+                                                key={curr}
+                                                onClick={() => setPaymentCurrencies(prev => ({ ...prev, [bill.id]: curr }))}
+                                                className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${(paymentCurrencies[bill.id] || bill.currency) === curr
+                                                    ? 'bg-primary text-white shadow-sm'
+                                                    : 'text-slate-400 hover:text-slate-600'
+                                                    }`}
+                                            >
+                                                {curr}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold text-xs">
+                                            {paymentCurrencies[bill.id] || bill.currency}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            placeholder="金额"
+                                            value={paymentAmounts[bill.id] || ''}
+                                            onChange={(e) => setPaymentAmounts(prev => ({ ...prev, [bill.id]: e.target.value }))}
+                                            className="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-2.5 pl-12 pr-4 text-xs font-bold focus:ring-1 focus:ring-primary shadow-sm"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => handleAddPayment(bill.id, bill)}
+                                        className="px-5 bg-primary text-white rounded-xl text-xs font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        确认付款
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => handleAddPayment(bill.id)}
-                                    className="px-5 bg-primary text-white rounded-xl text-xs font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-                                >
-                                    确认付款
-                                </button>
+
+                                {/* Exchange Rate Hint for Bill A */}
+                                {type === 'A' && paymentCurrencies[bill.id] === 'CNY' && paymentAmounts[bill.id] && (
+                                    <div className="flex items-center gap-2 px-1">
+                                        <span className="material-icons text-primary text-[14px]">swap_horiz</span>
+                                        <p className="text-[10px] text-slate-500 font-medium">
+                                            约合 {bill.currency} <span className="text-primary font-black">{(parseFloat(paymentAmounts[bill.id]) * exchangeRates.CNY_VND).toLocaleString()}</span> (汇率: {exchangeRates.CNY_VND})
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -454,10 +534,19 @@ const BatchBillsDrawer: React.FC<BatchBillsDrawerProps> = ({ isOpen, onClose, ba
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
-                    {renderBill('A', batch.billA)}
-                    {renderBill('B', batch.billB)}
-                    {renderBill('C', batch.billC)}
+                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                    {/* Stage Stats Summary */}
+                    <div className="grid grid-cols-1 gap-4 mb-2">
+                        <SenderStageStats batch={batch} />
+                        <TransitStageStats batch={batch} />
+                        <ReceiverStageStats batch={batch} />
+                    </div>
+
+                    <div className="space-y-4">
+                        {renderBill('A', batch.billA)}
+                        {renderBill('B', batch.billB)}
+                        {renderBill('C', batch.billC)}
+                    </div>
 
                     <div className="p-5 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl text-white shadow-xl shadow-slate-900/20 relative overflow-hidden mt-2">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>

@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useBatches } from '../../hooks/useBatches';
 import { useUserStore } from '../../store/user.store';
 import { useBatchStore } from '../../store/batch.store';
+import { useShipments } from '../../hooks/useShipments';
+import { useInspections } from '../../hooks/useInspections';
 import { BatchSwitchModal } from '../../components/BatchSwitchModal';
+import { SenderStageStats, TransitStageStats, ReceiverStageStats } from '../../components/batch/BatchStageStats';
 
 const TransitHome: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +14,9 @@ const TransitHome: React.FC = () => {
   const { data: batches, isLoading } = useBatches();
   const { activeBatchId, setActiveBatchId } = useBatchStore();
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+
+  const { data: shipments } = useShipments(activeBatchId || '', { includeAll: true });
+  const { data: inspections } = useInspections(activeBatchId || '');
 
   // Auto-select first active batch if none selected
   useEffect(() => {
@@ -90,21 +96,14 @@ const TransitHome: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-800 tracking-tight mb-3 font-mono">
               {activeBatch?.batch_no || '暂无活跃批次'}
             </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/60 rounded-lg p-2.5 border border-white/50">
-                <div className="text-[10px] text-gray-500 font-medium mb-0.5">申报总件数</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-bold text-orange-600">{activeBatch?.item_count || 0}</span>
-                  <span className="text-xs text-gray-500">件</span>
-                </div>
-              </div>
-              <div className="bg-white/60 rounded-lg p-2.5 border border-white/50">
-                <div className="text-[10px] text-gray-500 font-medium mb-0.5">申报总重量</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-bold text-orange-600">{(activeBatch?.total_weight || 0).toFixed(2)}</span>
-                  <span className="text-xs text-gray-500">KG</span>
-                </div>
-              </div>
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              {activeBatch && (
+                <>
+                  <SenderStageStats batch={activeBatch as any} shipments={shipments} isCompact />
+                  <TransitStageStats batch={activeBatch as any} shipments={shipments} inspections={inspections} isCompact />
+                  <ReceiverStageStats batch={activeBatch as any} shipments={shipments} inspections={inspections} isCompact />
+                </>
+              )}
             </div>
           </div>
         </section>
