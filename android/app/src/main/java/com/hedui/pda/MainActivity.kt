@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity() {
             domStorageEnabled = true
             allowFileAccess = true
             allowContentAccess = true
+            allowFileAccessFromFileURLs = true // Critical for file:// protocol ES modules
+            allowUniversalAccessFromFileURLs = true // Critical for file:// protocol CORS
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
