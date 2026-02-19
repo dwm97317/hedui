@@ -1,4 +1,5 @@
 import React from 'react';
+import { CameraScanButton } from '../../../components/CameraScanner';
 
 interface CargoCreateFormProps {
     waybillNo: string;
@@ -40,9 +41,9 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
                         placeholder="扫描或输入单号"
                         type="text"
                     />
-                    <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-primary hover:text-blue-400 transition-all active:scale-90">
-                        <span className="material-icons-outlined text-2xl font-bold">qr_code_scanner</span>
-                    </button>
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <CameraScanButton onScan={(code) => setWaybillNo(code)} />
+                    </div>
                 </div>
             </div>
 

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { FinanceBatch } from '../../store/finance.store';
 import { Shipment } from '../../services/shipment.service';
 import { Inspection } from '../../services/inspection.service';
+import { BatchWeightConfigModal } from './BatchWeightConfigModal';
 
 /**
  * 核心逻辑：计费重量与体积计算
@@ -30,7 +31,9 @@ const calculateStats = (items: Shipment[], inspections: Inspection[] = [], stage
         // For now, removing the parent_id check to prevent potential confusion/errors if types don't match.
     }
 
-    let totalWeight = 0;
+    let totalActualWeight = 0;
+    let totalVolumetricWeight = 0;
+    let totalChargeableWeight = 0;
     let totalVolume = 0;
 
     filtered.forEach(s => {
@@ -60,17 +63,26 @@ const calculateStats = (items: Shipment[], inspections: Inspection[] = [], stage
         }
 
         const volumetric = (l * wd * h) / 6000;
-        totalWeight += Math.max(w, volumetric);
+        const chargeable = Math.max(w, volumetric);
+
+        totalActualWeight += w;
+        totalVolumetricWeight += volumetric;
+        totalChargeableWeight += chargeable;
         totalVolume += (l * wd * h) / 1000000;
     });
 
-    return { weight: totalWeight, volume: totalVolume };
+    return {
+        actualWeight: totalActualWeight,
+        volumetricWeight: totalVolumetricWeight,
+        chargeableWeight: totalChargeableWeight,
+        volume: totalVolume
+    };
 };
 
 export interface CalculatedStats {
-    sender: { weight: number; volume: number };
-    transit: { weight: number; volume: number };
-    receiver: { weight: number; volume: number };
+    sender: { actualWeight: number; volumetricWeight: number; chargeableWeight: number; volume: number };
+    transit: { actualWeight: number; volumetricWeight: number; chargeableWeight: number; volume: number };
+    receiver: { actualWeight: number; volumetricWeight: number; chargeableWeight: number; volume: number };
 }
 
 interface StageStatsProps {
@@ -89,7 +101,12 @@ export const SenderStageStats: React.FC<StageStatsProps> = ({ batch, shipments, 
     // Memoize the calculation logic to ensure consistency
     const { stats, detailedList } = useMemo(() => {
         if (!shipments) return {
-            stats: { weight: batch.senderWeight || 0, volume: batch.senderVolume || 0 },
+            stats: {
+                actualWeight: batch.senderWeight || 0,
+                volumetricWeight: 0,
+                chargeableWeight: batch.senderWeight || 0,
+                volume: batch.senderVolume || 0
+            },
             detailedList: []
         };
 
@@ -102,19 +119,34 @@ export const SenderStageStats: React.FC<StageStatsProps> = ({ batch, shipments, 
         // Removing parent_id check as per DB limitation.
 
         // 3. Calculate from this final list
-        let totalWeight = 0;
+        let totalActualWeight = 0;
+        let totalVolumetricWeight = 0;
+        let totalChargeableWeight = 0;
         let totalVolume = 0;
+
         items.forEach(s => {
             let w = parseFloat(s.weight as any) || 0;
             let l = parseFloat(s.length as any) || 0;
             let wd = parseFloat(s.width as any) || 0;
             let h = parseFloat(s.height as any) || 0;
             const volumetric = (l * wd * h) / 6000;
-            totalWeight += Math.max(w, volumetric);
+            const chargeable = Math.max(w, volumetric);
+
+            totalActualWeight += w;
+            totalVolumetricWeight += volumetric;
+            totalChargeableWeight += chargeable;
             totalVolume += (l * wd * h) / 1000000;
         });
 
-        return { stats: { weight: totalWeight, volume: totalVolume }, detailedList: items };
+        return {
+            stats: {
+                actualWeight: totalActualWeight,
+                volumetricWeight: totalVolumetricWeight,
+                chargeableWeight: totalChargeableWeight,
+                volume: totalVolume
+            },
+            detailedList: items
+        };
     }, [batch, shipments]);
 
     if (isCompact) {
@@ -122,7 +154,7 @@ export const SenderStageStats: React.FC<StageStatsProps> = ({ batch, shipments, 
             <div className={`p-2 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-900/20 text-center ${className}`}>
                 <p className="text-[9px] text-blue-500 font-bold mb-0.5 uppercase tracking-tighter leading-none">发货方 (SRT)</p>
                 <div className="flex flex-col gap-0.5 mt-1">
-                    <p className="text-xs font-black text-slate-700 dark:text-slate-300 leading-none">{stats.weight.toFixed(2)}<span className="text-[8px] ml-0.5 opacity-50">KG</span></p>
+                    <p className="text-xs font-black text-slate-700 dark:text-slate-300 leading-none">{stats.chargeableWeight.toFixed(2)}<span className="text-[8px] ml-0.5 opacity-50">KG</span></p>
                     <p className="text-[9px] font-bold text-slate-400 leading-none">{stats.volume.toFixed(3)}<span className="text-[7px] ml-0.5 opacity-50">CBM</span></p>
                 </div>
             </div>
@@ -130,6 +162,7 @@ export const SenderStageStats: React.FC<StageStatsProps> = ({ batch, shipments, 
     }
 
     const [showDetails, setShowDetails] = React.useState(false);
+    const [showConfigModal, setShowConfigModal] = React.useState(false);
 
     return (
         <div className={`group relative p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-slate-900 border border-blue-100/50 dark:border-blue-900/20 shadow-sm hover:shadow-md transition-all duration-300 ${className}`}>
@@ -141,36 +174,54 @@ export const SenderStageStats: React.FC<StageStatsProps> = ({ batch, shipments, 
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest leading-none">发货方重量 & CBM</h3>
-                        <p className="text-[10px] text-slate-400 font-medium mt-1">规则: Standard / Merged Child / Split Parent (去重)</p>
+                        <h3 className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest leading-none">发货方重量细号</h3>
+                        <p className="text-[10px] text-slate-400 font-medium mt-1">含实重 / 体积重 / 计费重</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => setShowDetails(!showDetails)}
-                    className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-500 transition-colors"
-                >
-                    <span className="material-icons-round text-sm">{showDetails ? 'expand_less' : 'list'}</span>
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowConfigModal(true); }}
+                        className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-500 transition-colors"
+                        title="计费重量设置"
+                    >
+                        <span className="material-icons-round text-sm">settings</span>
+                    </button>
+                    <button
+                        onClick={() => setShowDetails(!showDetails)}
+                        className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-500 transition-colors"
+                    >
+                        <span className="material-icons-round text-sm">{showDetails ? 'expand_less' : 'list'}</span>
+                    </button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">SRT 总重</span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-mono font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                            {stats.weight.toFixed(2)}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">KG</span>
-                    </div>
+            <div className="grid grid-cols-2 gap-3 text-center">
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">实重 (Actual)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.actualWeight.toFixed(2)}
+                    </span>
                 </div>
-                <div className="flex flex-col border-l border-blue-100/50 dark:border-blue-900/20 pl-4">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">体积总量</span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-mono font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                            {stats.volume.toFixed(3)}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">CBM</span>
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">体积重 (Vol.)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.volumetricWeight.toFixed(2)}
+                    </span>
+                </div>
+                <div className="flex flex-col bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm relative overflow-hidden group/item">
+                    <div className="absolute top-0 right-0 p-1">
+                        <span className="material-icons-round text-blue-200 dark:text-blue-800/30 text-4xl -mr-2 -mt-2">paid</span>
                     </div>
+                    <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest relative z-10">计费重 (Chg.)</span>
+                    <span className="text-2xl font-mono font-black text-blue-600 dark:text-blue-400 mt-1 relative z-10">
+                        {stats.chargeableWeight.toFixed(2)}
+                    </span>
+                </div>
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">体积 (CBM)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.volume.toFixed(3)}
+                    </span>
                 </div>
             </div>
 
@@ -205,6 +256,22 @@ export const SenderStageStats: React.FC<StageStatsProps> = ({ batch, shipments, 
                     </table>
                 </div>
             )}
+
+            <BatchWeightConfigModal
+                isOpen={showConfigModal}
+                onClose={() => setShowConfigModal(false)}
+                batchId={batch.id}
+                currentModes={{
+                    a: batch.billing_weight_mode_a || 'chargeable',
+                    b: batch.billing_weight_mode_b || 'chargeable',
+                    c: batch.billing_weight_mode_c || 'chargeable'
+                }}
+                onUpdate={() => {
+                    // Logic to refresh data would go here
+                    // Ideally pass a callback from parent or useQuery invalidation
+                    window.location.reload(); // Simple refresh for now or use invalidateQueries if available
+                }}
+            />
         </div>
     );
 };
@@ -216,7 +283,12 @@ export const SenderStageStats: React.FC<StageStatsProps> = ({ batch, shipments, 
 export const TransitStageStats: React.FC<StageStatsProps> = ({ batch, shipments, inspections, className = '', isCompact = false }) => {
     const stats = useMemo(() => {
         if (shipments) return calculateStats(shipments, inspections || [], 'transit');
-        return { weight: batch.transitWeight || 0, volume: batch.transitVolume || 0 };
+        return {
+            actualWeight: batch.transitWeight || 0,
+            volumetricWeight: 0,
+            chargeableWeight: batch.transitWeight || 0,
+            volume: batch.transitVolume || 0
+        };
     }, [batch, shipments, inspections]);
 
     if (isCompact) {
@@ -224,7 +296,7 @@ export const TransitStageStats: React.FC<StageStatsProps> = ({ batch, shipments,
             <div className={`p-2 rounded-xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100/50 dark:border-orange-900/20 text-center ${className}`}>
                 <p className="text-[9px] text-orange-500 font-bold mb-0.5 uppercase tracking-tighter leading-none">中转方 (SRT)</p>
                 <div className="flex flex-col gap-0.5 mt-1">
-                    <p className="text-xs font-black text-slate-700 dark:text-slate-300 leading-none">{stats.weight.toFixed(2)}<span className="text-[8px] ml-0.5 opacity-50">KG</span></p>
+                    <p className="text-xs font-black text-slate-700 dark:text-slate-300 leading-none">{stats.chargeableWeight.toFixed(2)}<span className="text-[8px] ml-0.5 opacity-50">KG</span></p>
                     <p className="text-[9px] font-bold text-slate-400 leading-none">{stats.volume.toFixed(3)}<span className="text-[7px] ml-0.5 opacity-50">CBM</span></p>
                 </div>
             </div>
@@ -248,8 +320,8 @@ export const TransitStageStats: React.FC<StageStatsProps> = ({ batch, shipments,
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-xs font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest leading-none">中转方重量 & CBM</h3>
-                        <p className="text-[10px] text-slate-400 font-medium mt-1">规则: Standard / Split Child / Master Parent</p>
+                        <h3 className="text-xs font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest leading-none">中转方重量细号</h3>
+                        <p className="text-[10px] text-slate-400 font-medium mt-1">含实重 / 体积重 / 计费重</p>
                     </div>
                 </div>
                 <button
@@ -260,24 +332,33 @@ export const TransitStageStats: React.FC<StageStatsProps> = ({ batch, shipments,
                 </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">SRT 总重</span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-mono font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                            {stats.weight.toFixed(2)}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">KG</span>
-                    </div>
+            <div className="grid grid-cols-2 gap-3 text-center">
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">实重 (Actual)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.actualWeight.toFixed(2)}
+                    </span>
                 </div>
-                <div className="flex flex-col border-l border-orange-100/50 dark:border-orange-900/20 pl-4">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">体积总量</span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-mono font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                            {stats.volume.toFixed(3)}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">CBM</span>
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">体积重 (Vol.)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.volumetricWeight.toFixed(2)}
+                    </span>
+                </div>
+                <div className="flex flex-col bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-900/30 shadow-sm relative overflow-hidden group/item">
+                    <div className="absolute top-0 right-0 p-1">
+                        <span className="material-icons-round text-orange-200 dark:text-orange-800/30 text-4xl -mr-2 -mt-2">paid</span>
                     </div>
+                    <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest relative z-10">计费重 (Chg.)</span>
+                    <span className="text-2xl font-mono font-black text-orange-600 dark:text-orange-400 mt-1 relative z-10">
+                        {stats.chargeableWeight.toFixed(2)}
+                    </span>
+                </div>
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">体积 (CBM)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.volume.toFixed(3)}
+                    </span>
                 </div>
             </div>
 
@@ -339,7 +420,12 @@ export const TransitStageStats: React.FC<StageStatsProps> = ({ batch, shipments,
 export const ReceiverStageStats: React.FC<StageStatsProps> = ({ batch, shipments, inspections, className = '', isCompact = false }) => {
     const stats = useMemo(() => {
         if (shipments) return calculateStats(shipments, inspections || [], 'receiver');
-        return { weight: batch.receiverWeight || 0, volume: batch.receiverVolume || 0 };
+        return {
+            actualWeight: batch.receiverWeight || 0,
+            volumetricWeight: 0,
+            chargeableWeight: batch.receiverWeight || 0,
+            volume: batch.receiverVolume || 0
+        };
     }, [batch, shipments, inspections]);
 
     if (isCompact) {
@@ -347,7 +433,7 @@ export const ReceiverStageStats: React.FC<StageStatsProps> = ({ batch, shipments
             <div className={`p-2 rounded-xl bg-green-50/50 dark:bg-green-900/10 border border-green-100/50 dark:border-green-900/20 text-center ${className}`}>
                 <p className="text-[9px] text-green-500 font-bold mb-0.5 uppercase tracking-tighter leading-none">接收方 (SRT)</p>
                 <div className="flex flex-col gap-0.5 mt-1">
-                    <p className="text-xs font-black text-slate-700 dark:text-slate-300 leading-none">{stats.weight.toFixed(2)}<span className="text-[8px] ml-0.5 opacity-50">KG</span></p>
+                    <p className="text-xs font-black text-slate-700 dark:text-slate-300 leading-none">{stats.chargeableWeight.toFixed(2)}<span className="text-[8px] ml-0.5 opacity-50">KG</span></p>
                     <p className="text-[9px] font-bold text-slate-400 leading-none">{stats.volume.toFixed(3)}<span className="text-[7px] ml-0.5 opacity-50">CBM</span></p>
                 </div>
             </div>
@@ -370,8 +456,8 @@ export const ReceiverStageStats: React.FC<StageStatsProps> = ({ batch, shipments
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-widest leading-none">接收方重量 & CBM</h3>
-                        <p className="text-[10px] text-slate-400 font-medium mt-1">规则: Standard / Split Child / Master Parent</p>
+                        <h3 className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-widest leading-none">接收方重量细号</h3>
+                        <p className="text-[10px] text-slate-400 font-medium mt-1">含实重 / 体积重 / 计费重</p>
                     </div>
                 </div>
                 <button
@@ -382,24 +468,33 @@ export const ReceiverStageStats: React.FC<StageStatsProps> = ({ batch, shipments
                 </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">SRT 总重</span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-mono font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                            {stats.weight.toFixed(2)}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">KG</span>
-                    </div>
+            <div className="grid grid-cols-2 gap-3 text-center">
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">实重 (Actual)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.actualWeight.toFixed(2)}
+                    </span>
                 </div>
-                <div className="flex flex-col border-l border-green-100/50 dark:border-green-900/20 pl-4">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">体积总量</span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-mono font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                            {stats.volume.toFixed(3)}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">CBM</span>
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">体积重 (Vol.)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.volumetricWeight.toFixed(2)}
+                    </span>
+                </div>
+                <div className="flex flex-col bg-green-50 dark:bg-green-900/20 p-3 rounded-xl border border-green-100 dark:border-green-900/30 shadow-sm relative overflow-hidden group/item">
+                    <div className="absolute top-0 right-0 p-1">
+                        <span className="material-icons-round text-green-200 dark:text-green-800/30 text-4xl -mr-2 -mt-2">paid</span>
                     </div>
+                    <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest relative z-10">计费重 (Chg.)</span>
+                    <span className="text-2xl font-mono font-black text-green-600 dark:text-green-400 mt-1 relative z-10">
+                        {stats.chargeableWeight.toFixed(2)}
+                    </span>
+                </div>
+                <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">体积 (CBM)</span>
+                    <span className="text-xl font-mono font-bold text-slate-700 dark:text-slate-300 mt-1">
+                        {stats.volume.toFixed(3)}
+                    </span>
                 </div>
             </div>
 

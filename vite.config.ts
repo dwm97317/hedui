@@ -22,9 +22,9 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       }
     },
-    optimizeDeps: {
-      exclude: ['vconsole'],
-    },
+    // optimizeDeps: {
+    //   exclude: ['vconsole'], 
+    // },
     build: {
       outDir: 'dist',
       assetsDir: 'assets',

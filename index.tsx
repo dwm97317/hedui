@@ -15,22 +15,11 @@ import 'material-icons/iconfont/outlined.css';
 import 'material-icons/iconfont/round.css';
 import 'material-icons/iconfont/sharp.css';
 import App from './App';
-
-// Only init vConsole in production/app environment if needed, 
-// or always keep it for PDA debugging.
-// Always init vConsole for debugging black screen issues on PDA
 import VConsole from 'vconsole';
-new VConsole();
-
-/*
-if (window.location.protocol === 'file:' || (window as any).scannerLabel) {
-  import('vconsole').then(({ default: VConsole }) => {
-    new VConsole();
-  }).catch(e => console.error("Failed to load vConsole", e));
-}
-*/
-
 import { queryClient } from './services/queryClient';
+
+// Always init vConsole for debugging black screen issues on PDA
+new VConsole();
 
 console.log("React Index Mounting...");
 const rootElement = document.getElementById('root');

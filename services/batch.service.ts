@@ -15,6 +15,21 @@ export interface Batch {
     sealed_at?: string;
     transit_at?: string;
     received_at?: string;
+    sender_weight?: number;
+    transit_weight?: number;
+    receiver_weight?: number;
+    sender_volume?: number;
+    transit_volume?: number;
+    receiver_volume?: number;
+    sender_actual_weight?: number;
+    transit_actual_weight?: number;
+    receiver_actual_weight?: number;
+    sender_volumetric_weight?: number;
+    transit_volumetric_weight?: number;
+    receiver_volumetric_weight?: number;
+    billing_weight_mode_a?: 'actual' | 'volumetric' | 'chargeable';
+    billing_weight_mode_b?: 'actual' | 'volumetric' | 'chargeable';
+    billing_weight_mode_c?: 'actual' | 'volumetric' | 'chargeable';
 }
 
 export const BatchService = {
@@ -41,7 +56,7 @@ export const BatchService = {
         }
         return handleServiceCall(
             supabase.from('batches')
-                .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+                .select('*')
                 .eq('id', id)
                 .single()
         );
@@ -50,7 +65,7 @@ export const BatchService = {
     async getByCode(code: string): Promise<ServiceResponse<Batch>> {
         return handleServiceCall(
             supabase.from('batches')
-                .select('id, batch_no, status, sender_company_id, transit_company_id, receiver_company_id, total_weight, item_count, currency, created_at, sealed_at, transit_at, received_at')
+                .select('*')
                 .eq('batch_no', code)
                 .single()
         );

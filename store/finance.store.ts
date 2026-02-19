@@ -52,6 +52,9 @@ export interface FinanceBatch {
     receiverName: string;
     status: string;
     createdAt: string;
+    billing_weight_mode_a?: 'actual' | 'volumetric' | 'chargeable';
+    billing_weight_mode_b?: 'actual' | 'volumetric' | 'chargeable';
+    billing_weight_mode_c?: 'actual' | 'volumetric' | 'chargeable';
 
     // The 3 Bills
     billA: FinanceBill; // Sender -> Admin (VND)
@@ -127,6 +130,15 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
                     unit_price_a,
                     unit_price_b,
                     unit_price_c,
+                    billing_weight_mode_a,
+                    billing_weight_mode_b,
+                    billing_weight_mode_c,
+                    sender_actual_weight,
+                    transit_actual_weight,
+                    receiver_actual_weight,
+                    sender_volumetric_weight,
+                    transit_volumetric_weight,
+                    receiver_volumetric_weight,
                     sender:sender_company_id(name),
                     transit:transit_company_id(name),
                     receiver:receiver_company_id(name),
@@ -217,6 +229,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
                     senderName: batch.sender?.name || 'Unknown Sender',
                     transitName: batch.transit?.name || 'Unknown Transit',
                     receiverName: batch.receiver?.name || 'Unknown Receiver',
+                    billing_weight_mode_a: batch.billing_weight_mode_a,
+                    billing_weight_mode_b: batch.billing_weight_mode_b,
+                    billing_weight_mode_c: batch.billing_weight_mode_c,
                     status: batch.status,
                     createdAt: batch.created_at,
                     billA,
