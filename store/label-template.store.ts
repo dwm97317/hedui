@@ -24,12 +24,19 @@ export const DATA_FIELDS = [
     { key: 'sender_name', label: '发件人姓名' },
     { key: 'sender_phone', label: '发件人电话' },
     { key: 'sender_address', label: '发件人地址' },
+    { key: 'shipper_name', label: '发货客户' },
     { key: 'weight', label: '重量 (kg)' },
     { key: 'volume_weight', label: '体积重 (kg)' },
+    { key: 'dimensions', label: '尺寸 (L*W*H)' },
     { key: 'pieces', label: '件数' },
     { key: 'batch_no', label: '批次号' },
+    { key: 'transport_mode', label: '运输方式' },
+    { key: 'item_category', label: '物品类型' },
+    { key: 'package_tag', label: '包裹标签' },
     { key: 'remark', label: '备注' },
     { key: 'date', label: '日期' },
+    { key: 'print_time', label: '打印时间' },
+    { key: 'operator', label: '操作员' },
     { key: 'custom', label: '自定义文本' },
 ] as const;
 
@@ -70,6 +77,60 @@ export interface LabelTemplate {
     createdAt: string;
     updatedAt: string;
 }
+
+/** Pre-composed modular blocks */
+export const LABEL_BLOCKS = [
+    {
+        id: 'block_receiver',
+        name: '收件人信息块',
+        icon: 'contact_page',
+        elements: (w: number): Omit<LabelElement, 'id'>[] => [
+            { type: 'text', x: 0, y: 0, width: 20, height: 5, text: '收件人', fontSize: 8, fontWeight: 'bold' },
+            { type: 'text', x: 0, y: 6, width: w, height: 8, dataField: 'receiver_name', fontSize: 14, fontWeight: 'bold' },
+            { type: 'text', x: 0, y: 15, width: w, height: 5, dataField: 'receiver_phone', fontSize: 10 },
+            { type: 'text', x: 0, y: 21, width: w, height: 12, dataField: 'receiver_address', fontSize: 9 },
+        ]
+    },
+    {
+        id: 'block_sender',
+        name: '发件人信息块',
+        icon: 'person',
+        elements: (w: number): Omit<LabelElement, 'id'>[] => [
+            { type: 'text', x: 0, y: 0, width: 20, height: 5, text: '发件人', fontSize: 8, fontWeight: 'bold' },
+            { type: 'text', x: 0, y: 6, width: w, height: 5, dataField: 'sender_name', fontSize: 9 },
+            { type: 'text', x: 0, y: 12, width: w, height: 10, dataField: 'sender_address', fontSize: 8 },
+        ]
+    },
+    {
+        id: 'block_logistics',
+        name: '物流条码块',
+        icon: 'barcode',
+        elements: (w: number): Omit<LabelElement, 'id'>[] => [
+            { type: 'barcode', x: 0, y: 0, width: w, height: 18, dataField: 'tracking_no', barcodeFormat: 'CODE128' },
+            { type: 'text', x: 0, y: 20, width: w, height: 6, dataField: 'tracking_no', fontSize: 12, fontWeight: 'bold', textAlign: 'center' },
+        ]
+    },
+    {
+        id: 'block_goods',
+        name: '货物参数块',
+        icon: 'inventory_2',
+        elements: (w: number): Omit<LabelElement, 'id'>[] => [
+            { type: 'text', x: 0, y: 0, width: 25, height: 6, dataField: 'weight', fontSize: 11, fontWeight: 'bold' },
+            { type: 'text', x: 30, y: 0, width: 20, height: 6, dataField: 'pieces', fontSize: 10, text: '件数: ' },
+            { type: 'text', x: 0, y: 8, width: 40, height: 5, dataField: 'dimensions', fontSize: 8 },
+        ]
+    },
+    {
+        id: 'block_meta',
+        name: '打印页脚块',
+        icon: 'info',
+        elements: (w: number): Omit<LabelElement, 'id'>[] => [
+            { type: 'line', x: 0, y: 0, width: w, height: 0, lineWidth: 0.5 },
+            { type: 'text', x: 0, y: 2, width: 30, height: 4, dataField: 'print_time', fontSize: 7, textAlign: 'left' },
+            { type: 'text', x: w - 30, y: 2, width: 30, height: 4, dataField: 'operator', fontSize: 7, textAlign: 'right' },
+        ]
+    }
+] as const;
 
 // ─── Default Templates ──────────────────────────────────────
 

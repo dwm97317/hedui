@@ -64,25 +64,29 @@ vercel-labs/agent-skills@vercel-react-best-practices
 └ https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
 ```
 
-### Step 3: Present Options to the User
+### Step 3: Check Environment Compatibility (NEW)
 
-When you find relevant skills, present them to the user with:
+Before presenting results, run the environment checker to see if the required language extensions/frameworks are likely active in the current workspace:
 
-1. The skill name and what it does
-2. The install command they can run
-3. A link to learn more at skills.sh
+```bash
+node .agent/skills/find-skills/scripts/check-env.mjs
+```
+
+### Step 4: Present Options with Compatibility Status
+
+When you find relevant skills, present them with clear indicators of whether the project environment matches:
+
+1. **Skill Name** & Description.
+2. **Compatibility Status**:
+   - `[✓ Installed]` - If the required language or framework (e.g., React, Supabase) is detected.
+   - `[? Missing Support]` - If the skill requires a specific language extension not found in the project.
+3. **Install Command**.
 
 Example response:
-
-```
-I found a skill that might help! The "vercel-react-best-practices" skill provides
-React and Next.js performance optimization guidelines from Vercel Engineering.
-
-To install it:
-npx skills add vercel-labs/agent-skills@vercel-react-best-practices
-
-Learn more: https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
-```
+> I found the `supabase-realtime` skill!
+> **Status**: `[✓ Installed]` (Detected `@supabase/supabase-js` in package.json)
+>
+> To install: `npx skills add nice-wolf-studio/claude-code-supabase-skills@supabase-realtime`
 
 ### Step 4: Offer to Install
 

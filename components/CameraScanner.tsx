@@ -78,12 +78,12 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
             await scanner.start(
                 { facingMode },
                 {
-                    fps: 20,          // Faster FPS
+                    fps: 25,          // Higher FPS for smoother tracking
                     qrbox: (viewWidth, viewHeight) => {
-                        const size = Math.min(viewWidth, viewHeight) * 0.75;
+                        // Increase scanner area to 85% of smaller dimension
+                        const size = Math.min(viewWidth, viewHeight) * 0.85;
                         return { width: size, height: size };
                     },
-                    aspectRatio: 1.0,
                     disableFlip: false,
                 },
                 (decodedText) => {
@@ -156,15 +156,15 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
 
                     {/* Scanning guide overlay */}
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div className="w-[70vw] h-[70vw] max-w-[350px] max-h-[350px] relative">
-                            {/* Corner decorators */}
-                            <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
-                            <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
-                            <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
-                            <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
+                        <div className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] relative">
+                            {/* Corner decorators - Extra large */}
+                            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-2xl"></div>
+                            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-2xl"></div>
+                            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-2xl"></div>
+                            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-2xl"></div>
 
                             {/* Scanning line animation */}
-                            <div className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line"></div>
+                            <div className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line shadow-[0_0_15px_rgba(19,91,236,0.8)]"></div>
                         </div>
                     </div>
 

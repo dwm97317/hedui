@@ -55,23 +55,23 @@ const CargoCreateForm: React.FC<CargoCreateFormProps> = ({
                     <input
                         value={waybillNo}
                         onChange={(e) => setWaybillNo(e.target.value)}
-                        className={`w-full border rounded-xl px-4 py-4 pr-12 text-lg font-mono font-bold tracking-wide shadow-sm transition-all outline-none ${isReprintMode
-                            ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 ring-2 ring-purple-500/20 text-purple-700 dark:text-purple-300'
-                            : 'bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:ring-2 focus:ring-primary focus:border-transparent'
+                        className={`w-full border-2 rounded-2xl px-5 py-6 pr-20 text-2xl font-mono font-black tracking-wider shadow-lg transition-all outline-none ${isReprintMode
+                            ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-500 ring-4 ring-purple-500/10 text-purple-700 dark:text-purple-300'
+                            : 'bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:ring-4 focus:ring-primary/10 focus:border-primary'
                             }`}
                         placeholder="扫描或输入单号"
                         type="text"
                     />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <div className="absolute right-3 top-0 bottom-0 flex items-center gap-1">
                         {waybillNo && (
                             <button
                                 onClick={() => setWaybillNo('')}
                                 className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                             >
-                                <span className="material-icons text-[20px]">close</span>
+                                <span className="material-icons text-[24px]">close</span>
                             </button>
                         )}
-                        <CameraScanButton onScan={(code) => setWaybillNo(code)} />
+                        <CameraScanButton onScan={(code) => setWaybillNo(code)} size="lg" className="h-12 w-12" />
                     </div>
                 </div>
             </div>

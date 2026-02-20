@@ -7,6 +7,7 @@ import {
     ElementType,
     DATA_FIELDS,
     DataFieldKey,
+    LABEL_BLOCKS,
 } from '../../store/label-template.store';
 import toast from 'react-hot-toast';
 
@@ -30,12 +31,19 @@ const SAMPLE_DATA: Record<string, string> = {
     sender_name: '李四',
     sender_phone: '13900139000',
     sender_address: '上海市浦东新区陆家嘴金融中心',
+    shipper_name: '嘉里物流',
     weight: '12.50 kg',
     volume_weight: '15.20 kg',
+    dimensions: '40 * 30 * 25 cm',
     pieces: '3',
     batch_no: 'B20240218-001',
+    transport_mode: '陆运专线',
+    item_category: '电子配件',
+    package_tag: '加急',
     remark: '易碎品 轻拿轻放',
     date: new Date().toLocaleDateString('zh-CN'),
+    print_time: new Date().toLocaleTimeString('zh-CN'),
+    operator: '仓库 A1',
     custom: '',
 };
 
@@ -55,6 +63,7 @@ const LabelTemplateEditor: React.FC = () => {
     const [showProps, setShowProps] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
+    const [paletteTab, setPaletteTab] = useState<'elements' | 'blocks'>('elements');
 
     const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -84,8 +93,8 @@ const LabelTemplateEditor: React.FC = () => {
         const base: LabelElement = {
             id: newId,
             type,
-            x: 10,
-            y: 10,
+            x: 5,
+            y: 5,
             width: 30,
             height: 10,
         };
@@ -146,6 +155,26 @@ const LabelTemplateEditor: React.FC = () => {
         setShowPalette(false);
         setShowProps(true);
         setHasChanges(true);
+    };
+
+    const addBlock = (blockId: string) => {
+        const block = LABEL_BLOCKS.find(b => b.id === blockId);
+        if (!block) return;
+
+        const { w: width } = LABEL_SIZES[template.size];
+        // Calculate insert Y (at bottom of existing elements or top)
+        const lastY = elements.reduce((max, el) => Math.max(max, el.y + el.height), 10);
+
+        const newElements = block.elements(width - 10).map(el => ({
+            ...el,
+            id: 'el_' + Math.random().toString(36).slice(2, 8),
+            x: el.x + 5,
+            y: el.y + lastY + 5,
+        } as LabelElement));
+
+        setElements(prev => [...prev, ...newElements]);
+        setHasChanges(true);
+        toast.success(`已添加 ${block.name}`);
     };
 
     const updateElement = (id: string, updates: Partial<LabelElement>) => {
@@ -450,8 +479,8 @@ const LabelTemplateEditor: React.FC = () => {
                                     <button
                                         onClick={() => updateElement(el.id, { fontWeight: el.fontWeight === 'bold' ? 'normal' : 'bold' })}
                                         className={`w-full py-1.5 rounded-lg text-xs font-bold transition-all ${el.fontWeight === 'bold'
-                                                ? 'bg-primary/20 text-primary border border-primary/20'
-                                                : 'bg-white/5 text-gray-400 border border-white/5'
+                                            ? 'bg-primary/20 text-primary border border-primary/20'
+                                            : 'bg-white/5 text-gray-400 border border-white/5'
                                             }`}
                                     >
                                         B
@@ -486,8 +515,8 @@ const LabelTemplateEditor: React.FC = () => {
                                         key={fmt}
                                         onClick={() => updateElement(el.id, { barcodeFormat: fmt })}
                                         className={`py-1.5 rounded-lg text-[10px] font-bold transition-all ${el.barcodeFormat === fmt
-                                                ? 'bg-primary/20 text-primary border border-primary/20'
-                                                : 'bg-white/5 text-gray-500 border border-white/5'
+                                            ? 'bg-primary/20 text-primary border border-primary/20'
+                                            : 'bg-white/5 text-gray-500 border border-white/5'
                                             }`}
                                     >
                                         {fmt}
@@ -543,8 +572,8 @@ const LabelTemplateEditor: React.FC = () => {
                         onClick={handleSave}
                         disabled={!hasChanges}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${hasChanges
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                : 'bg-white/5 text-gray-600'
+                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                            : 'bg-white/5 text-gray-600'
                             }`}
                     >
                         保存
@@ -590,22 +619,57 @@ const LabelTemplateEditor: React.FC = () => {
                 </div>
             </div>
 
-            {/* Floating Element Palette */}
+            {/* Floating Element Palette (Repositioned to Right) */}
             {showPalette && !showProps && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
-                    <div className="bg-[#1e293b]/95 backdrop-blur-lg rounded-2xl border border-white/10 shadow-2xl px-2 py-2 flex gap-1.5">
-                        {ELEMENT_PALETTE.map(item => (
+                <div className="fixed top-24 right-4 z-[60] w-20 animate-slide-in-right">
+                    <div className="bg-[#1e293b] backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-2 flex flex-col gap-2">
+                        {/* Vertical Tab Switcher */}
+                        <div className="flex flex-col gap-1 p-1 bg-black/40 rounded-xl">
                             <button
-                                key={item.type}
-                                onClick={() => addElement(item.type)}
-                                className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl hover:bg-white/10 active:scale-90 transition-all group"
+                                onClick={() => setPaletteTab('elements')}
+                                className={`p-2 rounded-lg transition-all ${paletteTab === 'elements' ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                                title="基础组件"
                             >
-                                <span className="material-icons text-gray-400 group-hover:text-primary transition-colors text-lg">
-                                    {item.icon}
-                                </span>
-                                <span className="text-[9px] text-gray-500 group-hover:text-gray-300 font-bold">{item.label}</span>
+                                <span className="material-icons text-sm">widgets</span>
                             </button>
-                        ))}
+                            <button
+                                onClick={() => setPaletteTab('blocks')}
+                                className={`p-2 rounded-lg transition-all ${paletteTab === 'blocks' ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                                title="智能模块"
+                            >
+                                <span className="material-icons text-sm">auto_awesome</span>
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col gap-2 py-2 overflow-y-auto max-h-[60vh] scrollbar-hide">
+                            {paletteTab === 'elements' ? (
+                                ELEMENT_PALETTE.map(item => (
+                                    <button
+                                        key={item.type}
+                                        onClick={() => addElement(item.type)}
+                                        className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-all group"
+                                    >
+                                        <span className="material-icons text-gray-300 group-hover:text-primary transition-colors text-xl">
+                                            {item.icon}
+                                        </span>
+                                        <span className="text-[10px] text-gray-400 group-hover:text-white font-medium">{item.label}</span>
+                                    </button>
+                                ))
+                            ) : (
+                                LABEL_BLOCKS.map(block => (
+                                    <button
+                                        key={block.id}
+                                        onClick={() => addBlock(block.id)}
+                                        className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-all group"
+                                    >
+                                        <span className="material-icons text-blue-400 group-hover:text-primary transition-colors text-xl">
+                                            {block.icon}
+                                        </span>
+                                        <span className="text-[9px] text-gray-300 group-hover:text-white font-medium text-center leading-tight">{block.name.replace('块', '')}</span>
+                                    </button>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
