@@ -78,8 +78,11 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
             await scanner.start(
                 { facingMode },
                 {
-                    fps: 15,          // High FPS for fast decode
-                    qrbox: { width: 280, height: 280 },
+                    fps: 20,          // Faster FPS
+                    qrbox: (viewWidth, viewHeight) => {
+                        const size = Math.min(viewWidth, viewHeight) * 0.75;
+                        return { width: size, height: size };
+                    },
                     aspectRatio: 1.0,
                     disableFlip: false,
                 },
@@ -130,12 +133,9 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            {/* Close area */}
-            <div className="absolute inset-0" onClick={onClose}></div>
-
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black">
             {/* Scanner Container */}
-            <div className="relative w-[92vw] max-w-[400px] bg-[#111827] rounded-3xl overflow-hidden shadow-2xl border border-white/10 z-10">
+            <div className="relative w-full h-full sm:w-[92vw] sm:h-auto sm:max-w-[500px] bg-[#111827] sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col z-10">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
                     <div className="flex items-center gap-2">
@@ -151,20 +151,20 @@ const CameraScanner: React.FC<CameraScannerProps> = ({
                 </div>
 
                 {/* Camera View */}
-                <div className="relative bg-black">
-                    <div id={SCANNER_REGION_ID} className="w-full aspect-square" />
+                <div className="relative bg-black flex-1 flex items-center justify-center overflow-hidden">
+                    <div id={SCANNER_REGION_ID} className="w-full h-full object-cover" />
 
                     {/* Scanning guide overlay */}
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div className="w-[260px] h-[260px] relative">
+                        <div className="w-[70vw] h-[70vw] max-w-[350px] max-h-[350px] relative">
                             {/* Corner decorators */}
-                            <div className="absolute top-0 left-0 w-8 h-8 border-t-3 border-l-3 border-primary rounded-tl-lg"></div>
-                            <div className="absolute top-0 right-0 w-8 h-8 border-t-3 border-r-3 border-primary rounded-tr-lg"></div>
-                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-3 border-l-3 border-primary rounded-bl-lg"></div>
-                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-3 border-r-3 border-primary rounded-br-lg"></div>
+                            <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
+                            <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
+                            <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
+                            <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
 
                             {/* Scanning line animation */}
-                            <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line"></div>
+                            <div className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line"></div>
                         </div>
                     </div>
 

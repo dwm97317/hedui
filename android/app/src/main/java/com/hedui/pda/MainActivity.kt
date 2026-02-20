@@ -68,12 +68,23 @@ class MainActivity : AppCompatActivity() {
         // Add Javascript Interface
         webView.addJavascriptInterface(WebAppInterface(), "Android")
 
-        // Enable Console Logs in Logcat
+        // Enable Console Logs in Logcat and Handle Permissions
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
                 android.util.Log.d("WebView", consoleMessage.message())
                 return true
             }
+
+            override fun onPermissionRequest(request: android.webkit.PermissionRequest) {
+                runOnUiThread {
+                    request.grant(request.resources)
+                }
+            }
+        }
+
+        // Check and Request Camera Permission if needed
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), 101)
         }
 
         webView.webViewClient = WebViewClient()
